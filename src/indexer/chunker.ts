@@ -1,6 +1,6 @@
 /**
  * Chunking Module
- * 
+ *
  * Splits files into chunks for embedding.
  * Uses line-based chunking with configurable size and overlap.
  */
@@ -58,7 +58,7 @@ function generateChunkId(sourceId: string, filePath: string, startLine: number):
   let hash = 0;
   for (let i = 0; i < base.length; i++) {
     const char = base.charCodeAt(i);
-    hash = ((hash << 5) - hash) + char;
+    hash = (hash << 5) - hash + char;
     hash = hash & hash; // Convert to 32-bit integer
   }
   return `chunk_${Math.abs(hash).toString(36)}`;
@@ -67,13 +67,10 @@ function generateChunkId(sourceId: string, filePath: string, startLine: number):
 /**
  * Chunk a single file into pieces
  */
-export function chunkFile(
-  file: DiscoveredFile,
-  options: ChunkOptions = DEFAULT_OPTIONS
-): Chunk[] {
+export function chunkFile(file: DiscoveredFile, options: ChunkOptions = DEFAULT_OPTIONS): Chunk[] {
   const lines = file.content.split('\n');
   const chunks: Chunk[] = [];
-  
+
   let currentLines: string[] = [];
   let currentTokens = 0;
   let startLine = 1;
@@ -98,7 +95,7 @@ export function chunkFile(
       // Calculate overlap: keep last N tokens worth of lines
       const overlapLines: string[] = [];
       let overlapTokens = 0;
-      
+
       for (let j = currentLines.length - 1; j >= 0 && overlapTokens < options.chunkOverlap; j--) {
         const overlapLine = currentLines[j];
         const overlapLineTokens = countTokens(overlapLine + '\n');
@@ -109,7 +106,8 @@ export function chunkFile(
       // Start next chunk with overlap
       currentLines = overlapLines;
       currentTokens = overlapTokens;
-      startLine = startLine + (chunks[chunks.length - 1].endLine - startLine + 1) - overlapLines.length;
+      startLine =
+        startLine + (chunks[chunks.length - 1].endLine - startLine + 1) - overlapLines.length;
     }
 
     currentLines.push(line);
@@ -141,7 +139,7 @@ export function chunkFiles(
   options: ChunkOptions = DEFAULT_OPTIONS
 ): Chunk[] {
   const allChunks: Chunk[] = [];
-  
+
   for (const file of files) {
     const chunks = chunkFile(file, options);
     allChunks.push(...chunks);

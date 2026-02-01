@@ -48,9 +48,7 @@ export class PathNotFoundError extends ContextKitError {
 
 export class SourceExistsError extends ContextKitError {
   constructor(name: string, existingPath?: string) {
-    const hint = existingPath
-      ? ` It points to "${existingPath}".`
-      : '';
+    const hint = existingPath ? ` It points to "${existingPath}".` : '';
     super(
       `Source "${name}" already exists.${hint} Use a different name or remove it first with \`contextkit source remove ${name}\`.`,
       'SOURCE_EXISTS'
@@ -60,10 +58,7 @@ export class SourceExistsError extends ContextKitError {
 
 export class AlreadyInitializedError extends ContextKitError {
   constructor() {
-    super(
-      'Already initialized. Use --force to reinitialize.',
-      'ALREADY_INITIALIZED'
-    );
+    super('Already initialized. Use --force to reinitialize.', 'ALREADY_INITIALIZED');
   }
 }
 

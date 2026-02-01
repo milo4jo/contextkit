@@ -41,13 +41,13 @@ CREATE INDEX IF NOT EXISTS idx_chunks_file ON chunks(file_path);
  */
 export function initDatabase(dbPath: string): Database.Database {
   const db = new Database(dbPath);
-  
+
   // Enable foreign keys
   db.pragma('foreign_keys = ON');
-  
+
   // Create schema
   db.exec(SCHEMA);
-  
+
   return db;
 }
 

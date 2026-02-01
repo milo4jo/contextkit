@@ -1,6 +1,6 @@
 /**
  * File Discovery Module
- * 
+ *
  * Discovers files in sources based on include/exclude patterns.
  */
 
@@ -38,7 +38,7 @@ export interface DiscoveryResult {
  */
 export function discoverFiles(source: Source, baseDir: string): DiscoveryResult {
   const sourcePath = resolve(baseDir, source.path);
-  
+
   // Find matching files
   const matches = fg.sync(source.patterns.include, {
     cwd: sourcePath,
@@ -52,10 +52,10 @@ export function discoverFiles(source: Source, baseDir: string): DiscoveryResult 
 
   for (const relativePath of matches) {
     const absolutePath = resolve(sourcePath, relativePath);
-    
+
     try {
       const stats = statSync(absolutePath);
-      
+
       // Skip files that are too large
       if (stats.size > MAX_FILE_SIZE) {
         skipped++;
@@ -64,7 +64,7 @@ export function discoverFiles(source: Source, baseDir: string): DiscoveryResult 
 
       // Read file content
       const content = readFileSync(absolutePath, 'utf-8');
-      
+
       // Skip binary files (simple heuristic: check for null bytes)
       if (content.includes('\0')) {
         skipped++;
@@ -94,9 +94,6 @@ export function discoverFiles(source: Source, baseDir: string): DiscoveryResult 
 /**
  * Discover files from multiple sources
  */
-export function discoverAllFiles(
-  sources: Source[],
-  baseDir: string
-): DiscoveryResult[] {
+export function discoverAllFiles(sources: Source[], baseDir: string): DiscoveryResult[] {
   return sources.map((source) => discoverFiles(source, baseDir));
 }

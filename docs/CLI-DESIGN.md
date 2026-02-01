@@ -80,7 +80,7 @@ Arguments:
 
 Options:
   -b, --budget   Max tokens (default: 8000)
-  -f, --format   Output format: text, json, xml (default: text)
+  -f, --format   Output format: text, json (default: text)
   -s, --sources  Filter to specific sources (comma-separated)
   --explain      Show selection reasoning
   --plain        Disable formatting (for piping)

@@ -1,6 +1,6 @@
 /**
  * Similarity Search Module
- * 
+ *
  * Finds chunks most similar to a query using cosine similarity.
  */
 
@@ -48,9 +48,9 @@ export async function searchSimilar(
     SELECT id, source_id, file_path, content, start_line, end_line, tokens, embedding
     FROM chunks
   `;
-  
+
   const params: string[] = [];
-  
+
   if (options.sources && options.sources.length > 0) {
     const placeholders = options.sources.map(() => '?').join(', ');
     sql += ` WHERE source_id IN (${placeholders})`;
@@ -88,6 +88,6 @@ export async function searchSimilar(
 
   // Sort by similarity descending and take top N
   scored.sort((a, b) => b.similarity - a.similarity);
-  
+
   return scored.slice(0, limit);
 }

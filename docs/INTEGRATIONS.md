@@ -57,13 +57,9 @@ contextkit index --status            # Show index status
 # Selection (main feature)
 contextkit select <query>            # Select context for query
   --budget <tokens>                  # Token budget (default: 8000)
-  --layers <layers>                  # Filter layers
-  --format <text|json|xml>           # Output format
+  --sources <ids>                    # Filter sources (comma-separated)
+  --format <text|json>               # Output format
   --explain                          # Show selection reasoning
-
-# Utilities
-contextkit tokens <file>             # Count tokens in file
-contextkit analyze <file>            # Analyze context quality
 ```
 
 ### Example Usage

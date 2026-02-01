@@ -49,12 +49,15 @@ export const indexCommand = new Command('index')
       let currentPhase = '';
 
       if (isTTY() && !opts.quiet) {
-        progressBar = new cliProgress.SingleBar({
-          format: `{phase} ${formatHighlight('[{source}]')} {bar} {value}/{total}`,
-          barCompleteChar: '█',
-          barIncompleteChar: '░',
-          hideCursor: true,
-        }, cliProgress.Presets.shades_classic);
+        progressBar = new cliProgress.SingleBar(
+          {
+            format: `{phase} ${formatHighlight('[{source}]')} {bar} {value}/{total}`,
+            barCompleteChar: '█',
+            barIncompleteChar: '░',
+            hideCursor: true,
+          },
+          cliProgress.Presets.shades_classic
+        );
       }
 
       // Progress callback
@@ -82,7 +85,9 @@ export const indexCommand = new Command('index')
         } else if (!opts.quiet) {
           // Non-TTY: simple line output
           if (progress.current === progress.total) {
-            writeMessage(`${phaseLabel} [${progress.sourceId}]: ${progress.current}/${progress.total}`);
+            writeMessage(
+              `${phaseLabel} [${progress.sourceId}]: ${progress.current}/${progress.total}`
+            );
           }
         }
       };
@@ -109,7 +114,7 @@ export const indexCommand = new Command('index')
         writeMessage('');
         const timeStr = (stats.timeMs / 1000).toFixed(1);
         writeSuccess(`Indexed ${stats.chunks} chunks from ${stats.files} files in ${timeStr}s`);
-        
+
         if (stats.skipped > 0) {
           writeMessage(formatDim(`  (${stats.skipped} files skipped - too large or binary)`));
         }
@@ -118,12 +123,17 @@ export const indexCommand = new Command('index')
 
       // JSON output
       if (opts.json) {
-        writeData(JSON.stringify({
-          status: 'success',
-          stats,
-        }, null, 2));
+        writeData(
+          JSON.stringify(
+            {
+              status: 'success',
+              stats,
+            },
+            null,
+            2
+          )
+        );
       }
-
     } finally {
       db.close();
     }

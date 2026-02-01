@@ -286,7 +286,7 @@ $ contextkit select "auth" --budget 4000 --format json --sources src
 | Flag | Short | Default | Description |
 |------|-------|---------|-------------|
 | `--budget` | `-b` | 8000 | Max tokens |
-| `--format` | `-f` | text | Output: text, json, xml |
+| `--format` | `-f` | text | Output: text, json |
 | `--sources` | `-s` | all | Filter sources (comma-separated) |
 | `--explain` | | false | Show scoring details |
 | `--plain` | | false | No formatting (for pipes) |

@@ -9,21 +9,10 @@ import { PathNotFoundError, SourceExistsError, InvalidUsageError } from '../../e
 import type { Source } from '../../config/types.js';
 
 /** Default file patterns to include */
-const DEFAULT_INCLUDE = [
-  '**/*.ts',
-  '**/*.js',
-  '**/*.tsx',
-  '**/*.jsx',
-  '**/*.md',
-  '**/*.json',
-];
+const DEFAULT_INCLUDE = ['**/*.ts', '**/*.js', '**/*.tsx', '**/*.jsx', '**/*.md', '**/*.json'];
 
 /** Default patterns to exclude */
-const DEFAULT_EXCLUDE = [
-  '**/node_modules/**',
-  '**/dist/**',
-  '**/.git/**',
-];
+const DEFAULT_EXCLUDE = ['**/node_modules/**', '**/dist/**', '**/.git/**'];
 
 export const addCommand = new Command('add')
   .description('Add a directory as a source')
@@ -95,7 +84,7 @@ function findSimilarPath(path: string): string | undefined {
 
   const entries = fg.sync(['*'], { cwd: parent, onlyDirectories: true });
   const needle = basename(path).toLowerCase();
-  
+
   return entries.find((e) => e.toLowerCase().includes(needle));
 }
 

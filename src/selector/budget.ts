@@ -1,6 +1,6 @@
 /**
  * Budget Fitting Module
- * 
+ *
  * Selects chunks to fit within a token budget.
  * Prefers keeping chunks from the same file together.
  */
@@ -20,10 +20,7 @@ export interface BudgetResult {
 /**
  * Select chunks that fit within budget
  */
-export function fitToBudget(
-  chunks: RankedChunk[],
-  budget: number
-): BudgetResult {
+export function fitToBudget(chunks: RankedChunk[], budget: number): BudgetResult {
   const selected: RankedChunk[] = [];
   let totalTokens = 0;
   let excluded = 0;
@@ -77,9 +74,7 @@ export function mergeAdjacentChunks(chunks: RankedChunk[]): RankedChunk[] {
     const next = chunks[i];
 
     // Check if adjacent (same file, consecutive lines)
-    const isAdjacent =
-      current.filePath === next.filePath &&
-      current.endLine + 1 >= next.startLine;
+    const isAdjacent = current.filePath === next.filePath && current.endLine + 1 >= next.startLine;
 
     if (isAdjacent) {
       // Merge chunks

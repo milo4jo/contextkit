@@ -1,6 +1,6 @@
 /**
  * Output Formatter Module
- * 
+ *
  * Formats selected chunks for display.
  */
 
@@ -76,7 +76,7 @@ export function formatOutput(
   // Add stats footer
   const filesCount = fileGroups.size;
   const statsLine = `📊 ${totalTokens.toLocaleString()} tokens | ${chunks.length} chunks | ${filesCount} files`;
-  
+
   const text = textParts.join('\n\n') + '\n\n---\n' + statsLine;
 
   // Build structured data
@@ -116,7 +116,7 @@ function formatCodeBlock(content: string, filePath: string): string {
  */
 function getLanguage(filePath: string): string {
   const ext = filePath.split('.').pop()?.toLowerCase() || '';
-  
+
   const langMap: Record<string, string> = {
     ts: 'typescript',
     tsx: 'tsx',
@@ -157,7 +157,7 @@ export function formatWithExplanation(
   timeMs: number
 ): FormattedOutput {
   const base = formatOutput(query, result, totalConsidered, timeMs);
-  
+
   // Add explanation section
   const explanations = result.chunks.map((chunk) => {
     const { similarity, recency, pathMatch } = chunk.scoreBreakdown;
@@ -169,7 +169,7 @@ export function formatWithExplanation(
   });
 
   const explainSection = '\n\n## Scoring Details\n\n' + explanations.join('\n\n');
-  
+
   return {
     text: base.text + explainSection,
     data: base.data,

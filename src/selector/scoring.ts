@@ -1,10 +1,10 @@
 /**
  * Scoring Module
- * 
+ *
  * Calculates final scores for chunks based on multiple signals.
- * 
+ *
  * Score = 0.6 × semantic_similarity
- *       + 0.2 × recency_bonus  
+ *       + 0.2 × recency_bonus
  *       + 0.2 × path_match_bonus
  */
 
@@ -32,10 +32,7 @@ const WEIGHTS = {
 /**
  * Calculate scores and rank chunks
  */
-export function rankChunks(
-  chunks: ScoredChunk[],
-  query: string
-): RankedChunk[] {
+export function rankChunks(chunks: ScoredChunk[], query: string): RankedChunk[] {
   // Extract keywords from query for path matching
   const queryKeywords = extractKeywords(query);
 
@@ -105,9 +102,40 @@ function calculatePathMatch(filePath: string, keywords: string[]): number {
 
 /** Common words to ignore in path matching */
 const STOP_WORDS = new Set([
-  'the', 'a', 'an', 'is', 'are', 'was', 'were', 'be', 'been',
-  'how', 'what', 'where', 'when', 'why', 'who', 'which',
-  'does', 'do', 'did', 'has', 'have', 'had',
-  'this', 'that', 'these', 'those',
-  'and', 'or', 'but', 'not', 'with', 'for', 'from', 'to', 'in', 'on',
+  'the',
+  'a',
+  'an',
+  'is',
+  'are',
+  'was',
+  'were',
+  'be',
+  'been',
+  'how',
+  'what',
+  'where',
+  'when',
+  'why',
+  'who',
+  'which',
+  'does',
+  'do',
+  'did',
+  'has',
+  'have',
+  'had',
+  'this',
+  'that',
+  'these',
+  'those',
+  'and',
+  'or',
+  'but',
+  'not',
+  'with',
+  'for',
+  'from',
+  'to',
+  'in',
+  'on',
 ]);

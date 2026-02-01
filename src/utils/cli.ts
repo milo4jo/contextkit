@@ -1,6 +1,6 @@
 /**
  * CLI utilities
- * 
+ *
  * Helper functions for CLI commands.
  */
 
@@ -16,16 +16,16 @@ export interface GlobalOpts {
 
 /**
  * Get global options from command hierarchy
- * 
+ *
  * Traverses up the command tree to find the root program's options.
  */
 export function getGlobalOpts(command: Command): GlobalOpts {
   let current: Command | null = command;
-  
+
   // Walk up to root
   while (current?.parent) {
     current = current.parent;
   }
-  
+
   return current?.opts() || {};
 }

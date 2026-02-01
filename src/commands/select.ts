@@ -64,7 +64,6 @@ export const selectCommand = new Command('select')
         // Text output goes to stdout (it's the data)
         writeData(result.output.text);
       }
-
     } finally {
       db.close();
     }

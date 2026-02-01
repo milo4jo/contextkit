@@ -18,11 +18,9 @@ const EXIT_INVALID_USAGE = 2;
 function handleError(error: unknown): never {
   if (error instanceof ContextKitError) {
     writeError(error.message);
-    
-    const exitCode = error instanceof InvalidUsageError 
-      ? EXIT_INVALID_USAGE 
-      : EXIT_ERROR;
-    
+
+    const exitCode = error instanceof InvalidUsageError ? EXIT_INVALID_USAGE : EXIT_ERROR;
+
     process.exit(exitCode);
   }
 

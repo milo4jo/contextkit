@@ -1,6 +1,6 @@
 /**
  * Embeddings Module
- * 
+ *
  * Generates embeddings using local models via @xenova/transformers.
  * Uses gte-small (384 dimensions) by default.
  */
@@ -61,7 +61,7 @@ export async function embedBatch(
 
   for (let i = 0; i < texts.length; i += BATCH_SIZE) {
     const batch = texts.slice(i, i + BATCH_SIZE);
-    
+
     // Process batch
     const outputs = await Promise.all(
       batch.map(async (text) => {
@@ -69,9 +69,9 @@ export async function embedBatch(
         return Array.from(output.data as Float32Array);
       })
     );
-    
+
     embeddings.push(...outputs);
-    
+
     // Report progress
     if (onProgress) {
       onProgress(Math.min(i + BATCH_SIZE, texts.length), texts.length);

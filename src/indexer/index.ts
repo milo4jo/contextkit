@@ -1,6 +1,6 @@
 /**
  * Main Indexer Module
- * 
+ *
  * Orchestrates file discovery, chunking, embedding, and storage.
  */
 
@@ -136,7 +136,8 @@ function storeChunks(
     db.prepare('DELETE FROM chunks WHERE source_id = ?').run(sourceId);
 
     // Update source record
-    db.prepare(`
+    db.prepare(
+      `
       INSERT INTO sources (id, path, file_count, chunk_count, indexed_at)
       VALUES (?, ?, ?, ?, datetime('now'))
       ON CONFLICT(id) DO UPDATE SET
@@ -144,7 +145,8 @@ function storeChunks(
         file_count = excluded.file_count,
         chunk_count = excluded.chunk_count,
         indexed_at = excluded.indexed_at
-    `).run(sourceId, sourcePath, fileCount, chunks.length);
+    `
+    ).run(sourceId, sourcePath, fileCount, chunks.length);
 
     // Insert chunks
     const insertChunk = db.prepare(`
@@ -155,7 +157,7 @@ function storeChunks(
     for (const chunk of chunks) {
       // Convert embedding to binary blob
       const embeddingBlob = Buffer.from(new Float32Array(chunk.embedding).buffer);
-      
+
       insertChunk.run(
         chunk.id,
         chunk.sourceId,
@@ -183,4 +185,11 @@ export function readEmbedding(blob: Buffer): number[] {
 // Re-export types and functions
 export { discoverFiles, type DiscoveredFile, type DiscoveryResult } from './discovery.js';
 export { chunkFiles, chunkFile, countTokens, type Chunk, type ChunkOptions } from './chunker.js';
-export { embed, embedBatch, embedChunks, cosineSimilarity, EMBEDDING_DIM, type EmbeddedChunk } from './embeddings.js';
+export {
+  embed,
+  embedBatch,
+  embedChunks,
+  cosineSimilarity,
+  EMBEDDING_DIM,
+  type EmbeddedChunk,
+} from './embeddings.js';

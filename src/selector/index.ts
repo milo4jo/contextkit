@@ -1,6 +1,6 @@
 /**
  * Main Selector Module
- * 
+ *
  * Orchestrates the selection pipeline:
  * 1. Search for similar chunks
  * 2. Score and rank

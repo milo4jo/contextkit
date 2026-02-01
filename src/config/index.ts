@@ -50,19 +50,19 @@ export function ensureInitialized(): void {
  */
 export function loadConfig(): Config {
   const configPath = getConfigPath();
-  
+
   if (!existsSync(configPath)) {
     throw new Error(`Config file not found: ${configPath}`);
   }
-  
+
   const content = readFileSync(configPath, 'utf-8');
   const config = parse(content) as Config;
-  
+
   // Ensure sources array exists
   if (!config.sources) {
     config.sources = [];
   }
-  
+
   return config;
 }
 
@@ -87,7 +87,7 @@ export function getDefaultConfig(): string {
       chunk_overlap: 50,
     },
   };
-  
+
   return `# ContextKit Configuration
 # https://github.com/milo4jo/contextkit
 

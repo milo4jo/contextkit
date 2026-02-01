@@ -1,6 +1,6 @@
 /**
  * Formatting utilities for CLI output
- * 
+ *
  * Centralized formatting functions to avoid duplication.
  */
 

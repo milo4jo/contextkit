@@ -1,6 +1,6 @@
 /**
  * Stream utilities for proper stdout/stderr separation
- * 
+ *
  * Based on CLI-DESIGN.md:
  * - stdout: Primary output (results, data)
  * - stderr: Progress, logs, errors, prompts
@@ -19,11 +19,7 @@ export function isTTY(): boolean {
  * Check if colors should be disabled
  */
 export function shouldUseColor(): boolean {
-  return (
-    process.env.NO_COLOR === undefined &&
-    process.env.TERM !== 'dumb' &&
-    isTTY()
-  );
+  return process.env.NO_COLOR === undefined && process.env.TERM !== 'dumb' && isTTY();
 }
 
 /**
