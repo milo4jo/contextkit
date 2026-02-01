@@ -16,7 +16,7 @@ ContextKit solves this:
 ## Install
 
 ```bash
-npm install -g contextkit
+npm install -g @milo4jo/contextkit
 ```
 
 ## Quick Start
