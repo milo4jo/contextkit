@@ -1,10 +1,10 @@
 import { Command } from 'commander';
 import { existsSync, mkdirSync, writeFileSync, appendFileSync, readFileSync, rmSync } from 'fs';
 import { join } from 'path';
-import chalk from 'chalk';
 import { getDefaultConfig, CONFIG_FILE, INDEX_DB } from '../config/index.js';
 import { initDatabase } from '../db/index.js';
-import { writeSuccess, writeMessage, shouldUseColor } from '../utils/streams.js';
+import { writeSuccess, writeMessage } from '../utils/streams.js';
+import { formatPath, formatCommand, formatBold } from '../utils/format.js';
 import { AlreadyInitializedError } from '../errors/index.js';
 
 export const initCommand = new Command('init')
@@ -60,15 +60,3 @@ export const initCommand = new Command('init')
     writeMessage(`  3. Select context: ${formatCommand('contextkit select "your query"')}`);
     writeMessage('');
   });
-
-function formatPath(path: string): string {
-  return shouldUseColor() ? chalk.cyan(path) : path;
-}
-
-function formatCommand(cmd: string): string {
-  return shouldUseColor() ? chalk.cyan(cmd) : `'${cmd}'`;
-}
-
-function formatBold(text: string): string {
-  return shouldUseColor() ? chalk.bold(text) : text;
-}

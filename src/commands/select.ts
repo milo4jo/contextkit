@@ -1,7 +1,8 @@
 import { Command } from 'commander';
-import chalk from 'chalk';
 import { ensureInitialized } from '../config/index.js';
-import { writeData, writeMessage, writeWarning, shouldUseColor } from '../utils/streams.js';
+import { writeData, writeMessage, writeWarning } from '../utils/streams.js';
+import { formatDim } from '../utils/format.js';
+import { getGlobalOpts } from '../utils/cli.js';
 import { InvalidUsageError } from '../errors/index.js';
 
 export const selectCommand = new Command('select')
@@ -14,7 +15,7 @@ export const selectCommand = new Command('select')
   .action(async (query: string, options) => {
     ensureInitialized();
 
-    const opts = selectCommand.parent?.opts() || {};
+    const opts = getGlobalOpts(selectCommand);
     const budget = parseInt(options.budget, 10);
 
     if (isNaN(budget) || budget <= 0) {
@@ -49,7 +50,3 @@ export const selectCommand = new Command('select')
     }
     writeMessage('');
   });
-
-function formatDim(text: string): string {
-  return shouldUseColor() ? chalk.gray(text) : text;
-}

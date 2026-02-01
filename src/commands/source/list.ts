@@ -1,7 +1,8 @@
 import { Command } from 'commander';
-import chalk from 'chalk';
 import { loadConfig, ensureInitialized } from '../../config/index.js';
-import { writeData, writeMessage, shouldUseColor } from '../../utils/streams.js';
+import { writeData, writeMessage } from '../../utils/streams.js';
+import { formatCommand, formatBold, formatGray } from '../../utils/format.js';
+import { getGlobalOpts } from '../../utils/cli.js';
 
 export const listCommand = new Command('list')
   .description('List configured sources')
@@ -9,7 +10,7 @@ export const listCommand = new Command('list')
     ensureInitialized();
 
     const config = loadConfig();
-    const opts = listCommand.parent?.parent?.opts() || {};
+    const opts = getGlobalOpts(listCommand);
 
     if (config.sources.length === 0) {
       if (opts.json) {
@@ -51,15 +52,3 @@ export const listCommand = new Command('list')
       writeMessage(`Total: ${config.sources.length} source${config.sources.length === 1 ? '' : 's'}`);
     }
   });
-
-function formatCommand(cmd: string): string {
-  return shouldUseColor() ? chalk.cyan(cmd) : `'${cmd}'`;
-}
-
-function formatBold(text: string): string {
-  return shouldUseColor() ? chalk.bold(text) : text;
-}
-
-function formatGray(text: string): string {
-  return shouldUseColor() ? chalk.gray(text) : text;
-}

@@ -1,7 +1,7 @@
 import { Command } from 'commander';
-import chalk from 'chalk';
 import { loadConfig, saveConfig, ensureInitialized } from '../../config/index.js';
-import { writeSuccess, writeMessage, shouldUseColor } from '../../utils/streams.js';
+import { writeSuccess, writeMessage } from '../../utils/streams.js';
+import { formatCommand, formatHighlight } from '../../utils/format.js';
 import { confirm, shouldSkipConfirm } from '../../utils/prompts.js';
 import { SourceNotFoundError } from '../../errors/index.js';
 
@@ -43,11 +43,3 @@ export const removeCommand = new Command('remove')
     writeSuccess(`Removed source '${formatHighlight(name)}'`);
     writeMessage(`Run ${formatCommand('contextkit index')} to update the index.`);
   });
-
-function formatHighlight(text: string): string {
-  return shouldUseColor() ? chalk.cyan(text) : text;
-}
-
-function formatCommand(cmd: string): string {
-  return shouldUseColor() ? chalk.cyan(cmd) : `'${cmd}'`;
-}

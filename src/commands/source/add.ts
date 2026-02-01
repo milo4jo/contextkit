@@ -1,11 +1,11 @@
 import { Command } from 'commander';
 import { existsSync, statSync } from 'fs';
 import { resolve, relative, basename } from 'path';
-import chalk from 'chalk';
 import fg from 'fast-glob';
 import { loadConfig, saveConfig, ensureInitialized } from '../../config/index.js';
-import { writeSuccess, writeError, writeMessage, shouldUseColor } from '../../utils/streams.js';
-import { PathNotFoundError, SourceExistsError } from '../../errors/index.js';
+import { writeSuccess, writeMessage } from '../../utils/streams.js';
+import { formatCommand, formatHighlight } from '../../utils/format.js';
+import { PathNotFoundError, SourceExistsError, InvalidUsageError } from '../../errors/index.js';
 import type { Source } from '../../config/types.js';
 
 /** Default file patterns to include */
@@ -45,9 +45,7 @@ export const addCommand = new Command('add')
 
     // Validate it's a directory
     if (!statSync(absolutePath).isDirectory()) {
-      writeError('Not a directory');
-      writeMessage(`'${path}' is a file, not a directory.`);
-      process.exit(1);
+      throw new InvalidUsageError(`'${path}' is a file, not a directory.`);
     }
 
     const config = loadConfig();
@@ -80,8 +78,7 @@ export const addCommand = new Command('add')
     saveConfig(config);
 
     // Output
-    const name = shouldUseColor() ? chalk.cyan(sourceId) : sourceId;
-    writeSuccess(`Added source '${name}'`);
+    writeSuccess(`Added source '${formatHighlight(sourceId)}'`);
     writeMessage(`  Path:     ${relativePath}`);
     writeMessage(`  Files:    ${files.length} (${summarizeExtensions(files)})`);
     writeMessage('');
@@ -112,11 +109,4 @@ function summarizeExtensions(files: string[]): string {
   }
   const list = Array.from(exts).slice(0, 5).join(', ');
   return exts.size > 5 ? `${list}...` : list;
-}
-
-/**
- * Format a command for display
- */
-function formatCommand(cmd: string): string {
-  return shouldUseColor() ? chalk.cyan(cmd) : `'${cmd}'`;
 }

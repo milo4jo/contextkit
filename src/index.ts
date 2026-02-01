@@ -59,8 +59,7 @@ program
 program
   .option('--json', 'Output as JSON')
   .option('--plain', 'Plain output (no colors/formatting)')
-  .option('--quiet', 'Suppress non-essential output')
-  .option('--verbose', 'Show detailed output');
+  .option('--quiet', 'Suppress non-essential output');
 
 // Register commands
 program.addCommand(initCommand);

@@ -1,10 +1,11 @@
 import { Command } from 'commander';
-import chalk from 'chalk';
 import cliProgress from 'cli-progress';
 import { loadConfig, ensureInitialized } from '../config/index.js';
 import { openDatabase } from '../db/index.js';
 import { indexSources, type IndexProgress } from '../indexer/index.js';
-import { writeData, writeMessage, writeSuccess, writeWarning, shouldUseColor, isTTY } from '../utils/streams.js';
+import { writeData, writeMessage, writeSuccess, writeWarning, isTTY } from '../utils/streams.js';
+import { formatCommand, formatDim, formatHighlight } from '../utils/format.js';
+import { getGlobalOpts } from '../utils/cli.js';
 import { SourceNotFoundError } from '../errors/index.js';
 
 export const indexCommand = new Command('index')
@@ -14,7 +15,7 @@ export const indexCommand = new Command('index')
     ensureInitialized();
 
     const config = loadConfig();
-    const opts = indexCommand.parent?.opts() || {};
+    const opts = getGlobalOpts(indexCommand);
 
     if (config.sources.length === 0) {
       writeWarning('No sources configured');
@@ -49,7 +50,7 @@ export const indexCommand = new Command('index')
 
       if (isTTY() && !opts.quiet) {
         progressBar = new cliProgress.SingleBar({
-          format: `{phase} ${shouldUseColor() ? chalk.cyan('[{source}]') : '[{source}]'} {bar} {value}/{total}`,
+          format: `{phase} ${formatHighlight('[{source}]')} {bar} {value}/{total}`,
           barCompleteChar: '█',
           barIncompleteChar: '░',
           hideCursor: true,
@@ -127,11 +128,3 @@ export const indexCommand = new Command('index')
       db.close();
     }
   });
-
-function formatCommand(cmd: string): string {
-  return shouldUseColor() ? chalk.cyan(cmd) : `'${cmd}'`;
-}
-
-function formatDim(text: string): string {
-  return shouldUseColor() ? chalk.gray(text) : text;
-}

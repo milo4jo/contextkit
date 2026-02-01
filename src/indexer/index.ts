@@ -100,7 +100,7 @@ export async function indexSources(
       total: embeddedChunks.length,
     });
 
-    storeChunks(db, source.id, embeddedChunks, discovered.files.length);
+    storeChunks(db, source.id, source.path, embeddedChunks, discovered.files.length);
     totalChunks += embeddedChunks.length;
 
     onProgress?.({
@@ -126,6 +126,7 @@ export async function indexSources(
 function storeChunks(
   db: Database.Database,
   sourceId: string,
+  sourcePath: string,
   chunks: EmbeddedChunk[],
   fileCount: number
 ): void {
@@ -137,12 +138,13 @@ function storeChunks(
     // Update source record
     db.prepare(`
       INSERT INTO sources (id, path, file_count, chunk_count, indexed_at)
-      VALUES (?, '', ?, ?, datetime('now'))
+      VALUES (?, ?, ?, ?, datetime('now'))
       ON CONFLICT(id) DO UPDATE SET
+        path = excluded.path,
         file_count = excluded.file_count,
         chunk_count = excluded.chunk_count,
         indexed_at = excluded.indexed_at
-    `).run(sourceId, fileCount, chunks.length);
+    `).run(sourceId, sourcePath, fileCount, chunks.length);
 
     // Insert chunks
     const insertChunk = db.prepare(`
