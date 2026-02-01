@@ -2,9 +2,46 @@
 
 import { Command } from 'commander';
 import { initCommand } from './commands/init.js';
-import { sourceCommand } from './commands/source.js';
+import { sourceCommand } from './commands/source/index.js';
 import { indexCommand } from './commands/index-cmd.js';
 import { selectCommand } from './commands/select.js';
+import { ContextKitError, InvalidUsageError } from './errors/index.js';
+import { writeError, writeMessage } from './utils/streams.js';
+
+// Exit codes per CLI-DESIGN.md
+const EXIT_ERROR = 1;
+const EXIT_INVALID_USAGE = 2;
+
+/**
+ * Handle errors globally
+ */
+function handleError(error: unknown): never {
+  if (error instanceof ContextKitError) {
+    writeError(error.message);
+    
+    const exitCode = error instanceof InvalidUsageError 
+      ? EXIT_INVALID_USAGE 
+      : EXIT_ERROR;
+    
+    process.exit(exitCode);
+  }
+
+  // Unexpected error - show stack in verbose mode
+  if (error instanceof Error) {
+    writeError(error.message);
+    if (process.env.DEBUG) {
+      writeMessage(error.stack || '');
+    }
+  } else {
+    writeError('An unexpected error occurred');
+  }
+
+  process.exit(EXIT_ERROR);
+}
+
+// Global error handlers
+process.on('uncaughtException', handleError);
+process.on('unhandledRejection', handleError);
 
 const program = new Command();
 

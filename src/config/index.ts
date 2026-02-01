@@ -1,7 +1,7 @@
 import { existsSync, readFileSync, writeFileSync } from 'fs';
 import { join } from 'path';
 import { parse, stringify } from 'yaml';
-import chalk from 'chalk';
+import { NotInitializedError } from '../errors/index.js';
 import type { Config } from './types.js';
 
 export const CONFIG_FILE = 'config.yaml';
@@ -37,15 +37,11 @@ export function isInitialized(): boolean {
 }
 
 /**
- * Ensure ContextKit is initialized, exit with error if not
+ * Ensure ContextKit is initialized, throw if not
  */
 export function ensureInitialized(): void {
   if (!isInitialized()) {
-    console.error(chalk.red('Error:') + ' Not initialized');
-    console.error();
-    console.error('No .contextkit directory found.');
-    console.error(`Run ${chalk.cyan('contextkit init')} first.`);
-    process.exit(1);
+    throw new NotInitializedError();
   }
 }
 
