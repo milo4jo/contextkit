@@ -45,7 +45,11 @@
     "typescript-eslint": "^8.20.0"
   },
   "engines": {
-    "node": ">=20"
+    "node": ">=18"
+  },
+  "homepage": "https://github.com/milo4jo/contextkit#readme",
+  "bugs": {
+    "url": "https://github.com/milo4jo/contextkit/issues"
   },
   "keywords": [
     "llm",

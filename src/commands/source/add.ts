@@ -52,8 +52,9 @@ export const addCommand = new Command('add')
     const sourceId = options.name || basename(absolutePath);
 
     // Check for duplicates
-    if (config.sources.find((s) => s.id === sourceId)) {
-      throw new SourceExistsError(sourceId);
+    const existing = config.sources.find((s) => s.id === sourceId);
+    if (existing) {
+      throw new SourceExistsError(sourceId, existing.path);
     }
 
     // Resolve patterns

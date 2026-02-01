@@ -70,23 +70,27 @@ program.addCommand(selectCommand);
 // Default action when no command given
 program.action(() => {
   console.log(`
-contextkit - Smart context selection for LLMs
+🎯 contextkit - Smart context selection for AI coding assistants
 
-Usage: contextkit <command> [options]
+Quick Start:
+  $ contextkit init                    # Initialize in your project
+  $ contextkit source add ./src        # Add source directories
+  $ contextkit index                   # Index everything
+  $ contextkit select "your query"     # Find relevant context
 
 Commands:
   init          Initialize ContextKit in current directory
-  source        Manage sources
-  index         Index all sources
+  source        Manage source directories
+  index         Index all sources (re-run after code changes)
   select        Select context for a query
 
-Examples:
-  $ contextkit init
-  $ contextkit source add ./src
-  $ contextkit index
-  $ contextkit select "How does auth work?"
+Global Options:
+  --json        Output as JSON
+  --plain       No colors (or set NO_COLOR=1)
+  --quiet       Suppress non-essential output
+  -v, --version Show version
 
-Run 'contextkit <command> --help' for details.
+Run 'contextkit <command> --help' for command details.
 `);
 });
 

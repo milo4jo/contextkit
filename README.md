@@ -1,81 +1,181 @@
-# ContextKit
+# ContextKit 🎯
 
-> Intelligent context selection for LLM applications
+> Smart context selection for AI coding assistants
 
-⚠️ **Early Stage** — This project is in ideation/design phase.
+ContextKit indexes your codebase and selects the most relevant chunks for any query — fitting them into your token budget.
 
-## The Problem
+## Why?
 
-LLMs have limited context windows. Developers face hard choices:
-- **Too much context** → expensive, noisy, slow
-- **Too little context** → hallucinations, poor answers
-- **Manual curation** → doesn't scale
+AI coding assistants work better with relevant context. But dumping your entire codebase into the prompt wastes tokens and dilutes focus.
 
-There's no good tooling for this.
+ContextKit solves this:
+1. **Index** your code locally (embeddings stay on your machine)
+2. **Query** with natural language
+3. **Get** the most relevant chunks, formatted and ready to paste
 
-## What ContextKit Does
-
-ContextKit selects the optimal context for any query.
+## Install
 
 ```bash
-# Index your codebase
-$ contextkit init
-$ contextkit source add ./src ./docs
-$ contextkit index
-
-# Get optimized context for a query
-$ contextkit select "How does the auth middleware work?" --budget 8000
+npm install -g contextkit
 ```
 
-**Input:** Query + Sources + Token Budget  
-**Output:** Optimized context, ready for any LLM
+## Quick Start
 
-## Design Principles
+```bash
+# Initialize in your project
+cd your-project
+contextkit init
 
-- **Single Responsibility** — Context selection only. Not an LLM gateway.
-- **Offline-First** — Works locally. Cloud optional.
-- **Model-Agnostic** — Use with Claude, GPT, Llama, anything.
-- **Observable** — See exactly why context was selected.
+# Add source directories
+contextkit source add ./src
+contextkit source add ./lib
 
-## Use Cases
+# Index everything
+contextkit index
 
-- **Coding Agents** — Give Claude Code / OpenCode the right files
-- **Chat Applications** — Select relevant docs for user questions
-- **RAG Enhancement** — Smarter retrieval than embedding-only
+# Find relevant context
+contextkit select "How does authentication work?"
+```
 
-## Integrations
+## Commands
 
-| Integration | Status | Description |
-|-------------|--------|-------------|
-| CLI | Planned | Foundation for everything |
-| Agent Skill | Planned | For OpenCode, Clawdbot, etc. |
-| MCP Server | Planned | For Claude Desktop |
-| Cloud API | Future | Team features, hosted |
+### `contextkit init`
 
-## Documentation
+Initialize ContextKit in your project. Creates `.contextkit/` directory with config and database.
 
-- [Vision](docs/VISION.md) — Where we're heading
-- [Problem Space](docs/PROBLEM.md) — Pain points we're solving
-- [Architecture](docs/ARCHITECTURE.md) — Technical design
-- [CLI Design](docs/CLI-DESIGN.md) — CLI best practices (based on clig.dev)
-- [MVP Spec](docs/MVP.md) — What we're building first
-- [Integrations](docs/INTEGRATIONS.md) — How it fits in the ecosystem
-- [Competitors](docs/COMPETITORS.md) — Market landscape
-- [Ideas](docs/IDEAS.md) — Scratchpad
+```bash
+contextkit init
+```
 
-## Status
+### `contextkit source`
 
-🚧 **Phase: Implementation**
+Manage source directories to index.
 
-- [x] Problem definition
-- [x] Vision & principles
-- [x] Architecture draft
-- [x] Integration strategy
-- [x] MVP specification
-- [x] **Phase 1: Foundation** (CLI skeleton, config, SQLite)
-- [x] **Phase 2: Indexing** (file discovery, chunking, local embeddings)
-- [ ] Phase 3: Selection (query, similarity, ranking)
+```bash
+# Add a source
+contextkit source add ./src
+
+# List sources
+contextkit source list
+
+# Remove a source
+contextkit source remove src
+```
+
+### `contextkit index`
+
+Index all configured sources. Re-run after code changes.
+
+```bash
+# Index everything
+contextkit index
+
+# Index specific source
+contextkit index --source src
+```
+
+### `contextkit select`
+
+Find relevant context for a query.
+
+```bash
+# Basic usage
+contextkit select "How does the auth middleware work?"
+
+# Limit token budget (default: 8000)
+contextkit select "error handling" --budget 4000
+
+# Filter to specific sources
+contextkit select "database queries" --sources src,lib
+
+# Show scoring details
+contextkit select "user validation" --explain
+
+# JSON output for scripts
+contextkit select "API routes" --json
+```
+
+## Output Format
+
+```markdown
+## src/auth/middleware.ts (lines 1-45)
+```typescript
+export const authMiddleware = async (req, res, next) => {
+  // ... relevant code
+}
+```
+
+## src/auth/utils.ts (lines 12-30)
+```typescript
+export function validateToken(token: string) {
+  // ... relevant code
+}
+```
 
 ---
+📊 3,847 tokens | 8 chunks | 2 files
+```
 
-Built by [Milo](https://milo-site-self.vercel.app) 🦊
+## How It Works
+
+1. **Chunking**: Files are split into ~500 token chunks with overlap
+2. **Embedding**: Each chunk is embedded using [gte-small](https://huggingface.co/thenlper/gte-small) (runs locally)
+3. **Search**: Your query is embedded and compared via cosine similarity
+4. **Scoring**: Chunks are ranked by similarity + path relevance
+5. **Budget**: Top chunks are selected until token budget is filled
+
+## Configuration
+
+Edit `.contextkit/config.yaml`:
+
+```yaml
+version: 1
+
+sources:
+  - id: src
+    path: ./src
+    patterns:
+      include:
+        - "**/*.ts"
+        - "**/*.js"
+      exclude:
+        - "**/node_modules/**"
+        - "**/*.test.ts"
+
+settings:
+  chunk_size: 500      # Target tokens per chunk
+  chunk_overlap: 50    # Overlap between chunks
+```
+
+## Global Options
+
+All commands support:
+
+| Option | Description |
+|--------|-------------|
+| `--json` | Output as JSON |
+| `--plain` | No colors (or set `NO_COLOR=1`) |
+| `--quiet` | Suppress non-essential output |
+
+## Privacy
+
+- All processing happens locally
+- Embeddings are stored in `.contextkit/index.db`
+- No data leaves your machine
+- Add `.contextkit` to `.gitignore` (done automatically)
+
+## Requirements
+
+- Node.js 18+
+- ~500MB disk space for embedding model (downloaded on first run)
+
+## Coming Soon
+
+- MCP server for Claude Desktop
+- Agent skill for OpenCode/Clawdbot
+- Configurable embedding models
+- Incremental indexing
+
+## License
+
+MIT
