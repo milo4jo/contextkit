@@ -6,7 +6,7 @@
   "license": "MIT",
   "type": "module",
   "bin": {
-    "contextkit": "./dist/index.js"
+    "contextkit": "dist/index.js"
   },
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
@@ -62,6 +62,6 @@
   ],
   "repository": {
     "type": "git",
-    "url": "https://github.com/milo4jo/contextkit.git"
+    "url": "git+https://github.com/milo4jo/contextkit.git"
   }
 }
