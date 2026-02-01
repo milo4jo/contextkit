@@ -1,41 +1,76 @@
 # ContextKit
 
-> Smart context management for AI applications
+> Intelligent context selection for LLM applications
 
-⚠️ **Early Stage** — This project is in ideation phase.
+⚠️ **Early Stage** — This project is in ideation/design phase.
 
 ## The Problem
 
-LLMs have limited context windows. Developers building AI features face hard choices:
-- Too much context → expensive, noisy, slow
-- Too little context → hallucinations, poor answers
-- Manual curation → doesn't scale
+LLMs have limited context windows. Developers face hard choices:
+- **Too much context** → expensive, noisy, slow
+- **Too little context** → hallucinations, poor answers
+- **Manual curation** → doesn't scale
 
-**There's no good tooling for this.**
+There's no good tooling for this.
 
-## The Vision
+## What ContextKit Does
 
-A developer toolkit that makes context management effortless:
-- **Select** the right context automatically
-- **Structure** it for optimal LLM performance
-- **Analyze** what works and what doesn't
-- **Iterate** with versioning and A/B testing
+ContextKit selects the optimal context for any query.
 
-## Target Users
+```bash
+# Index your codebase
+$ contextkit init
+$ contextkit source add ./src ./docs
+$ contextkit index
 
-- **B2D**: Developers building AI features into their products
-- **B2B**: Companies deploying AI agents/copilots at scale
+# Get optimized context for a query
+$ contextkit select "How does the auth middleware work?" --budget 8000
+```
+
+**Input:** Query + Sources + Token Budget  
+**Output:** Optimized context, ready for any LLM
+
+## Design Principles
+
+- **Single Responsibility** — Context selection only. Not an LLM gateway.
+- **Offline-First** — Works locally. Cloud optional.
+- **Model-Agnostic** — Use with Claude, GPT, Llama, anything.
+- **Observable** — See exactly why context was selected.
+
+## Use Cases
+
+- **Coding Agents** — Give Claude Code / OpenCode the right files
+- **Chat Applications** — Select relevant docs for user questions
+- **RAG Enhancement** — Smarter retrieval than embedding-only
+
+## Integrations
+
+| Integration | Status | Description |
+|-------------|--------|-------------|
+| CLI | Planned | Foundation for everything |
+| Agent Skill | Planned | For OpenCode, Clawdbot, etc. |
+| MCP Server | Planned | For Claude Desktop |
+| Cloud API | Future | Team features, hosted |
+
+## Documentation
+
+- [Vision](docs/VISION.md) — Where we're heading
+- [Problem Space](docs/PROBLEM.md) — Pain points we're solving
+- [Architecture](docs/ARCHITECTURE.md) — Technical design
+- [Integrations](docs/INTEGRATIONS.md) — How it fits in the ecosystem
+- [Competitors](docs/COMPETITORS.md) — Market landscape
+- [Ideas](docs/IDEAS.md) — Scratchpad
 
 ## Status
 
-📋 Ideation & Research
+📋 **Phase: Design**
 
-## Docs
-
-- [Vision](docs/VISION.md) — Where we're going
-- [Problem Space](docs/PROBLEM.md) — The pain points we're solving
-- [Competitors](docs/COMPETITORS.md) — What exists today
-- [Architecture](docs/ARCHITECTURE.md) — How it could work
+- [x] Problem definition
+- [x] Vision & principles
+- [x] Architecture draft
+- [x] Integration strategy
+- [ ] MVP specification
+- [ ] Implementation
 
 ---
 

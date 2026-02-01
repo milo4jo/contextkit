@@ -2,126 +2,264 @@
 
 How ContextKit fits into the AI tooling ecosystem.
 
-## Target Integrations
+## Design Principle
 
-### 1. MCP Server (Model Context Protocol)
+ContextKit is a **library/CLI first**, with optional cloud features. All integrations build on the same core.
 
-ContextKit as an MCP server that any compatible agent can use.
-
-```typescript
-// MCP Tool Definition
-{
-  name: "contextkit_select",
-  description: "Select optimal context for a query",
-  parameters: {
-    query: "string - what the user wants to do",
-    sources: "array - which sources to consider",
-    budget: "number - max tokens"
-  }
-}
 ```
-
-**Supported Agents:**
-- Claude Desktop
-- Any MCP-compatible client
+                    ┌─────────────────┐
+                    │  ContextKit     │
+                    │  Core Library   │
+                    └────────┬────────┘
+                             │
+        ┌────────────────────┼────────────────────┐
+        │                    │                    │
+        ▼                    ▼                    ▼
+   ┌─────────┐         ┌─────────┐         ┌─────────┐
+   │   CLI   │         │  Skill  │         │   MCP   │
+   └─────────┘         └─────────┘         └─────────┘
+```
 
 ---
 
-### 2. CLI Tool
+## Integration Priority
 
-Standalone CLI for use in scripts and pipelines.
+| Priority | Integration | Rationale |
+|----------|-------------|-----------|
+| 1 | **CLI** | Foundation. Everything else wraps it. |
+| 2 | **Agent Skill** | Direct value for coding agents. |
+| 3 | **MCP Server** | Broader ecosystem reach. |
+| 4 | **Cloud API** | Team features, hosted option. |
+
+---
+
+## 1. CLI (Foundation)
+
+The CLI is the core interface. All other integrations wrap it.
+
+### Commands
 
 ```bash
-# Get optimized context
-$ contextkit select \
-    --query "implement user authentication" \
-    --sources ./src,./docs \
-    --budget 8000 \
-    --output context.md
+# Project setup
+contextkit init                      # Initialize in current directory
+contextkit config                    # Show/edit config
 
-# Analyze current context
-$ contextkit analyze ./AGENTS.md
+# Source management
+contextkit source add <path>         # Add a source
+contextkit source list               # List sources
+contextkit source remove <id>        # Remove a source
 
-# Generate AGENTS.md from codebase
-$ contextkit generate-agents --repo . --output AGENTS.md
+# Indexing
+contextkit index                     # Index all sources
+contextkit index --source <id>       # Index specific source
+contextkit index --status            # Show index status
+
+# Selection (main feature)
+contextkit select <query>            # Select context for query
+  --budget <tokens>                  # Token budget (default: 8000)
+  --layers <layers>                  # Filter layers
+  --format <text|json|xml>           # Output format
+  --explain                          # Show selection reasoning
+
+# Utilities
+contextkit tokens <file>             # Count tokens in file
+contextkit analyze <file>            # Analyze context quality
 ```
 
-**Use Cases:**
-- Pre-processing before agent runs
-- CI/CD pipelines
-- Batch processing
+### Example Usage
+
+```bash
+# Setup
+$ cd my-project
+$ contextkit init
+$ contextkit source add ./src
+$ contextkit source add ./docs
+$ contextkit index
+
+# Use
+$ contextkit select "How does the auth middleware work?" --budget 8000
+
+# Output: structured context ready for LLM
+```
 
 ---
 
-### 3. Agent Skill (🔑 Core Integration)
+## 2. Agent Skill (Core Integration)
 
-A skill that any agent (OpenCode, Claude Code, Clawdbot) can use.
+A skill package that coding agents can use.
+
+### Skill Structure
 
 ```
 skills/
 └── contextkit/
-    ├── SKILL.md
-    ├── scripts/
-    │   ├── select.sh
-    │   ├── analyze.sh
-    │   └── generate.sh
-    └── templates/
-        └── agents-template.md
+    ├── SKILL.md              # Skill documentation
+    ├── package.json          # Dependencies
+    └── scripts/
+        ├── setup.sh          # Install contextkit CLI
+        └── contextkit.sh     # Wrapper script
 ```
 
-**SKILL.md:**
+### SKILL.md
+
 ```markdown
 # ContextKit Skill
 
-Use this skill when you need to:
-- Optimize context for a complex task
+Use when you need to:
+- Find relevant code/docs for a complex task
+- Optimize context before making LLM calls
 - Analyze if current context is sufficient
-- Generate or update AGENTS.md
 
-## Commands
+## Prerequisites
 
-### Select Context
-\`contextkit select --query "..." --budget 8000\`
-Returns optimized context for the query.
+Requires `contextkit` CLI installed.
 
-### Analyze Context
-\`contextkit analyze [file]\`
-Shows token count, relevance scores, suggestions.
+## Usage
 
-### Generate AGENTS.md
-\`contextkit generate-agents\`
-Creates optimized AGENTS.md from codebase analysis.
+### Select relevant context
+\`\`\`bash
+contextkit select "your query here" --budget 8000
+\`\`\`
+
+### Analyze a context file
+\`\`\`bash
+contextkit analyze ./AGENTS.md
+\`\`\`
+
+### Check token count
+\`\`\`bash
+contextkit tokens ./somefile.md
+\`\`\`
+
+## When to use
+
+- Before starting a complex task: get relevant context first
+- When context seems insufficient: analyze and expand
+- When hitting token limits: optimize selection
+
+## Example
+
+User asks: "Refactor the payment module"
+
+1. Run: \`contextkit select "payment module architecture" --budget 8000\`
+2. Review the selected context
+3. Use it to inform your refactoring approach
 ```
 
-**Why this is key:**
-- Agent-native, not IDE-specific
-- Works with any agent that supports skills
-- Programmatic access
-- Part of the ecosystem
+### Integration with Agents
+
+```typescript
+// Agent pseudo-code
+async function handleComplexTask(task: string) {
+  // Use ContextKit skill to get relevant context
+  const context = await exec('contextkit select', {
+    query: task,
+    budget: 8000,
+  });
+  
+  // Now make LLM call with optimized context
+  const response = await llm.complete({
+    prompt: context + '\n\nTask: ' + task,
+  });
+}
+```
 
 ---
 
-### 4. AGENTS.md Auto-Updater
+## 3. MCP Server
 
-Background service that keeps context files fresh.
+Model Context Protocol server for Claude Desktop and compatible clients.
 
-```yaml
-# contextkit.yaml
-watch:
-  - path: ./src
-    triggers: [AGENTS.md, docs/ARCHITECTURE.md]
-  - path: ./docs
-    triggers: [AGENTS.md]
+### Tool Definitions
 
-schedule:
-  - cron: "0 9 * * *"  # Daily at 9am
-    action: regenerate-agents
+```typescript
+const tools = [
+  {
+    name: "contextkit_select",
+    description: "Select optimal context for a query from indexed sources",
+    inputSchema: {
+      type: "object",
+      properties: {
+        query: {
+          type: "string",
+          description: "What you need context for"
+        },
+        budget: {
+          type: "number",
+          description: "Max tokens (default 8000)"
+        }
+      },
+      required: ["query"]
+    }
+  },
+  {
+    name: "contextkit_analyze",
+    description: "Analyze a file's context quality and token count",
+    inputSchema: {
+      type: "object",
+      properties: {
+        path: {
+          type: "string",
+          description: "Path to file to analyze"
+        }
+      },
+      required: ["path"]
+    }
+  }
+];
 ```
 
-**Features:**
-- Watches for code changes
-- Updates context files automatically
-- Notifies when context is stale
+### Implementation
+
+```typescript
+// MCP server wraps CLI
+import { exec } from 'child_process';
+
+async function handleToolCall(name: string, args: any) {
+  switch (name) {
+    case 'contextkit_select':
+      return exec(`contextkit select "${args.query}" --budget ${args.budget || 8000} --format json`);
+    case 'contextkit_analyze':
+      return exec(`contextkit analyze "${args.path}"`);
+  }
+}
+```
+
+---
+
+## 4. Cloud API (Future)
+
+Optional hosted service for:
+- Team collaboration
+- Shared indexes
+- Usage analytics
+- Heavy compute (large codebases)
+
+### API Design
+
+```
+POST /v1/select
+{
+  "query": "...",
+  "budget": 8000,
+  "project_id": "..."
+}
+
+GET /v1/projects/:id/stats
+GET /v1/projects/:id/sources
+```
+
+### Sync Model
+
+```
+Local Index ←──sync──→ Cloud Index
+     │                      │
+     │    CLI/Skill/MCP     │
+     │         ↓            │
+     └──── select() ────────┘
+```
+
+Local-first: Works offline. Cloud syncs when available.
 
 ---
 
@@ -132,44 +270,42 @@ schedule:
 │                     User / Developer                        │
 └─────────────────────────────────────────────────────────────┘
                               │
-              ┌───────────────┼───────────────┐
-              │               │               │
-              ▼               ▼               ▼
-        ┌──────────┐   ┌──────────┐   ┌──────────┐
-        │  Claude  │   │ OpenCode │   │  Cursor  │
-        │   Code   │   │          │   │          │
-        └────┬─────┘   └────┬─────┘   └────┬─────┘
-              │               │               │
-              └───────────────┼───────────────┘
+          ┌───────────────────┼───────────────────┐
+          │                   │                   │
+          ▼                   ▼                   ▼
+    ┌───────────┐       ┌───────────┐       ┌───────────┐
+    │  Claude   │       │  OpenCode │       │  Cursor   │
+    │  Desktop  │       │  Clawdbot │       │  etc.     │
+    └─────┬─────┘       └─────┬─────┘       └─────┬─────┘
+          │                   │                   │
+          │ MCP               │ Skill             │ CLI
+          │                   │                   │
+          └───────────────────┼───────────────────┘
                               │
                               ▼
                     ┌──────────────────┐
-                    │   ContextKit     │
-                    │                  │
-                    │  • MCP Server    │
-                    │  • Agent Skill   │
-                    │  • CLI           │
-                    │  • API           │
+                    │  ContextKit CLI  │
+                    │  (Core Engine)   │
+                    └────────┬─────────┘
+                             │
+                             ▼
+                    ┌──────────────────┐
+                    │  Local Index     │
+                    │  (SQLite + VSS)  │
                     └──────────────────┘
-                              │
-              ┌───────────────┼───────────────┐
-              │               │               │
-              ▼               ▼               ▼
-        ┌──────────┐   ┌──────────┐   ┌──────────┐
-        │ Codebase │   │   Docs   │   │  Memory  │
-        │          │   │          │   │          │
-        └──────────┘   └──────────┘   └──────────┘
+                             │
+                             │ (optional sync)
+                             ▼
+                    ┌──────────────────┐
+                    │  Cloud API       │
+                    │  (Future)        │
+                    └──────────────────┘
 ```
 
-## Priority Order
-
-1. **Agent Skill** — Immediate value, easy to build
-2. **CLI Tool** — Foundation for everything else
-3. **MCP Server** — Broader reach
-4. **Auto-Updater** — Nice to have
+---
 
 ## Open Questions
 
-- [ ] How to package skills for easy installation?
-- [ ] Should the skill call a hosted API or run locally?
-- [ ] How to handle credentials/API keys in skill context?
+- [ ] How to distribute the skill? npm? GitHub releases?
+- [ ] MCP server: standalone binary or requires Node?
+- [ ] Cloud: self-hostable or SaaS only?

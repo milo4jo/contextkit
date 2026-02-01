@@ -1,175 +1,309 @@
-# Architecture (Draft)
+# Architecture
 
-> ⚠️ This is early thinking. Everything is subject to change.
+> Living document. Updated as design evolves.
 
-## High-Level Components
+## Design Principles
 
-```
-┌─────────────────────────────────────────────────────────────┐
-│                        ContextKit                           │
-├─────────────────────────────────────────────────────────────┤
-│                                                             │
-│  ┌─────────────┐  ┌─────────────┐  ┌─────────────────────┐ │
-│  │   Sources   │  │   Engine    │  │     Analytics       │ │
-│  │             │  │             │  │                     │ │
-│  │ • Files     │  │ • Selector  │  │ • Token tracking    │ │
-│  │ • APIs      │→ │ • Ranker    │→ │ • Usage patterns    │ │
-│  │ • DBs       │  │ • Compressor│  │ • Quality signals   │ │
-│  │ • Memory    │  │ • Formatter │  │ • Cost analysis     │ │
-│  └─────────────┘  └─────────────┘  └─────────────────────┘ │
-│                          ↓                                  │
-│                   ┌─────────────┐                          │
-│                   │   Output    │                          │
-│                   │             │                          │
-│                   │ Optimized   │                          │
-│                   │ Context     │                          │
-│                   └─────────────┘                          │
-│                                                             │
-└─────────────────────────────────────────────────────────────┘
-```
+1. **Single Responsibility** — ContextKit selects context. Nothing more.
+2. **Separation of Concerns** — Clear boundaries between components
+3. **Dependency Inversion** — Abstract over storage, embeddings, etc.
+4. **Offline-First** — Core works locally, cloud enhances
+5. **Deterministic** — Same inputs → same outputs (for testing)
+6. **Observable** — Every decision is traceable
+
+---
 
 ## Core Concepts
 
-### 1. Context Sources
-Where information comes from:
-- **Static**: Files, documents, system prompts
-- **Dynamic**: User data, session history, API responses
-- **Computed**: Summaries, aggregations
-
-### 2. Context Layers
-How information is prioritized:
+### Sources
+Where information comes from.
 
 ```typescript
-const layers = {
-  system: {        // Always included, never trimmed
-    priority: 1,
-    content: systemPrompt,
-  },
-  user: {          // User-specific, high priority
-    priority: 2,
-    content: userProfile,
-  },
-  task: {          // Current task context
-    priority: 3,
-    content: relevantDocs,
-  },
-  history: {       // Conversation history, can be trimmed
-    priority: 4,
-    content: recentMessages,
-  },
-};
+interface Source {
+  id: string;
+  type: 'file' | 'directory' | 'api' | 'database';
+  uri: string;
+  config: SourceConfig;
+}
 ```
 
-### 3. Selection Strategies
-How we pick what goes in:
+**Types:**
+- `file` — Single file (markdown, code, etc.)
+- `directory` — Folder of files
+- `api` — REST/GraphQL endpoint
+- `database` — SQL/NoSQL query
 
-- **Relevance**: Semantic similarity to query
-- **Recency**: Newer = more relevant
-- **Frequency**: Often accessed = important
-- **Explicit**: Developer-defined rules
-- **Learned**: ML model based on feedback
-
-### 4. Token Budget
-How we manage limits:
+### Chunks
+Atomic units of context.
 
 ```typescript
-const budget = {
-  total: 8000,
+interface Chunk {
+  id: string;
+  sourceId: string;
+  content: string;
+  metadata: {
+    path?: string;
+    line?: number;
+    timestamp?: Date;
+    tokens: number;
+  };
+  embedding?: number[];
+}
+```
+
+### Layers
+Priority levels for context.
+
+```typescript
+enum Layer {
+  SYSTEM = 1,    // Always included, never trimmed
+  CRITICAL = 2,  // High priority, rarely trimmed
+  RELEVANT = 3,  // Query-relevant, may be trimmed
+  BACKGROUND = 4 // Nice to have, first to trim
+}
+```
+
+### Budget
+Token allocation.
+
+```typescript
+interface Budget {
+  total: number;          // Max tokens for context
   reserved: {
-    system: 500,      // Always reserved
-    response: 2000,   // Leave room for output
-  },
-  available: 5500,    // For dynamic content
-};
+    system: number;       // Reserved for system layer
+    buffer: number;       // Safety margin
+  };
+}
 ```
+
+---
+
+## Component Architecture
+
+```
+┌─────────────────────────────────────────────────────────────────┐
+│                        ContextKit Core                          │
+├─────────────────────────────────────────────────────────────────┤
+│                                                                 │
+│  ┌─────────────┐     ┌─────────────┐     ┌─────────────┐       │
+│  │   Ingester  │     │   Indexer   │     │  Selector   │       │
+│  │             │     │             │     │             │       │
+│  │ • Parse     │ ──▶ │ • Chunk     │ ──▶ │ • Score     │       │
+│  │ • Validate  │     │ • Embed     │     │ • Rank      │       │
+│  │ • Normalize │     │ • Store     │     │ • Fit       │       │
+│  └─────────────┘     └─────────────┘     └─────────────┘       │
+│         │                   │                   │               │
+│         └───────────────────┴───────────────────┘               │
+│                             │                                   │
+│                             ▼                                   │
+│                    ┌─────────────┐                              │
+│                    │  Formatter  │                              │
+│                    │             │                              │
+│                    │ • Structure │                              │
+│                    │ • Template  │                              │
+│                    │ • Output    │                              │
+│                    └─────────────┘                              │
+│                                                                 │
+├─────────────────────────────────────────────────────────────────┤
+│                        Adapters (Pluggable)                     │
+├───────────────┬───────────────┬───────────────┬─────────────────┤
+│   Embedding   │    Storage    │    Tokenizer  │     Output      │
+│   • OpenAI    │    • SQLite   │    • Tiktoken │     • Text      │
+│   • Voyage    │    • Postgres │    • Claude   │     • JSON      │
+│   • Local     │    • Memory   │    • Llama    │     • XML       │
+└───────────────┴───────────────┴───────────────┴─────────────────┘
+```
+
+---
 
 ## Data Flow
 
 ```
-User Query
-    ↓
-┌───────────────────┐
-│ 1. Parse Intent   │  What is the user trying to do?
-└───────────────────┘
-    ↓
-┌───────────────────┐
-│ 2. Gather         │  Pull from all registered sources
-│    Candidates     │
-└───────────────────┘
-    ↓
-┌───────────────────┐
-│ 3. Score &        │  Rank by relevance + other signals
-│    Rank           │
-└───────────────────┘
-    ↓
-┌───────────────────┐
-│ 4. Fit to         │  Select top items within budget
-│    Budget         │
-└───────────────────┘
-    ↓
-┌───────────────────┐
-│ 5. Format         │  Structure for optimal LLM parsing
-└───────────────────┘
-    ↓
-Optimized Context
+┌──────────────────────────────────────────────────────────────┐
+│ 1. INGEST                                                    │
+│    Sources → Chunks                                          │
+│    • Read files/APIs                                         │
+│    • Parse content                                           │
+│    • Extract metadata                                        │
+└──────────────────────────────────────────────────────────────┘
+                              ↓
+┌──────────────────────────────────────────────────────────────┐
+│ 2. INDEX                                                     │
+│    Chunks → Indexed Chunks                                   │
+│    • Generate embeddings                                     │
+│    • Store in vector DB                                      │
+│    • Build search index                                      │
+└──────────────────────────────────────────────────────────────┘
+                              ↓
+┌──────────────────────────────────────────────────────────────┐
+│ 3. SELECT (per query)                                        │
+│    Query + Budget → Ranked Chunks                            │
+│    • Parse query intent                                      │
+│    • Retrieve candidates (embedding search)                  │
+│    • Score by multiple signals (relevance, recency, etc.)    │
+│    • Rank and fit to budget                                  │
+└──────────────────────────────────────────────────────────────┘
+                              ↓
+┌──────────────────────────────────────────────────────────────┐
+│ 4. FORMAT                                                    │
+│    Ranked Chunks → Structured Context                        │
+│    • Order by layer/priority                                 │
+│    • Apply template                                          │
+│    • Output as string/JSON                                   │
+└──────────────────────────────────────────────────────────────┘
 ```
 
-## API Sketch
+---
+
+## Public API
+
+### Core Interface
 
 ```typescript
-import { ContextKit } from 'contextkit';
+interface ContextKit {
+  // Setup
+  addSource(source: Source): Promise<void>;
+  removeSource(id: string): Promise<void>;
+  
+  // Index management
+  index(): Promise<IndexStats>;
+  reindex(sourceId?: string): Promise<void>;
+  
+  // Selection (the main function)
+  select(options: SelectOptions): Promise<SelectResult>;
+  
+  // Observability
+  explain(resultId: string): Explanation;
+}
 
-// Initialize
-const ctx = new ContextKit({
-  apiKey: 'ck_...',
-});
+interface SelectOptions {
+  query: string;
+  budget: number;
+  layers?: Layer[];
+  sources?: string[];       // Filter to specific sources
+  includeMetadata?: boolean;
+}
 
-// Register sources
-ctx.addSource('codebase', {
-  type: 'github',
-  repo: 'myorg/myrepo',
-  sync: 'realtime',
-});
-
-ctx.addSource('docs', {
-  type: 'notion',
-  workspace: 'xxx',
-});
-
-// Build context for a query
-const context = await ctx.build({
-  query: 'How do I deploy to production?',
-  budget: 8000,
-  layers: ['system', 'docs', 'codebase'],
-});
-
-// Use with any LLM
-const response = await anthropic.messages.create({
-  model: 'claude-3-sonnet',
-  messages: [
-    { role: 'user', content: context.formatted + '\n\n' + userQuery },
-  ],
-});
-
-// Track what worked
-await ctx.feedback({
-  contextId: context.id,
-  rating: 'positive', // or 'negative'
-});
+interface SelectResult {
+  id: string;               // For tracking/explain
+  context: string;          // The formatted context
+  chunks: ChunkInfo[];      // What was included
+  stats: {
+    totalTokens: number;
+    chunksConsidered: number;
+    chunksIncluded: number;
+    processingTimeMs: number;
+  };
+}
 ```
 
-## Tech Stack (Tentative)
+### CLI Interface
 
-- **Language**: TypeScript (SDK), Python (ML components)
-- **API**: Next.js API routes or Hono
-- **Database**: Supabase (Postgres + pgvector)
-- **Queue**: Inngest or Trigger.dev
-- **Hosting**: Vercel
-- **Embeddings**: OpenAI or Voyage
+```bash
+# Initialize in a project
+contextkit init
 
-## Open Technical Questions
+# Add sources
+contextkit source add ./src --type directory
+contextkit source add ./docs --type directory
 
-- [ ] How to handle real-time source updates?
-- [ ] Caching strategy for embeddings?
-- [ ] How to measure context "quality"?
-- [ ] Self-hosted vs cloud-only?
+# Index sources
+contextkit index
+
+# Select context for a query
+contextkit select "How does authentication work?" --budget 8000
+
+# Explain a selection
+contextkit explain <result-id>
+```
+
+---
+
+## Storage Architecture
+
+### Local Mode (Default)
+```
+~/.contextkit/
+├── config.yaml           # Global config
+└── projects/
+    └── <project-hash>/
+        ├── index.db      # SQLite with chunks + embeddings
+        └── cache/        # Embedding cache
+```
+
+### Cloud Mode (Optional)
+- Hosted API for heavy lifting
+- Sync local ↔ cloud
+- Team collaboration features
+
+---
+
+## Error Handling
+
+```typescript
+// All errors extend ContextKitError
+class ContextKitError extends Error {
+  code: string;
+  recoverable: boolean;
+}
+
+// Specific errors
+class SourceNotFoundError extends ContextKitError {}
+class BudgetExceededError extends ContextKitError {}
+class IndexNotReadyError extends ContextKitError {}
+class EmbeddingFailedError extends ContextKitError {}
+```
+
+**Strategy:**
+- Fail fast for configuration errors
+- Graceful degradation for runtime errors
+- Always return partial results when possible
+
+---
+
+## Caching Strategy
+
+| What | Where | TTL | Invalidation |
+|------|-------|-----|--------------|
+| Embeddings | Local SQLite | Forever | On content change |
+| Index | Local SQLite | Forever | On reindex |
+| Query results | Memory | 5 min | Manual or TTL |
+
+---
+
+## Security Considerations
+
+- **API Keys**: Stored in OS keychain, never in config files
+- **Source Access**: Respects file system permissions
+- **Cloud Sync**: E2E encrypted, opt-in only
+- **No Telemetry**: By default, nothing phones home
+
+---
+
+## Tech Stack
+
+| Component | Choice | Rationale |
+|-----------|--------|-----------|
+| Language | TypeScript | DX, ecosystem, cross-platform |
+| Local Storage | SQLite + sqlite-vss | Portable, no deps |
+| Default Embeddings | Local model (gte-small) | Offline-first |
+| Tokenizer | tiktoken (WASM) | Accurate, fast |
+| CLI Framework | Commander.js | Standard, stable |
+
+---
+
+## Testing Strategy
+
+- **Unit Tests**: Every component in isolation
+- **Integration Tests**: Full flow with fixtures
+- **Snapshot Tests**: Context output stability
+- **Determinism Tests**: Same input → same output
+- **Performance Tests**: Selection under <100ms for typical queries
+
+---
+
+## Open Questions
+
+- [ ] How to handle very large codebases (>100K files)?
+- [ ] Incremental indexing vs full reindex?
+- [ ] Plugin system for custom scorers?
