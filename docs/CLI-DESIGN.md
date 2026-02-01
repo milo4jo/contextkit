@@ -267,7 +267,6 @@ These should work globally:
 |------|-------------|
 | `-h, --help` | Show help |
 | `-v, --version` | Show version |
-| `--verbose` | More output |
 | `--quiet` | Less output |
 | `--json` | JSON output |
 | `--plain` | Plain output (no formatting) |

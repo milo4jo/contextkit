@@ -62,7 +62,6 @@ See [CLI-DESIGN.md](./CLI-DESIGN.md) for full principles. Key requirements:
 | `--json` | JSON output |
 | `--plain` | Plain output (no colors/formatting) |
 | `--quiet` | Suppress non-essential output |
-| `--verbose` | Show detailed output |
 
 ---
 
@@ -447,34 +446,34 @@ CREATE INDEX idx_chunks_file ON chunks(file_path);
 
 ## Development Phases
 
-### Phase 1: Foundation (Days 1-3)
-- [ ] Project setup (TypeScript, ESLint, Prettier)
-- [ ] CLI skeleton with Commander.js
-- [ ] Help text for all commands
-- [ ] Config file read/write
-- [ ] SQLite setup
+### Phase 1: Foundation ✅
+- [x] Project setup (TypeScript, ESLint, Prettier)
+- [x] CLI skeleton with Commander.js
+- [x] Help text for all commands
+- [x] Config file read/write
+- [x] SQLite setup
 
-### Phase 2: Indexing (Days 4-6)
-- [ ] File discovery with glob
-- [ ] Chunking algorithm
-- [ ] Local embedding generation
-- [ ] Progress indicators
-- [ ] Storage in SQLite
+### Phase 2: Indexing ✅
+- [x] File discovery with glob
+- [x] Chunking algorithm
+- [x] Local embedding generation
+- [x] Progress indicators
+- [x] Storage in SQLite
 
-### Phase 3: Selection (Days 7-9)
-- [ ] Query embedding
-- [ ] Similarity search
-- [ ] Scoring and ranking
-- [ ] Budget fitting
-- [ ] Output formatting
+### Phase 3: Selection ✅
+- [x] Query embedding
+- [x] Similarity search
+- [x] Scoring and ranking
+- [x] Budget fitting
+- [x] Output formatting
 
-### Phase 4: Polish (Days 10-12)
-- [ ] Error messages with suggestions
-- [ ] TTY detection
-- [ ] JSON/plain output modes
-- [ ] --help improvements
-- [ ] README and docs
-- [ ] npm publish setup
+### Phase 4: Polish ✅
+- [x] Error messages with suggestions
+- [x] TTY detection
+- [x] JSON/plain output modes
+- [x] --help improvements
+- [x] README and docs
+- [x] npm publish setup
 
 ---
 

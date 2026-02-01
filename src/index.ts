@@ -1,12 +1,20 @@
 #!/usr/bin/env node
 
 import { Command } from 'commander';
+import { readFileSync } from 'fs';
+import { fileURLToPath } from 'url';
+import { dirname, join } from 'path';
 import { initCommand } from './commands/init.js';
 import { sourceCommand } from './commands/source/index.js';
 import { indexCommand } from './commands/index-cmd.js';
 import { selectCommand } from './commands/select.js';
 import { ContextKitError, InvalidUsageError } from './errors/index.js';
 import { writeError, writeMessage } from './utils/streams.js';
+
+// Get version from package.json
+const __dirname = dirname(fileURLToPath(import.meta.url));
+const pkg = JSON.parse(readFileSync(join(__dirname, '..', 'package.json'), 'utf-8'));
+const VERSION = pkg.version;
 
 // Exit codes per CLI-DESIGN.md
 const EXIT_ERROR = 1;
@@ -46,7 +54,7 @@ const program = new Command();
 program
   .name('contextkit')
   .description('Smart context selection for LLMs')
-  .version('0.1.0', '-v, --version', 'Show version number')
+  .version(VERSION, '-v, --version', 'Show version number')
   .showHelpAfterError()
   .configureHelp({
     sortSubcommands: true,

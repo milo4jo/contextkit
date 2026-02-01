@@ -1,29 +1,44 @@
 # AGENTS.md
 
-This repo is for ideation and planning of ContextKit.
+ContextKit — Smart context selection for AI coding assistants.
 
-## Current Phase
-📋 **Ideation** — Refining the concept, researching the market.
+## Current Status
+🚀 **v0.1.0 Ready** — MVP complete, ready for npm publish.
 
 ## What's Here
-- `docs/VISION.md` — Where we're heading
+- `docs/VISION.md` — Long-term direction
 - `docs/PROBLEM.md` — Pain points we're solving
-- `docs/COMPETITORS.md` — What exists today
-- `docs/ARCHITECTURE.md` — Technical thinking
-- `docs/IDEAS.md` — Scratchpad for ideas
+- `docs/COMPETITORS.md` — Competitive landscape
+- `docs/ARCHITECTURE.md` — Technical architecture
+- `docs/MVP.md` — MVP specification (completed)
+- `docs/CLI-DESIGN.md` — CLI design principles
+- `docs/INTEGRATIONS.md` — Integration plans
+- `README.md` — User-facing documentation
 
-## How to Help
+## Completed Phases
 
-If you're Milo or another agent working on this:
+- ✅ Phase 1: Foundation (CLI, config, SQLite)
+- ✅ Phase 2: Indexing (discovery, chunking, embeddings)
+- ✅ Phase 3: Selection (search, scoring, budget, format)
+- ✅ Phase 4: Polish (errors, docs, npm setup)
 
-1. **Add research** — Find relevant articles, papers, discussions
-2. **Refine docs** — Make the thinking sharper
-3. **Challenge assumptions** — Poke holes in the logic
-4. **Prototype** — Small experiments to validate ideas
+## Next Steps
+
+1. **npm publish** — Release v0.1.0
+2. **Agent Skill** — Package for Clawdbot/OpenCode
+3. **MCP Server** — Claude Desktop integration
+
+## Development
+
+```bash
+npm install
+npm run build
+npm run lint
+npm run format
+```
 
 ## Rules
 
 - Keep docs concise and scannable
-- Mark assumptions vs. facts
-- Date your additions
-- Don't delete ideas, mark them as rejected with reason
+- Run lint + format before commits
+- Test all commands before releasing
