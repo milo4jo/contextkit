@@ -5,7 +5,7 @@ node_modules/
 dist/
 
 # ContextKit data
-.contextkit/index.db
+.contextkit/
 
 # Editor
 .vscode/
