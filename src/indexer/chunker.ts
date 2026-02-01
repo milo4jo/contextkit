@@ -5,6 +5,7 @@
  * Uses line-based chunking with configurable size and overlap.
  */
 
+import { createHash } from 'crypto';
 import { encodingForModel } from 'js-tiktoken';
 import type { DiscoveredFile } from './discovery.js';
 
@@ -50,18 +51,12 @@ export function countTokens(text: string): number {
 }
 
 /**
- * Generate a unique chunk ID
+ * Generate a unique chunk ID using SHA-256 hash
  */
 function generateChunkId(sourceId: string, filePath: string, startLine: number): string {
   const base = `${sourceId}:${filePath}:${startLine}`;
-  // Simple hash for ID
-  let hash = 0;
-  for (let i = 0; i < base.length; i++) {
-    const char = base.charCodeAt(i);
-    hash = (hash << 5) - hash + char;
-    hash = hash & hash; // Convert to 32-bit integer
-  }
-  return `chunk_${Math.abs(hash).toString(36)}`;
+  const hash = createHash('sha256').update(base).digest('hex').slice(0, 16);
+  return `chunk_${hash}`;
 }
 
 /**
