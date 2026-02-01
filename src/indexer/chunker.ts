@@ -52,9 +52,16 @@ export function countTokens(text: string): number {
 
 /**
  * Generate a unique chunk ID using SHA-256 hash
+ * Includes both startLine and endLine to handle edge cases where
+ * high overlap values could result in same startLine for different chunks.
  */
-function generateChunkId(sourceId: string, filePath: string, startLine: number): string {
-  const base = `${sourceId}:${filePath}:${startLine}`;
+function generateChunkId(
+  sourceId: string,
+  filePath: string,
+  startLine: number,
+  endLine: number
+): string {
+  const base = `${sourceId}:${filePath}:${startLine}:${endLine}`;
   const hash = createHash('sha256').update(base).digest('hex').slice(0, 16);
   return `chunk_${hash}`;
 }
@@ -77,13 +84,14 @@ export function chunkFile(file: DiscoveredFile, options: ChunkOptions = DEFAULT_
     // If adding this line exceeds chunk size, save current chunk
     if (currentTokens + lineTokens > options.chunkSize && currentLines.length > 0) {
       const content = currentLines.join('\n');
+      const endLine = startLine + currentLines.length - 1;
       chunks.push({
-        id: generateChunkId(file.sourceId, file.relativePath, startLine),
+        id: generateChunkId(file.sourceId, file.relativePath, startLine, endLine),
         sourceId: file.sourceId,
         filePath: file.relativePath,
         content,
         startLine,
-        endLine: startLine + currentLines.length - 1,
+        endLine,
         tokens: currentTokens,
       });
 
@@ -112,13 +120,14 @@ export function chunkFile(file: DiscoveredFile, options: ChunkOptions = DEFAULT_
   // Don't forget the last chunk
   if (currentLines.length > 0) {
     const content = currentLines.join('\n');
+    const endLine = startLine + currentLines.length - 1;
     chunks.push({
-      id: generateChunkId(file.sourceId, file.relativePath, startLine),
+      id: generateChunkId(file.sourceId, file.relativePath, startLine, endLine),
       sourceId: file.sourceId,
       filePath: file.relativePath,
       content,
       startLine,
-      endLine: startLine + currentLines.length - 1,
+      endLine,
       tokens: countTokens(content),
     });
   }
