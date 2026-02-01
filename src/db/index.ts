@@ -15,6 +15,9 @@ CREATE TABLE IF NOT EXISTS sources (
   indexed_at TIMESTAMP
 );
 
+-- Ensure chunk_count column exists (migration)
+-- SQLite doesn't support IF NOT EXISTS for columns, so we handle this in code
+
 -- Chunks table  
 CREATE TABLE IF NOT EXISTS chunks (
   id TEXT PRIMARY KEY,

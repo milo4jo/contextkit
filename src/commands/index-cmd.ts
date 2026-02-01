@@ -1,7 +1,10 @@
 import { Command } from 'commander';
 import chalk from 'chalk';
+import cliProgress from 'cli-progress';
 import { loadConfig, ensureInitialized } from '../config/index.js';
-import { writeData, writeMessage, writeWarning, shouldUseColor } from '../utils/streams.js';
+import { openDatabase } from '../db/index.js';
+import { indexSources, type IndexProgress } from '../indexer/index.js';
+import { writeData, writeMessage, writeSuccess, writeWarning, shouldUseColor, isTTY } from '../utils/streams.js';
 import { SourceNotFoundError } from '../errors/index.js';
 
 export const indexCommand = new Command('index')
@@ -29,43 +32,104 @@ export const indexCommand = new Command('index')
       sourcesToIndex = [source];
     }
 
-    if (!opts.quiet) {
-      writeMessage('');
-      writeMessage('Indexing sources...');
-      writeMessage('');
-    }
+    // Open database
+    const db = openDatabase();
 
-    // TODO: Phase 2 - Implement actual indexing
-    for (const source of sourcesToIndex) {
+    try {
       if (!opts.quiet) {
-        writeMessage(`${formatHighlight(`[${source.id}]`)} Scanning files...`);
-        writeMessage(formatDim('  → Indexing not yet implemented (Phase 2)'));
+        writeMessage('');
+        writeMessage('Indexing sources...');
         writeMessage('');
       }
-    }
 
-    if (!opts.quiet) {
-      writeWarning('Indexing not yet implemented');
-      writeMessage(formatDim('  This feature is coming in Phase 2.'));
-      writeMessage('');
-    }
+      // Setup progress bar (only in TTY mode)
+      let progressBar: cliProgress.SingleBar | null = null;
+      let currentSource = '';
+      let currentPhase = '';
 
-    // JSON output
-    if (opts.json) {
-      writeData(JSON.stringify({
-        status: 'not_implemented',
-        message: 'Indexing will be implemented in Phase 2',
-        sources: sourcesToIndex.map((s) => s.id),
-      }));
+      if (isTTY() && !opts.quiet) {
+        progressBar = new cliProgress.SingleBar({
+          format: `{phase} ${shouldUseColor() ? chalk.cyan('[{source}]') : '[{source}]'} {bar} {value}/{total}`,
+          barCompleteChar: '█',
+          barIncompleteChar: '░',
+          hideCursor: true,
+        }, cliProgress.Presets.shades_classic);
+      }
+
+      // Progress callback
+      const onProgress = (progress: IndexProgress) => {
+        const phaseLabel = {
+          discovery: 'Reading files  ',
+          chunking: 'Chunking       ',
+          embedding: 'Embedding      ',
+          storing: 'Storing        ',
+        }[progress.phase];
+
+        if (progressBar) {
+          if (currentSource !== progress.sourceId || currentPhase !== progress.phase) {
+            if (currentSource) {
+              progressBar.stop();
+            }
+            currentSource = progress.sourceId;
+            currentPhase = progress.phase;
+            progressBar.start(progress.total || 1, 0, {
+              phase: phaseLabel,
+              source: progress.sourceId,
+            });
+          }
+          progressBar.update(progress.current);
+        } else if (!opts.quiet) {
+          // Non-TTY: simple line output
+          if (progress.current === progress.total) {
+            writeMessage(`${phaseLabel} [${progress.sourceId}]: ${progress.current}/${progress.total}`);
+          }
+        }
+      };
+
+      // Run indexing
+      const stats = await indexSources(
+        sourcesToIndex,
+        process.cwd(),
+        db,
+        {
+          chunkSize: config.settings.chunk_size,
+          chunkOverlap: config.settings.chunk_overlap,
+        },
+        onProgress
+      );
+
+      // Stop progress bar
+      if (progressBar) {
+        progressBar.stop();
+      }
+
+      // Output results
+      if (!opts.quiet) {
+        writeMessage('');
+        const timeStr = (stats.timeMs / 1000).toFixed(1);
+        writeSuccess(`Indexed ${stats.chunks} chunks from ${stats.files} files in ${timeStr}s`);
+        
+        if (stats.skipped > 0) {
+          writeMessage(formatDim(`  (${stats.skipped} files skipped - too large or binary)`));
+        }
+        writeMessage('');
+      }
+
+      // JSON output
+      if (opts.json) {
+        writeData(JSON.stringify({
+          status: 'success',
+          stats,
+        }, null, 2));
+      }
+
+    } finally {
+      db.close();
     }
   });
 
 function formatCommand(cmd: string): string {
   return shouldUseColor() ? chalk.cyan(cmd) : `'${cmd}'`;
-}
-
-function formatHighlight(text: string): string {
-  return shouldUseColor() ? chalk.cyan(text) : text;
 }
 
 function formatDim(text: string): string {
