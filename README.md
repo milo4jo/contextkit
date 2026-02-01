@@ -73,7 +73,7 @@ $ contextkit select "How does the auth middleware work?" --budget 8000
 - [x] Integration strategy
 - [x] MVP specification
 - [x] **Phase 1: Foundation** (CLI skeleton, config, SQLite)
-- [ ] Phase 2: Indexing (file discovery, chunking, embeddings)
+- [x] **Phase 2: Indexing** (file discovery, chunking, local embeddings)
 - [ ] Phase 3: Selection (query, similarity, ranking)
 
 ---
