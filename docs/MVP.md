@@ -18,11 +18,13 @@ A developer can install ContextKit, point it at their codebase, and get better c
 |---------|-------------|
 | CLI `init` | Initialize ContextKit in a directory |
 | CLI `source add` | Add a directory as a source |
+| CLI `source list` | List configured sources |
 | CLI `index` | Index all sources (generate embeddings) |
 | CLI `select` | Select context for a query |
 | Local SQLite storage | No external dependencies |
-| Local embeddings | Works offline (gte-small via transformers.js or similar) |
-| Text output | Formatted context ready for LLM |
+| Local embeddings | Works offline (gte-small via transformers.js) |
+| Human-friendly output | Formatted context with progress indicators |
+| Machine-readable output | `--json` flag for scripting |
 
 ### Out of Scope ❌
 
@@ -34,7 +36,33 @@ A developer can install ContextKit, point it at their codebase, and get better c
 | Multiple embedding providers | One good default is enough |
 | Web dashboard | CLI only for MVP |
 | User accounts | Local-only for MVP |
-| API endpoints | CLI only |
+
+---
+
+## CLI Design (Following clig.dev)
+
+See [CLI-DESIGN.md](./CLI-DESIGN.md) for full principles. Key requirements:
+
+### Exit Codes
+| Code | Meaning |
+|------|---------|
+| 0 | Success |
+| 1 | General error |
+| 2 | Invalid usage |
+
+### Output Streams
+- **stdout**: Data output (context, lists)
+- **stderr**: Progress, logs, errors
+
+### Required Flags (all commands)
+| Flag | Description |
+|------|-------------|
+| `-h, --help` | Show help |
+| `-v, --version` | Show version (root only) |
+| `--json` | JSON output |
+| `--plain` | Plain output (no colors/formatting) |
+| `--quiet` | Suppress non-essential output |
+| `--verbose` | Show detailed output |
 
 ---
 
@@ -59,179 +87,321 @@ Developer has a codebase, wants better LLM context.
 4. Index
    $ contextkit index
    → Processes files, generates embeddings
-   → "Indexed 147 files (23,451 chunks)"
+   → Shows progress bar
+   → "✓ Indexed 1,423 chunks in 12.3s"
 
 5. Use
    $ contextkit select "How does authentication work?"
-   → Returns optimized context (relevant code + docs)
+   → Returns optimized context
    
-6. Copy to LLM
-   Developer pastes context into Claude/GPT/etc.
-   (Or pipes it: contextkit select "..." | pbcopy)
+6. Pipe to clipboard or file
+   $ contextkit select "auth" | pbcopy
+   $ contextkit select "auth" > context.md
 ```
 
 ---
 
-## Technical Specification
+## CLI Commands
 
-### File Structure
+### `contextkit` (no args)
+
+Shows concise help. Doesn't hang, doesn't error.
+
+```
+$ contextkit
+
+contextkit - Smart context selection for LLMs
+
+Usage: contextkit <command> [options]
+
+Commands:
+  init          Initialize ContextKit in current directory
+  source        Manage sources
+  index         Index all sources
+  select        Select context for a query
+
+Examples:
+  $ contextkit init
+  $ contextkit source add ./src
+  $ contextkit index
+  $ contextkit select "How does auth work?"
+
+Run 'contextkit <command> --help' for details.
+```
+
+### `contextkit init`
+
+```
+$ contextkit init
+
+✓ Created .contextkit/config.yaml
+✓ Created .contextkit/index.db
+✓ Added .contextkit to .gitignore
+
+Next steps:
+  1. Add sources:    contextkit source add ./src
+  2. Index:          contextkit index
+  3. Select context: contextkit select "your query"
+```
+
+**Errors:**
+```
+$ contextkit init
+Error: Already initialized
+
+A .contextkit directory already exists.
+Use --force to reinitialize (this will delete existing index).
+```
+
+### `contextkit source add <path>`
+
+```
+$ contextkit source add ./src
+
+✓ Added source 'src'
+  Path:     ./src
+  Files:    147 (ts, js, md)
+  
+Run 'contextkit index' to index this source.
+```
+
+**With options:**
+```
+$ contextkit source add ./src --include "**/*.ts" --exclude "**/*.test.ts"
+```
+
+**Error handling:**
+```
+$ contextkit source add ./nonexistent
+Error: Path not found
+
+'./nonexistent' does not exist.
+Did you mean './src'?
+```
+
+### `contextkit source list`
+
+```
+$ contextkit source list
+
+Sources:
+  NAME   PATH      FILES   INDEXED
+  src    ./src     147     2 min ago
+  docs   ./docs    23      2 min ago
+
+Total: 170 files in 2 sources
+```
+
+**JSON output:**
+```
+$ contextkit source list --json
+{
+  "sources": [
+    {"id": "src", "path": "./src", "files": 147, "indexed_at": "2024-..."},
+    {"id": "docs", "path": "./docs", "files": 23, "indexed_at": "2024-..."}
+  ]
+}
+```
+
+**Plain output (for scripting):**
+```
+$ contextkit source list --plain
+src	./src	147
+docs	./docs	23
+```
+
+### `contextkit index`
+
+Shows progress for long operations.
+
+```
+$ contextkit index
+
+Indexing sources...
+
+[src] Reading files...
+  ████████████████████ 147/147
+
+[src] Generating embeddings...
+  ████████████████████ 1,234/1,234 chunks
+
+[docs] Reading files...
+  ████████████████████ 23/23
+
+[docs] Generating embeddings...
+  ████████████████████ 189/189 chunks
+
+✓ Indexed 1,423 chunks from 170 files in 12.3s
+```
+
+**When piped (no TTY):**
+```
+$ contextkit index 2>&1 | tee log.txt
+Indexing src: 147 files, 1234 chunks
+Indexing docs: 23 files, 189 chunks
+Done: 1423 chunks in 12.3s
+```
+
+**Quiet mode:**
+```
+$ contextkit index --quiet
+# No output on success, exit code 0
+```
+
+### `contextkit select <query>`
+
+The main command.
+
+```
+$ contextkit select "How does the auth middleware work?"
+
+# Authentication Middleware
+
+## src/middleware/auth.ts (lines 1-45)
+```typescript
+export const authMiddleware = async (req, res, next) => {
+  const token = req.headers.authorization?.split(' ')[1];
+  if (!token) {
+    return res.status(401).json({ error: 'No token' });
+  }
+  // ... 
+};
+```
+
+## docs/architecture.md (lines 23-41)
+The authentication flow:
+1. Client sends JWT in Authorization header
+2. Middleware validates token signature
+3. Decoded user attached to request
+
+---
+📊 3,847 tokens | 8 chunks | 4 files
+```
+
+**Options:**
+```
+$ contextkit select "auth" --budget 4000 --format json --sources src
+```
+
+| Flag | Short | Default | Description |
+|------|-------|---------|-------------|
+| `--budget` | `-b` | 8000 | Max tokens |
+| `--format` | `-f` | text | Output: text, json, xml |
+| `--sources` | `-s` | all | Filter sources (comma-separated) |
+| `--explain` | | false | Show scoring details |
+| `--plain` | | false | No formatting (for pipes) |
+
+**JSON output:**
+```
+$ contextkit select "auth" --format json
+{
+  "id": "sel_abc123",
+  "query": "auth",
+  "context": "# Authentication...",
+  "chunks": [
+    {
+      "file": "src/middleware/auth.ts",
+      "lines": [1, 45],
+      "tokens": 487,
+      "score": 0.92
+    }
+  ],
+  "stats": {
+    "total_tokens": 3847,
+    "chunks_considered": 50,
+    "chunks_included": 8,
+    "files": 4,
+    "time_ms": 234
+  }
+}
+```
+
+**Error when not initialized:**
+```
+$ contextkit select "auth"
+Error: Not initialized
+
+No .contextkit directory found.
+Run 'contextkit init' first.
+```
+
+**Error when not indexed:**
+```
+$ contextkit select "auth"
+Error: No index found
+
+Sources haven't been indexed yet.
+Run 'contextkit index' first.
+```
+
+---
+
+## File Structure
 
 ```
 my-project/
 ├── .contextkit/
-│   ├── config.yaml      # Project configuration
+│   ├── config.yaml      # Configuration
 │   ├── index.db         # SQLite database
-│   └── .gitignore       # Ignore db files
+│   └── .gitignore       # Ignore db
 ├── src/
 └── docs/
 ```
 
-### Config File
+### config.yaml
 
 ```yaml
-# .contextkit/config.yaml
 version: 1
 
 sources:
   - id: src
     path: ./src
-    type: directory
     patterns:
       include: ["**/*.ts", "**/*.js", "**/*.md"]
       exclude: ["node_modules/**", "**/*.test.ts"]
   
   - id: docs
     path: ./docs
-    type: directory
     patterns:
       include: ["**/*.md"]
 
 settings:
-  chunk_size: 500        # tokens per chunk
-  chunk_overlap: 50      # overlap between chunks
-  embedding_model: local # use local model
+  chunk_size: 500
+  chunk_overlap: 50
 ```
 
-### Database Schema
+---
+
+## Database Schema
 
 ```sql
--- Sources
 CREATE TABLE sources (
   id TEXT PRIMARY KEY,
   path TEXT NOT NULL,
-  type TEXT NOT NULL,
   config JSON,
+  file_count INTEGER DEFAULT 0,
   indexed_at TIMESTAMP
 );
 
--- Chunks
 CREATE TABLE chunks (
   id TEXT PRIMARY KEY,
-  source_id TEXT REFERENCES sources(id),
-  file_path TEXT,
+  source_id TEXT REFERENCES sources(id) ON DELETE CASCADE,
+  file_path TEXT NOT NULL,
   content TEXT NOT NULL,
   start_line INTEGER,
   end_line INTEGER,
-  tokens INTEGER,
-  embedding BLOB,  -- float32 array
+  tokens INTEGER NOT NULL,
+  embedding BLOB,
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
--- For vector search (using sqlite-vss extension)
-CREATE VIRTUAL TABLE chunks_vss USING vss0(embedding(384));
+CREATE INDEX idx_chunks_source ON chunks(source_id);
+CREATE INDEX idx_chunks_file ON chunks(file_path);
 ```
-
-### CLI Commands
-
-#### `contextkit init`
-
-```
-$ contextkit init
-
-Initializing ContextKit...
-Created .contextkit/config.yaml
-Created .contextkit/index.db
-
-Next steps:
-  contextkit source add ./src
-  contextkit index
-```
-
-#### `contextkit source add <path>`
-
-```
-$ contextkit source add ./src
-
-Added source: src
-  Path: ./src
-  Type: directory
-  Patterns: **/*.ts, **/*.js, **/*.md
-
-Run 'contextkit index' to index this source.
-```
-
-#### `contextkit source list`
-
-```
-$ contextkit source list
-
-Sources:
-  src    ./src    directory   147 files   indexed 2 min ago
-  docs   ./docs   directory    23 files   indexed 2 min ago
-```
-
-#### `contextkit index`
-
-```
-$ contextkit index
-
-Indexing sources...
-  [src]  Processing 147 files...
-  [src]  Generated 1,234 chunks
-  [docs] Processing 23 files...
-  [docs] Generated 189 chunks
-
-Done. Indexed 1,423 chunks in 12.3s
-```
-
-#### `contextkit select <query>`
-
-```
-$ contextkit select "How does the auth middleware work?" --budget 4000
-
-# Authentication Middleware
-
-## From: src/middleware/auth.ts (lines 1-45)
-\`\`\`typescript
-export const authMiddleware = async (req, res, next) => {
-  const token = req.headers.authorization?.split(' ')[1];
-  // ... relevant code
-};
-\`\`\`
-
-## From: docs/architecture.md (lines 23-41)
-The authentication flow works as follows:
-1. Client sends JWT in Authorization header
-2. Middleware validates token
-// ... relevant docs
-
----
-Context: 3,847 tokens | 8 chunks from 4 files
-```
-
-**Flags:**
-
-| Flag | Default | Description |
-|------|---------|-------------|
-| `--budget` | 8000 | Max tokens |
-| `--format` | text | Output format (text/json) |
-| `--sources` | all | Filter to specific sources |
 
 ---
 
 ## Selection Algorithm (v1)
-
-Simple but effective:
 
 ```
 1. EMBED query using same model as chunks
@@ -240,21 +410,21 @@ Simple but effective:
 
 3. SCORE each chunk:
    score = (
-     0.6 * semantic_similarity +
-     0.2 * recency_score +      # newer files slightly preferred
-     0.2 * path_relevance       # filename matches query terms
+     0.6 × semantic_similarity +
+     0.2 × recency_bonus +
+     0.2 × path_match_bonus
    )
 
 4. RANK by score descending
 
-5. SELECT chunks until budget exhausted
-   - Always include highest scored
+5. SELECT until budget exhausted
    - Prefer keeping chunks from same file together
+   - Never split mid-chunk
 
-6. FORMAT into readable output
+6. FORMAT output
    - Group by file
-   - Include file path and line numbers
-   - Add separators
+   - Include file path + line numbers
+   - Show stats at end
 ```
 
 ---
@@ -264,60 +434,60 @@ Simple but effective:
 | Component | Choice | Rationale |
 |-----------|--------|-----------|
 | Language | TypeScript | DX, npm ecosystem |
-| CLI Framework | Commander.js | Standard, stable |
-| Database | better-sqlite3 | Fast, no deps, sync API |
-| Vector Search | sqlite-vss | SQLite extension, embedded |
-| Embeddings | @xenova/transformers | Local, no API needed |
-| Embedding Model | gte-small (384d) | Good quality, fast, small |
+| CLI Framework | Commander.js | Standard, well-documented |
+| Database | better-sqlite3 | Fast, zero deps |
+| Vector Search | sqlite-vss or brute-force | Start simple |
+| Embeddings | @xenova/transformers | Local, no API key |
+| Model | gte-small (384d) | Good quality/speed balance |
 | Tokenizer | js-tiktoken | Accurate counts |
-
-### Why These Choices?
-
-**Local-first:** No API keys needed for MVP. Works offline.
-
-**SQLite:** Single file, no server, portable across machines.
-
-**Transformers.js:** Runs embedding models in Node.js locally.
-
----
-
-## Success Criteria
-
-MVP is successful if:
-
-1. **Works:** Developer can go from `init` to `select` in <5 minutes
-2. **Useful:** Selected context is better than "first N files"
-3. **Fast:** Indexing <1min for typical project, selection <1s
-4. **Portable:** Single `npm install`, no external deps
+| Progress | ora + cli-progress | Nice spinners/bars |
+| Colors | chalk | Respects NO_COLOR |
 
 ---
 
 ## Development Phases
 
 ### Phase 1: Foundation (Days 1-3)
-- [ ] Project setup (TypeScript, ESLint, tests)
+- [ ] Project setup (TypeScript, ESLint, Prettier)
 - [ ] CLI skeleton with Commander.js
-- [ ] Config file parsing
-- [ ] SQLite setup with better-sqlite3
+- [ ] Help text for all commands
+- [ ] Config file read/write
+- [ ] SQLite setup
 
 ### Phase 2: Indexing (Days 4-6)
-- [ ] File discovery and filtering
+- [ ] File discovery with glob
 - [ ] Chunking algorithm
 - [ ] Local embedding generation
-- [ ] Storage in SQLite + sqlite-vss
+- [ ] Progress indicators
+- [ ] Storage in SQLite
 
 ### Phase 3: Selection (Days 7-9)
 - [ ] Query embedding
-- [ ] Vector similarity search
+- [ ] Similarity search
 - [ ] Scoring and ranking
 - [ ] Budget fitting
+- [ ] Output formatting
 
 ### Phase 4: Polish (Days 10-12)
-- [ ] Output formatting
-- [ ] Error handling
-- [ ] Progress indicators
-- [ ] Documentation
-- [ ] npm package setup
+- [ ] Error messages with suggestions
+- [ ] TTY detection
+- [ ] JSON/plain output modes
+- [ ] --help improvements
+- [ ] README and docs
+- [ ] npm publish setup
+
+---
+
+## Success Criteria
+
+| Criteria | Target |
+|----------|--------|
+| Time to first select | < 5 minutes |
+| Index speed | < 1 min for 1000 files |
+| Select speed | < 1 second |
+| Context quality | Better than random/first-N |
+| Works offline | ✓ |
+| Single install | `npm i -g contextkit` |
 
 ---
 
@@ -325,25 +495,17 @@ MVP is successful if:
 
 | Risk | Mitigation |
 |------|------------|
-| sqlite-vss is tricky to bundle | Fallback: brute-force cosine similarity (slower but works) |
-| Local embeddings too slow | Smaller model, or batch processing with progress bar |
-| Chunking quality varies | Start simple, iterate based on feedback |
-
----
-
-## Non-Goals for MVP
-
-- Perfect accuracy (good enough is fine)
-- Every file type (start with .ts, .js, .md, .py)
-- Beautiful output (functional is fine)
-- Comprehensive tests (core paths only)
+| sqlite-vss bundling issues | Fallback to brute-force cosine |
+| Slow local embeddings | Batch + progress bar, cache |
+| Poor chunk boundaries | Start with line-based, iterate |
+| Large file handling | Skip files > 100KB initially |
 
 ---
 
 ## After MVP
 
-Once MVP works:
-1. **Agent Skill** — Wrap CLI for OpenCode/Clawdbot
-2. **Iterate on selection** — Better scoring, user feedback
-3. **More sources** — APIs, databases
-4. **Cloud features** — Team sync, hosted embeddings
+1. **Agent Skill** — Package for OpenCode/Clawdbot
+2. **MCP Server** — For Claude Desktop
+3. **Better selection** — User feedback, ML ranking
+4. **More sources** — URLs, APIs, databases
+5. **Cloud** — Team sync, hosted embeddings

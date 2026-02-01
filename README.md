@@ -57,6 +57,8 @@ $ contextkit select "How does the auth middleware work?" --budget 8000
 - [Vision](docs/VISION.md) — Where we're heading
 - [Problem Space](docs/PROBLEM.md) — Pain points we're solving
 - [Architecture](docs/ARCHITECTURE.md) — Technical design
+- [CLI Design](docs/CLI-DESIGN.md) — CLI best practices (based on clig.dev)
+- [MVP Spec](docs/MVP.md) — What we're building first
 - [Integrations](docs/INTEGRATIONS.md) — How it fits in the ecosystem
 - [Competitors](docs/COMPETITORS.md) — Market landscape
 - [Ideas](docs/IDEAS.md) — Scratchpad
