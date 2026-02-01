@@ -65,14 +65,16 @@ $ contextkit select "How does the auth middleware work?" --budget 8000
 
 ## Status
 
-📋 **Phase: Design**
+🚧 **Phase: Implementation**
 
 - [x] Problem definition
 - [x] Vision & principles
 - [x] Architecture draft
 - [x] Integration strategy
-- [ ] MVP specification
-- [ ] Implementation
+- [x] MVP specification
+- [x] **Phase 1: Foundation** (CLI skeleton, config, SQLite)
+- [ ] Phase 2: Indexing (file discovery, chunking, embeddings)
+- [ ] Phase 3: Selection (query, similarity, ranking)
 
 ---
 
