@@ -3,7 +3,7 @@
 ContextKit — Smart context selection for AI coding assistants.
 
 ## Current Status
-🚀 **v0.1.0 Ready** — MVP complete, ready for npm publish.
+🚀 **v0.1.2** — Published on npm as `@milo4jo/contextkit`.
 
 ## What's Here
 - `docs/VISION.md` — Long-term direction
@@ -24,9 +24,10 @@ ContextKit — Smart context selection for AI coding assistants.
 
 ## Next Steps
 
-1. **npm publish** — Release v0.1.0
-2. **Agent Skill** — Package for Clawdbot/OpenCode
+1. ✅ **npm publish** — Released on npm
+2. **Agent Skill** — Package for OpenClaw
 3. **MCP Server** — Claude Desktop integration
+4. **Incremental indexing** — Only re-index changed files
 
 ## Development
 
