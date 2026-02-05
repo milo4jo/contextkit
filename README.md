@@ -294,6 +294,17 @@ settings:
 
 ---
 
+## 📚 Documentation
+
+- **[Getting Started Guide](./docs/getting-started.md)** — Detailed walkthrough
+- **[MCP Setup Guide](./docs/mcp-setup.md)** — Claude Desktop integration
+- **[Examples](./examples/README.md)** — Real-world use cases
+  - [Bug Investigation](./examples/bug-investigation.md)
+  - [Scripting & Automation](./examples/scripting.md)
+- **[Architecture](./docs/ARCHITECTURE.md)** — How ContextKit works
+
+---
+
 ## Technical Details
 
 ### How Selection Works
