@@ -5,16 +5,18 @@ All notable changes to ContextKit will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [0.2.0] - 2026-02-04
+## [0.2.0] - 2026-02-05
 
 ### Added
 - **MCP Server** — Model Context Protocol server for Claude Desktop integration
   - New `contextkit mcp` command to start MCP server
   - Standalone `contextkit-mcp` binary for direct MCP usage
   - Three MCP tools: `contextkit_select`, `contextkit_index`, `contextkit_status`
-- Comprehensive test suite (49 tests total)
+- **Agent Skill** — SKILL.md for skills.sh ecosystem (`npx skills add milo4jo/contextkit`)
+- Comprehensive test suite (83 tests)
 - Demo project in `examples/demo-project/`
 - `CONTRIBUTING.md` guide
+- Landing page at contextkit-site.vercel.app
 
 ### Changed
 - Improved README with clearer documentation
@@ -22,7 +24,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Updated package metadata for npm
 
 ### Fixed
-- Repository URLs now point to pixtools monorepo
+- Duplicate content when merging overlapping chunks
+- MCP server source count query
 
 ## [0.1.2] - 2026-02-01
 

@@ -308,13 +308,13 @@ Contributions welcome! Please read the [contributing guide](./CONTRIBUTING.md) f
 
 ```bash
 # Clone and setup
-git clone https://github.com/milo4jo/pixtools.git
-cd pixtools/packages/contextkit
-pnpm install
-pnpm build
+git clone https://github.com/milo4jo/contextkit.git
+cd contextkit
+npm install
+npm run build
 
 # Run tests
-pnpm test
+npm test
 
 # Link for local development
 npm link

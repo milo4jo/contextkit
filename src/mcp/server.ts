@@ -32,7 +32,7 @@ function getIndexStats(db: Database.Database): {
     .prepare("SELECT COUNT(*) as count FROM chunks")
     .get() as { count: number };
   const sourceCount = db
-    .prepare("SELECT COUNT(DISTINCT source) as count FROM chunks")
+    .prepare("SELECT COUNT(DISTINCT source_id) as count FROM chunks")
     .get() as { count: number };
 
   return {

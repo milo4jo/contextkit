@@ -5,21 +5,18 @@ Thanks for your interest in contributing! 🎉
 ## Quick Start
 
 ```bash
-# Clone the monorepo
-git clone https://github.com/milo4jo/pixtools.git
-cd pixtools
+# Clone the repo
+git clone https://github.com/milo4jo/contextkit.git
+cd contextkit
 
 # Install dependencies
-pnpm install
-
-# Navigate to ContextKit
-cd packages/contextkit
+npm install
 
 # Build
-pnpm build
+npm run build
 
 # Run tests
-pnpm test
+npm test
 
 # Link for local testing
 npm link
@@ -29,22 +26,26 @@ npm link
 
 1. **Create a branch** from `main`
 2. **Make your changes**
-3. **Run tests** — `pnpm test`
-4. **Run linting** — `pnpm lint`
+3. **Run tests** — `npm test`
+4. **Run linting** — `npm run lint`
 5. **Submit a PR**
 
 ## Project Structure
 
 ```
-packages/contextkit/
+contextkit/
 ├── src/
 │   ├── commands/       # CLI commands (init, source, index, select, mcp)
-│   ├── core/           # Core logic (chunking, embedding, search)
+│   ├── config/         # Configuration management
+│   ├── db/             # Database operations
+│   ├── indexer/        # Chunking, embedding, discovery
+│   ├── selector/       # Search, scoring, budget, formatting
 │   ├── mcp/            # MCP server implementation
-│   ├── utils/          # Utilities (streams, config)
+│   ├── utils/          # Utilities (streams, prompts, format)
 │   └── errors/         # Error types
-├── tests/              # Test files
+├── tests/              # Test files (83 tests)
 ├── docs/               # Documentation
+├── examples/           # Demo project
 └── dist/               # Built output (git-ignored)
 ```
 
@@ -60,13 +61,13 @@ We use [Vitest](https://vitest.dev/) for testing.
 
 ```bash
 # Run all tests
-pnpm test
+npm test
 
 # Run tests in watch mode
-pnpm test -- --watch
+npm test -- --watch
 
 # Run specific test file
-pnpm test -- src/core/chunker.test.ts
+npm test -- tests/chunker.test.ts
 ```
 
 ## Adding a New Command
@@ -87,4 +88,4 @@ Please include:
 
 ## Questions?
 
-Open an issue or reach out on [GitHub Discussions](https://github.com/milo4jo/pixtools/discussions).
+Open an issue on [GitHub](https://github.com/milo4jo/contextkit/issues).
