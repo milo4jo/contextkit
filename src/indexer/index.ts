@@ -2,10 +2,12 @@
  * Main Indexer Module
  *
  * Orchestrates file discovery, chunking, embedding, and storage.
+ * Supports incremental indexing via content hashing.
  */
 
 import Database from 'better-sqlite3';
-import { discoverFiles } from './discovery.js';
+import { createHash } from 'crypto';
+import { discoverFiles, type DiscoveredFile } from './discovery.js';
 import { chunkFiles, type ChunkOptions } from './chunker.js';
 import { embedChunks, type EmbeddedChunk } from './embeddings.js';
 import type { Source } from '../config/types.js';
@@ -17,6 +19,76 @@ export interface IndexStats {
   chunks: number;
   skipped: number;
   timeMs: number;
+  /** Files that were actually re-indexed (changed/new) */
+  filesChanged: number;
+  /** Files that were unchanged (skipped) */
+  filesUnchanged: number;
+  /** Files that were removed from index */
+  filesRemoved: number;
+}
+
+/**
+ * Get all stored file hashes for a source
+ */
+function getStoredFiles(db: Database.Database, sourceId: string): Map<string, string> {
+  const rows = db.prepare(
+    'SELECT file_path, content_hash FROM files WHERE source_id = ?'
+  ).all(sourceId) as Array<{ file_path: string; content_hash: string }>;
+  
+  const map = new Map<string, string>();
+  for (const row of rows) {
+    map.set(row.file_path, row.content_hash);
+  }
+  return map;
+}
+
+/**
+ * Determine which files need to be indexed
+ */
+function categorizeFiles(
+  discovered: DiscoveredFile[],
+  stored: Map<string, string>
+): {
+  new: DiscoveredFile[];
+  changed: DiscoveredFile[];
+  unchanged: DiscoveredFile[];
+  removed: string[];
+} {
+  const newFiles: DiscoveredFile[] = [];
+  const changedFiles: DiscoveredFile[] = [];
+  const unchangedFiles: DiscoveredFile[] = [];
+  const currentPaths = new Set<string>();
+  
+  for (const file of discovered) {
+    currentPaths.add(file.relativePath);
+    const storedHash = stored.get(file.relativePath);
+    
+    if (!storedHash) {
+      // New file
+      newFiles.push(file);
+    } else if (storedHash !== file.contentHash) {
+      // Changed file
+      changedFiles.push(file);
+    } else {
+      // Unchanged
+      unchangedFiles.push(file);
+    }
+  }
+  
+  // Find removed files
+  const removedFiles: string[] = [];
+  for (const [path] of stored) {
+    if (!currentPaths.has(path)) {
+      removedFiles.push(path);
+    }
+  }
+  
+  return {
+    new: newFiles,
+    changed: changedFiles,
+    unchanged: unchangedFiles,
+    removed: removedFiles,
+  };
 }
 
 /** Progress update */
@@ -30,20 +102,32 @@ export interface IndexProgress {
 /** Progress callback */
 export type IndexProgressCallback = (progress: IndexProgress) => void;
 
+/** Options for indexing */
+export interface IndexOptions extends ChunkOptions {
+  /** Force full re-index (ignore hashes) */
+  force?: boolean;
+}
+
 /**
- * Index all sources
+ * Index all sources with incremental support
  */
 export async function indexSources(
   sources: Source[],
   baseDir: string,
   db: Database.Database,
   chunkOptions: ChunkOptions,
-  onProgress?: IndexProgressCallback
+  onProgress?: IndexProgressCallback,
+  options?: { force?: boolean }
 ): Promise<IndexStats> {
   const startTime = Date.now();
   let totalFiles = 0;
   let totalChunks = 0;
   let totalSkipped = 0;
+  let totalFilesChanged = 0;
+  let totalFilesUnchanged = 0;
+  let totalFilesRemoved = 0;
+  
+  const forceReindex = options?.force ?? false;
 
   for (const source of sources) {
     // Phase 1: Discovery
@@ -65,34 +149,48 @@ export async function indexSources(
       total: discovered.files.length,
     });
 
-    // Phase 2: Chunking
+    // Get stored file hashes for incremental indexing
+    const storedFiles = forceReindex ? new Map() : getStoredFiles(db, source.id);
+    const { new: newFiles, changed: changedFiles, unchanged: unchangedFiles, removed: removedFiles } = 
+      categorizeFiles(discovered.files, storedFiles);
+    
+    // Files to process = new + changed
+    const filesToProcess = [...newFiles, ...changedFiles];
+    totalFilesChanged += filesToProcess.length;
+    totalFilesUnchanged += unchangedFiles.length;
+    totalFilesRemoved += removedFiles.length;
+
+    // Phase 2: Chunking (only for new/changed files)
     onProgress?.({
       phase: 'chunking',
       sourceId: source.id,
       current: 0,
-      total: discovered.files.length,
+      total: filesToProcess.length,
     });
 
-    const chunks = chunkFiles(discovered.files, chunkOptions);
+    const chunks = chunkFiles(filesToProcess, chunkOptions);
 
     onProgress?.({
       phase: 'chunking',
       sourceId: source.id,
-      current: discovered.files.length,
-      total: discovered.files.length,
+      current: filesToProcess.length,
+      total: filesToProcess.length,
     });
 
-    // Phase 3: Embedding
-    const embeddedChunks = await embedChunks(chunks, (current, total) => {
-      onProgress?.({
-        phase: 'embedding',
-        sourceId: source.id,
-        current,
-        total,
+    // Phase 3: Embedding (only for new/changed files)
+    let embeddedChunks: EmbeddedChunk[] = [];
+    if (chunks.length > 0) {
+      embeddedChunks = await embedChunks(chunks, (current, total) => {
+        onProgress?.({
+          phase: 'embedding',
+          sourceId: source.id,
+          current,
+          total,
+        });
       });
-    });
+    }
 
-    // Phase 4: Store in database
+    // Phase 4: Store in database (incremental)
     onProgress?.({
       phase: 'storing',
       sourceId: source.id,
@@ -100,7 +198,15 @@ export async function indexSources(
       total: embeddedChunks.length,
     });
 
-    storeChunks(db, source.id, source.path, embeddedChunks, discovered.files.length);
+    storeChunksIncremental(
+      db, 
+      source.id, 
+      source.path, 
+      embeddedChunks, 
+      filesToProcess,
+      removedFiles,
+      discovered.files.length
+    );
     totalChunks += embeddedChunks.length;
 
     onProgress?.({
@@ -116,26 +222,85 @@ export async function indexSources(
     files: totalFiles,
     chunks: totalChunks,
     skipped: totalSkipped,
+    filesChanged: totalFilesChanged,
+    filesUnchanged: totalFilesUnchanged,
+    filesRemoved: totalFilesRemoved,
     timeMs: Date.now() - startTime,
   };
 }
 
 /**
- * Store chunks in the database
+ * Generate unique file ID
  */
-function storeChunks(
+function generateFileId(sourceId: string, filePath: string): string {
+  const base = `${sourceId}:${filePath}`;
+  return createHash('sha256').update(base).digest('hex').slice(0, 16);
+}
+
+/**
+ * Store chunks incrementally (only for changed files)
+ */
+function storeChunksIncremental(
   db: Database.Database,
   sourceId: string,
   sourcePath: string,
   chunks: EmbeddedChunk[],
-  fileCount: number
+  processedFiles: DiscoveredFile[],
+  removedFiles: string[],
+  totalFileCount: number
 ): void {
   // Begin transaction for performance
   const transaction = db.transaction(() => {
-    // Clear existing chunks for this source
-    db.prepare('DELETE FROM chunks WHERE source_id = ?').run(sourceId);
+    // FIRST: Ensure source exists (for foreign key constraints)
+    db.prepare(
+      `
+      INSERT INTO sources (id, path, file_count, chunk_count, indexed_at)
+      VALUES (?, ?, 0, 0, datetime('now'))
+      ON CONFLICT(id) DO NOTHING
+    `
+    ).run(sourceId, sourcePath);
+
+    // Delete chunks for removed files
+    if (removedFiles.length > 0) {
+      const deleteChunks = db.prepare('DELETE FROM chunks WHERE source_id = ? AND file_path = ?');
+      const deleteFile = db.prepare('DELETE FROM files WHERE source_id = ? AND file_path = ?');
+      
+      for (const filePath of removedFiles) {
+        deleteChunks.run(sourceId, filePath);
+        deleteFile.run(sourceId, filePath);
+      }
+    }
+
+    // Delete chunks for processed (changed) files - they'll be replaced
+    if (processedFiles.length > 0) {
+      const deleteChunks = db.prepare('DELETE FROM chunks WHERE source_id = ? AND file_path = ?');
+      
+      for (const file of processedFiles) {
+        deleteChunks.run(sourceId, file.relativePath);
+      }
+    }
+
+    // Insert/update file records with new hashes
+    const upsertFile = db.prepare(`
+      INSERT INTO files (id, source_id, file_path, content_hash, indexed_at)
+      VALUES (?, ?, ?, ?, datetime('now'))
+      ON CONFLICT(source_id, file_path) DO UPDATE SET
+        content_hash = excluded.content_hash,
+        indexed_at = excluded.indexed_at
+    `);
+    
+    for (const file of processedFiles) {
+      const fileId = generateFileId(sourceId, file.relativePath);
+      upsertFile.run(fileId, sourceId, file.relativePath, file.contentHash);
+    }
+
+    // Get current total chunk count for this source
+    const currentChunkCount = db.prepare(
+      'SELECT COUNT(*) as count FROM chunks WHERE source_id = ?'
+    ).get(sourceId) as { count: number };
 
     // Update source record
+    const newChunkCount = currentChunkCount.count + chunks.length;
     db.prepare(
       `
       INSERT INTO sources (id, path, file_count, chunk_count, indexed_at)
@@ -146,9 +311,9 @@ function storeChunks(
         chunk_count = excluded.chunk_count,
         indexed_at = excluded.indexed_at
     `
-    ).run(sourceId, sourcePath, fileCount, chunks.length);
+    ).run(sourceId, sourcePath, totalFileCount, newChunkCount);
 
-    // Insert chunks
+    // Insert new chunks
     const insertChunk = db.prepare(`
       INSERT INTO chunks (id, source_id, file_path, content, start_line, end_line, tokens, embedding)
       VALUES (?, ?, ?, ?, ?, ?, ?, ?)
@@ -183,7 +348,7 @@ export function readEmbedding(blob: Buffer): number[] {
 }
 
 // Re-export types and functions
-export { discoverFiles, type DiscoveredFile, type DiscoveryResult } from './discovery.js';
+export { discoverFiles, computeContentHash, type DiscoveredFile, type DiscoveryResult } from './discovery.js';
 export { chunkFiles, chunkFile, countTokens, type Chunk, type ChunkOptions } from './chunker.js';
 export {
   embed,

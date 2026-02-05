@@ -2,10 +2,12 @@
  * File Discovery Module
  *
  * Discovers files in sources based on include/exclude patterns.
+ * Supports incremental indexing via content hashing.
  */
 
 import { resolve } from 'path';
 import { readFileSync, statSync } from 'fs';
+import { createHash } from 'crypto';
 import fg from 'fast-glob';
 import type { Source } from '../config/types.js';
 
@@ -24,6 +26,15 @@ export interface DiscoveredFile {
   content: string;
   /** File size in bytes */
   size: number;
+  /** Content hash (SHA-256) for change detection */
+  contentHash: string;
+}
+
+/**
+ * Compute SHA-256 hash of content
+ */
+export function computeContentHash(content: string): string {
+  return createHash('sha256').update(content).digest('hex');
 }
 
 /** Discovery result for a source */
@@ -77,6 +88,7 @@ export function discoverFiles(source: Source, baseDir: string): DiscoveryResult 
         sourceId: source.id,
         content,
         size: stats.size,
+        contentHash: computeContentHash(content),
       });
     } catch {
       // Skip files we can't read

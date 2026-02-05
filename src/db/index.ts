@@ -15,8 +15,15 @@ CREATE TABLE IF NOT EXISTS sources (
   indexed_at TIMESTAMP
 );
 
--- Ensure chunk_count column exists (migration)
--- SQLite doesn't support IF NOT EXISTS for columns, so we handle this in code
+-- Files table (for incremental indexing)
+CREATE TABLE IF NOT EXISTS files (
+  id TEXT PRIMARY KEY,
+  source_id TEXT NOT NULL REFERENCES sources(id) ON DELETE CASCADE,
+  file_path TEXT NOT NULL,
+  content_hash TEXT NOT NULL,
+  indexed_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  UNIQUE(source_id, file_path)
+);
 
 -- Chunks table  
 CREATE TABLE IF NOT EXISTS chunks (
@@ -34,6 +41,8 @@ CREATE TABLE IF NOT EXISTS chunks (
 -- Indexes for performance
 CREATE INDEX IF NOT EXISTS idx_chunks_source ON chunks(source_id);
 CREATE INDEX IF NOT EXISTS idx_chunks_file ON chunks(file_path);
+CREATE INDEX IF NOT EXISTS idx_files_source ON files(source_id);
+CREATE INDEX IF NOT EXISTS idx_files_path ON files(source_id, file_path);
 `;
 
 /**

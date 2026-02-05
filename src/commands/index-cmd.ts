@@ -11,6 +11,7 @@ import { SourceNotFoundError } from '../errors/index.js';
 export const indexCommand = new Command('index')
   .description('Index all sources')
   .option('-s, --source <name>', 'Index only a specific source')
+  .option('-f, --force', 'Force full re-index (ignore cached hashes)')
   .action(async (options) => {
     ensureInitialized();
 
@@ -101,7 +102,8 @@ export const indexCommand = new Command('index')
           chunkSize: config.settings.chunk_size,
           chunkOverlap: config.settings.chunk_overlap,
         },
-        onProgress
+        onProgress,
+        { force: options.force }
       );
 
       // Stop progress bar
@@ -113,7 +115,14 @@ export const indexCommand = new Command('index')
       if (!opts.quiet) {
         writeMessage('');
         const timeStr = (stats.timeMs / 1000).toFixed(1);
-        writeSuccess(`Indexed ${stats.chunks} chunks from ${stats.files} files in ${timeStr}s`);
+        
+        // Show incremental stats
+        if (stats.filesUnchanged > 0 || stats.filesRemoved > 0) {
+          writeSuccess(`Indexed ${stats.chunks} chunks from ${stats.files} files in ${timeStr}s`);
+          writeMessage(formatDim(`  ${stats.filesChanged} changed, ${stats.filesUnchanged} unchanged, ${stats.filesRemoved} removed`));
+        } else {
+          writeSuccess(`Indexed ${stats.chunks} chunks from ${stats.files} files in ${timeStr}s`);
+        }
 
         if (stats.skipped > 0) {
           writeMessage(formatDim(`  (${stats.skipped} files skipped - too large or binary)`));

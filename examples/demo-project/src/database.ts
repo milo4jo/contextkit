@@ -56,3 +56,4 @@ export async function runMigrations(): Promise<void> {
 export async function closeDatabase(): Promise<void> {
   await db.end();
 }
+// Modified
