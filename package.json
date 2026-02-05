@@ -50,7 +50,7 @@
   "engines": {
     "node": ">=18"
   },
-  "homepage": "https://github.com/milo4jo/contextkit#readme",
+  "homepage": "https://contextkit-site.vercel.app",
   "bugs": {
     "url": "https://github.com/milo4jo/contextkit/issues"
   },
