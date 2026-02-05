@@ -17,7 +17,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Validates version, sources, paths, patterns, settings
   - Provides actionable suggestions for common mistakes
   - Warns about missing node_modules exclusion, unusual chunk sizes
-- 36 new tests (131 total)
+- **Import Parser** (v0.5.0 prep) — Parse TypeScript/JavaScript imports
+  - Parse ES6 imports (named, default, namespace, side-effect)
+  - Parse CommonJS require() and dynamic import()
+  - Classify imports as relative/absolute/package
+  - Resolve relative imports to actual file paths
+  - Build dependency graph for smarter retrieval
+- 58 new tests (153 total)
 
 ## [0.3.0] - 2026-02-05
 

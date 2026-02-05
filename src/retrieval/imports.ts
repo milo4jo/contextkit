@@ -5,7 +5,7 @@
  * Uses regex patterns instead of AST parsing for simplicity and speed.
  */
 
-import { resolve, dirname, extname, basename } from 'path';
+import { resolve, dirname, extname } from 'path';
 import { existsSync } from 'fs';
 
 /** Parsed import statement */
@@ -33,9 +33,7 @@ export interface ImportParseResult {
 }
 
 /**
- * Regex patterns for import statement matching
- *
- * Matches:
+ * Supported import patterns:
  * - import { foo, bar } from './module'
  * - import * as name from './module'
  * - import name from './module'
@@ -46,46 +44,6 @@ export interface ImportParseResult {
  * - const x = require('./module')
  * - const x = await import('./module')
  */
-
-// ES6 import patterns
-const IMPORT_PATTERNS = [
-  // import { named } from 'specifier'
-  // import { named as alias } from 'specifier'
-  /^import\s+(?:type\s+)?{([^}]+)}\s+from\s+['"]([^'"]+)['"]/gm,
-
-  // import * as name from 'specifier'
-  /^import\s+\*\s+as\s+(\w+)\s+from\s+['"]([^'"]+)['"]/gm,
-
-  // import name from 'specifier'
-  /^import\s+(\w+)\s+from\s+['"]([^'"]+)['"]/gm,
-
-  // import 'specifier' (side-effect only)
-  /^import\s+['"]([^'"]+)['"]/gm,
-
-  // import type { Foo } from 'specifier' (TypeScript)
-  /^import\s+type\s+{([^}]+)}\s+from\s+['"]([^'"]+)['"]/gm,
-];
-
-// ES6 re-export patterns
-const EXPORT_FROM_PATTERNS = [
-  // export { named } from 'specifier'
-  /^export\s+(?:type\s+)?{[^}]*}\s+from\s+['"]([^'"]+)['"]/gm,
-
-  // export * from 'specifier'
-  /^export\s+\*\s+(?:as\s+\w+\s+)?from\s+['"]([^'"]+)['"]/gm,
-];
-
-// CommonJS require patterns
-const REQUIRE_PATTERNS = [
-  // const x = require('specifier')
-  /(?:const|let|var)\s+\w+\s*=\s*require\s*\(\s*['"]([^'"]+)['"]\s*\)/gm,
-
-  // require('specifier') (standalone)
-  /require\s*\(\s*['"]([^'"]+)['"]\s*\)/gm,
-];
-
-// Dynamic import pattern
-const DYNAMIC_IMPORT_PATTERN = /(?:await\s+)?import\s*\(\s*['"]([^'"]+)['"]\s*\)/gm;
 
 /**
  * Parse imports from source code
@@ -236,7 +194,7 @@ function parseLineImports(line: string, lineNum: number, imports: ParsedImport[]
 /**
  * Classify import type based on specifier
  */
-function classifyImportType(specifier: string): 'relative' | 'absolute' | 'package' {
+export function classifyImportType(specifier: string): 'relative' | 'absolute' | 'package' {
   if (specifier.startsWith('.')) {
     return 'relative';
   }
