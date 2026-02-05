@@ -5,7 +5,7 @@
  */
 
 import { describe, it, expect } from 'vitest';
-import { readEmbedding, EMBEDDING_DIM } from '../src/indexer/index.js';
+import { readEmbedding, EMBEDDING_DIM, computeContentHash } from '../src/indexer/index.js';
 
 describe('readEmbedding', () => {
   it('reads a simple embedding from buffer', () => {
@@ -99,6 +99,56 @@ describe('readEmbedding', () => {
   });
 });
 
+describe('computeContentHash', () => {
+  it('generates consistent hash for same content', () => {
+    const content = 'function hello() { return "world"; }';
+    const hash1 = computeContentHash(content);
+    const hash2 = computeContentHash(content);
+    
+    expect(hash1).toBe(hash2);
+  });
+
+  it('generates different hashes for different content', () => {
+    const hash1 = computeContentHash('function hello() {}');
+    const hash2 = computeContentHash('function world() {}');
+    
+    expect(hash1).not.toBe(hash2);
+  });
+
+  it('generates 64 character hex string (SHA-256)', () => {
+    const hash = computeContentHash('test content');
+    
+    expect(hash).toHaveLength(64);
+    expect(hash).toMatch(/^[a-f0-9]{64}$/);
+  });
+
+  it('handles empty content', () => {
+    const hash = computeContentHash('');
+    
+    // SHA-256 of empty string is well-known
+    expect(hash).toBe('e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855');
+  });
+
+  it('is sensitive to whitespace changes', () => {
+    const hash1 = computeContentHash('hello world');
+    const hash2 = computeContentHash('hello  world');
+    const hash3 = computeContentHash('hello world ');
+    
+    expect(hash1).not.toBe(hash2);
+    expect(hash1).not.toBe(hash3);
+  });
+
+  it('detects single character changes', () => {
+    const original = 'const x = 1;';
+    const modified = 'const x = 2;';
+    
+    const hash1 = computeContentHash(original);
+    const hash2 = computeContentHash(modified);
+    
+    expect(hash1).not.toBe(hash2);
+  });
+});
+
 describe('indexer exports', () => {
   it('exports all expected functions and types', async () => {
     const indexer = await import('../src/indexer/index.js');
@@ -114,6 +164,7 @@ describe('indexer exports', () => {
     expect(typeof indexer.embedChunks).toBe('function');
     expect(typeof indexer.cosineSimilarity).toBe('function');
     expect(typeof indexer.indexSources).toBe('function');
+    expect(typeof indexer.computeContentHash).toBe('function');
 
     // Constants
     expect(indexer.EMBEDDING_DIM).toBe(384);
