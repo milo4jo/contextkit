@@ -63,6 +63,8 @@ export function fitToBudget(chunks: RankedChunk[], budget: number): BudgetResult
 /**
  * Merge adjacent chunks from the same file
  * (Optional optimization for cleaner output)
+ *
+ * Handles overlapping chunks by removing duplicate lines.
  */
 export function mergeAdjacentChunks(chunks: RankedChunk[]): RankedChunk[] {
   if (chunks.length <= 1) return chunks;
@@ -73,16 +75,32 @@ export function mergeAdjacentChunks(chunks: RankedChunk[]): RankedChunk[] {
   for (let i = 1; i < chunks.length; i++) {
     const next = chunks[i];
 
-    // Check if adjacent (same file, consecutive lines)
-    const isAdjacent = current.filePath === next.filePath && current.endLine + 1 >= next.startLine;
+    // Check if adjacent or overlapping (same file, lines touch or overlap)
+    const isAdjacentOrOverlapping =
+      current.filePath === next.filePath && current.endLine + 1 >= next.startLine;
 
-    if (isAdjacent) {
-      // Merge chunks
+    if (isAdjacentOrOverlapping) {
+      // Calculate overlap
+      const overlapLines = Math.max(0, current.endLine - next.startLine + 1);
+
+      // Get the non-overlapping part of the next chunk
+      let nextContent = next.content;
+      if (overlapLines > 0) {
+        const nextLines = next.content.split('\n');
+        // Skip the overlapping lines from the beginning of next chunk
+        nextContent = nextLines.slice(overlapLines).join('\n');
+      }
+
+      // Merge chunks, avoiding duplicate content
+      const mergedContent =
+        nextContent.length > 0 ? current.content + '\n' + nextContent : current.content;
+
       current = {
         ...current,
-        content: current.content + '\n' + next.content,
+        content: mergedContent,
         endLine: next.endLine,
-        tokens: current.tokens + next.tokens,
+        // Recalculate tokens (approximate)
+        tokens: current.tokens + next.tokens - (overlapLines > 0 ? Math.floor(next.tokens * (overlapLines / (next.endLine - next.startLine + 1))) : 0),
         score: Math.max(current.score, next.score),
         similarity: Math.max(current.similarity, next.similarity),
       };
