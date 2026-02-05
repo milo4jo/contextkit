@@ -144,7 +144,7 @@ Pre-built configurations:
 - [ ] Better progress indicators
 
 ### v0.4.0 — Scoring + Formats
-- [ ] Multi-factor scoring
+- [x] Multi-factor scoring
 - [ ] Output format options
 - [ ] Config validation
 - [ ] Improved error messages

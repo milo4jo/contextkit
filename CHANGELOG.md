@@ -16,7 +16,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - New `contextkit watch` command
   - Configurable debounce time (`--debounce <ms>`)
   - Graceful shutdown with Ctrl+C
-- New tests for content hashing (89 total)
+- **Multi-Factor Scoring** — Smarter context ranking
+  - Semantic similarity (50% weight)
+  - Path match (15%) — query keywords in file path  
+  - Content match (15%) — exact keyword matches in content
+  - Symbol match (15%) — function/class name detection
+  - File type boost (5%) — implementation > tests > config
+  - Diversity penalty option to spread context
+- New tests for content hashing and scoring (95 total)
 
 ## [0.2.0] - 2026-02-05
 
