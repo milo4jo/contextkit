@@ -7,6 +7,28 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.5.1] - 2026-02-06
+
+### Added
+- **AST-Aware Chunking** — Code chunks now respect language structure
+  - TypeScript/JavaScript parser extracts functions, classes, interfaces as whole units
+  - No more splitting functions mid-body
+  - Preserves logical code boundaries for better context
+  - Extensible parser architecture for future language support
+- **Query Caching** — Repeated queries are instant
+  - SQLite-based query cache (`query_cache` table)
+  - Automatic cache invalidation on index changes
+  - New `--no-cache` flag to bypass cache when needed
+  - New `contextkit cache clear` to manually clear cache
+  - New `contextkit cache stats` to view cache hit rates
+
+### Changed
+- Improved chunking quality for TypeScript/JavaScript files
+- Better handling of overlapping content in merged chunks
+
+### Fixed
+- Edge case in AST parsing for arrow functions with implicit returns
+
 ## [0.5.0] - 2026-02-05
 
 ### Added
