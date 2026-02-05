@@ -161,8 +161,14 @@ contextkit select "database queries" --sources src,lib
 # Show scoring details
 contextkit select "user validation" --explain
 
-# JSON output (for scripts/integrations)
-contextkit select "API routes" --json
+# Output formats
+contextkit select "query" --format markdown  # Default, with code blocks
+contextkit select "query" --format xml       # XML structure (Claude prefers this)
+contextkit select "query" --format json      # JSON for scripts/integrations
+contextkit select "query" --format plain     # Plain text, no formatting
+
+# Pipe to clipboard (macOS)
+contextkit select "query" --format plain | pbcopy
 ```
 
 ---

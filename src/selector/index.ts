@@ -12,7 +12,7 @@ import Database from 'better-sqlite3';
 import { searchSimilar, type SearchOptions } from './search.js';
 import { rankChunks } from './scoring.js';
 import { fitToBudget, mergeAdjacentChunks } from './budget.js';
-import { formatOutput, formatWithExplanation, type FormattedOutput } from './formatter.js';
+import { formatInFormat, type FormattedOutput, type OutputFormat } from './formatter.js';
 
 /** Selection options */
 export interface SelectOptions {
@@ -24,6 +24,8 @@ export interface SelectOptions {
   sources?: string[];
   /** Show scoring explanation */
   explain?: boolean;
+  /** Output format */
+  format?: OutputFormat;
 }
 
 /** Selection result */
@@ -88,9 +90,15 @@ export async function selectContext(
 
   // Step 5: Format output
   const timeMs = Date.now() - startTime;
-  const output = options.explain
-    ? formatWithExplanation(options.query, mergedResult, similarChunks.length, timeMs)
-    : formatOutput(options.query, mergedResult, similarChunks.length, timeMs);
+  const format = options.format || 'markdown';
+  const output = formatInFormat(
+    format,
+    options.query,
+    mergedResult,
+    similarChunks.length,
+    timeMs,
+    options.explain
+  );
 
   return {
     output,
@@ -99,6 +107,6 @@ export async function selectContext(
 }
 
 // Re-export types
-export type { FormattedOutput, SelectionData, SelectionStats, ChunkInfo } from './formatter.js';
+export type { FormattedOutput, SelectionData, SelectionStats, ChunkInfo, OutputFormat } from './formatter.js';
 export type { ScoredChunk } from './search.js';
 export type { RankedChunk } from './scoring.js';

@@ -5,7 +5,7 @@
  */
 
 import { describe, it, expect } from 'vitest';
-import { formatOutput, formatWithExplanation } from '../src/selector/formatter.js';
+import { formatOutput, formatWithExplanation, formatAsXml, formatAsPlain, formatInFormat } from '../src/selector/formatter.js';
 import type { RankedChunk } from '../src/selector/scoring.js';
 import type { BudgetResult } from '../src/selector/budget.js';
 
@@ -225,5 +225,170 @@ describe('formatWithExplanation', () => {
     expect(output.text).toContain('## src/test.ts');
     expect(output.text).toContain('```typescript');
     expect(output.text).toContain('📊');
+  });
+});
+
+describe('formatAsXml', () => {
+  it('should produce valid XML structure', () => {
+    const chunk = createRankedChunk('src/test.ts', 'const x = 1;', 50, 1, 5);
+    const result = createBudgetResult([chunk]);
+
+    const output = formatAsXml('test query', result, 1, 100);
+
+    expect(output.text).toContain('<context>');
+    expect(output.text).toContain('</context>');
+    expect(output.text).toContain('<query>test query</query>');
+    expect(output.text).toContain('<files>');
+    expect(output.text).toContain('</files>');
+  });
+
+  it('should include file paths as attributes', () => {
+    const chunk = createRankedChunk('src/auth/jwt.ts', 'code');
+    const result = createBudgetResult([chunk]);
+
+    const output = formatAsXml('query', result, 1, 100);
+
+    expect(output.text).toContain('<file path="src/auth/jwt.ts">');
+  });
+
+  it('should include chunk metadata', () => {
+    const chunk = createRankedChunk('src/test.ts', 'code', 150, 10, 25);
+    const result = createBudgetResult([chunk]);
+
+    const output = formatAsXml('query', result, 1, 100);
+
+    expect(output.text).toContain('lines="10-25"');
+    expect(output.text).toContain('tokens="150"');
+  });
+
+  it('should wrap content in CDATA', () => {
+    const chunk = createRankedChunk('src/test.ts', 'const x = "<test>"');
+    const result = createBudgetResult([chunk]);
+
+    const output = formatAsXml('query', result, 1, 100);
+
+    expect(output.text).toContain('<![CDATA[const x = "<test>"]]>');
+  });
+
+  it('should include stats element', () => {
+    const chunks = [
+      createRankedChunk('src/a.ts', 'code a', 50),
+      createRankedChunk('src/b.ts', 'code b', 75),
+    ];
+    const result = createBudgetResult(chunks);
+
+    const output = formatAsXml('query', result, 5, 200);
+
+    expect(output.text).toContain('<stats');
+    expect(output.text).toContain('tokens="125"');
+    expect(output.text).toContain('chunks="2"');
+    expect(output.text).toContain('files="2"');
+    expect(output.text).toContain('time_ms="200"');
+  });
+
+  it('should escape XML special characters in query', () => {
+    const chunk = createRankedChunk('src/test.ts', 'code');
+    const result = createBudgetResult([chunk]);
+
+    const output = formatAsXml('query with <special> & "chars"', result, 1, 100);
+
+    expect(output.text).toContain('&lt;special&gt;');
+    expect(output.text).toContain('&amp;');
+    expect(output.text).toContain('&quot;chars&quot;');
+  });
+});
+
+describe('formatAsPlain', () => {
+  it('should produce plain text without markdown', () => {
+    const chunk = createRankedChunk('src/test.ts', 'const x = 1;', 50, 1, 5);
+    const result = createBudgetResult([chunk]);
+
+    const output = formatAsPlain('test query', result, 1, 100);
+
+    // Should NOT have markdown formatting
+    expect(output.text).not.toContain('```');
+    expect(output.text).not.toContain('##');
+    expect(output.text).not.toContain('📊');
+    
+    // Should have plain format
+    expect(output.text).toContain('// src/test.ts (lines 1-5)');
+    expect(output.text).toContain('const x = 1;');
+  });
+
+  it('should format multiple chunks cleanly', () => {
+    const chunks = [
+      createRankedChunk('src/a.ts', 'code a', 50, 1, 10),
+      createRankedChunk('src/b.ts', 'code b', 50, 1, 5),
+    ];
+    const result = createBudgetResult(chunks);
+
+    const output = formatAsPlain('query', result, 2, 100);
+
+    expect(output.text).toContain('// src/a.ts');
+    expect(output.text).toContain('// src/b.ts');
+    expect(output.text).toContain('code a');
+    expect(output.text).toContain('code b');
+  });
+
+  it('should return proper structured data', () => {
+    const chunk = createRankedChunk('src/test.ts', 'code', 50, 1, 5, 0.9);
+    const result = createBudgetResult([chunk]);
+
+    const output = formatAsPlain('query', result, 10, 150);
+
+    expect(output.data.chunks).toHaveLength(1);
+    expect(output.data.stats.totalTokens).toBe(50);
+    expect(output.data.stats.timeMs).toBe(150);
+  });
+});
+
+describe('formatInFormat', () => {
+  const chunk = createRankedChunk('src/test.ts', 'const x = 1;', 50, 1, 5);
+  const result = createBudgetResult([chunk]);
+
+  it('should format as markdown by default', () => {
+    const output = formatInFormat('markdown', 'query', result, 1, 100);
+
+    expect(output.text).toContain('```typescript');
+    expect(output.text).toContain('## src/test.ts');
+  });
+
+  it('should format as xml', () => {
+    const output = formatInFormat('xml', 'query', result, 1, 100);
+
+    expect(output.text).toContain('<context>');
+    expect(output.text).toContain('<file path="src/test.ts">');
+  });
+
+  it('should format as json', () => {
+    const output = formatInFormat('json', 'query', result, 1, 100);
+
+    const parsed = JSON.parse(output.text);
+    expect(parsed.query).toBe('query');
+    expect(parsed.chunks).toHaveLength(1);
+    expect(parsed.stats).toBeDefined();
+  });
+
+  it('should format as plain', () => {
+    const output = formatInFormat('plain', 'query', result, 1, 100);
+
+    expect(output.text).toContain('// src/test.ts');
+    expect(output.text).not.toContain('```');
+  });
+
+  it('should include explanation for markdown when explain is true', () => {
+    const output = formatInFormat('markdown', 'query', result, 1, 100, true);
+
+    expect(output.text).toContain('## Scoring Details');
+    expect(output.text).toContain('similarity:');
+  });
+
+  it('should not include explanation for non-markdown formats', () => {
+    const xmlOutput = formatInFormat('xml', 'query', result, 1, 100, true);
+    const plainOutput = formatInFormat('plain', 'query', result, 1, 100, true);
+
+    // Explanation is only for markdown
+    expect(xmlOutput.text).not.toContain('Scoring Details');
+    expect(plainOutput.text).not.toContain('Scoring Details');
   });
 });

@@ -7,7 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-_No unreleased changes._
+### Added
+- **Multiple Output Formats** — Better integration with different tools
+  - `--format markdown` — Default, with syntax-highlighted code blocks
+  - `--format xml` — XML structure (Claude prefers XML for structured content)
+  - `--format json` — JSON for scripts and programmatic use
+  - `--format plain` — Plain text, no formatting (easy clipboard paste)
+- 15 new tests for format functionality (110 total)
 
 ## [0.3.0] - 2026-02-05
 

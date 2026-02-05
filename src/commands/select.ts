@@ -1,17 +1,20 @@
 import { Command } from 'commander';
 import { ensureInitialized } from '../config/index.js';
 import { openDatabase } from '../db/index.js';
-import { selectContext } from '../selector/index.js';
+import { selectContext, type OutputFormat } from '../selector/index.js';
 import { writeData, writeMessage, writeWarning } from '../utils/streams.js';
 import { formatCommand, formatDim } from '../utils/format.js';
 import { getGlobalOpts } from '../utils/cli.js';
 import { InvalidUsageError } from '../errors/index.js';
 
+/** Valid output formats */
+const VALID_FORMATS = ['markdown', 'xml', 'json', 'plain'] as const;
+
 export const selectCommand = new Command('select')
   .description('Select context for a query')
   .argument('<query>', 'The query to find context for')
   .option('-b, --budget <tokens>', 'Maximum tokens to include', '8000')
-  .option('-f, --format <format>', 'Output format: text, json', 'text')
+  .option('-f, --format <format>', 'Output format: markdown, xml, json, plain', 'markdown')
   .option('-s, --sources <sources>', 'Filter sources (comma-separated)')
   .option('--explain', 'Show scoring details')
   .action(async (query: string, options) => {
@@ -24,6 +27,14 @@ export const selectCommand = new Command('select')
       throw new InvalidUsageError('Budget must be a positive number.');
     }
 
+    // Validate format
+    const format = options.format.toLowerCase() as OutputFormat;
+    if (!VALID_FORMATS.includes(format)) {
+      throw new InvalidUsageError(
+        `Invalid format "${options.format}". Valid formats: ${VALID_FORMATS.join(', ')}`
+      );
+    }
+
     // Parse sources filter
     const sources = options.sources
       ? options.sources.split(',').map((s: string) => s.trim())
@@ -33,12 +44,16 @@ export const selectCommand = new Command('select')
     const db = openDatabase();
 
     try {
+      // Determine effective format (--json flag overrides -f)
+      const effectiveFormat: OutputFormat = opts.json ? 'json' : format;
+
       // Run selection
       const result = await selectContext(db, {
         query,
         budget,
         sources,
         explain: options.explain,
+        format: effectiveFormat,
       });
 
       // Handle empty index
@@ -57,13 +72,8 @@ export const selectCommand = new Command('select')
         return;
       }
 
-      // Output based on format
-      if (options.format === 'json' || opts.json) {
-        writeData(JSON.stringify(result.output.data, null, 2));
-      } else {
-        // Text output goes to stdout (it's the data)
-        writeData(result.output.text);
-      }
+      // Output the formatted text
+      writeData(result.output.text);
     } finally {
       db.close();
     }
