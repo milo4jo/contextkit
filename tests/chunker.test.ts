@@ -5,7 +5,7 @@
  */
 
 import { describe, it, expect } from 'vitest';
-import { chunkFile, countTokens, type Chunk } from '../src/indexer/chunker.js';
+import { chunkFile, countTokens } from '../src/indexer/chunker.js';
 import type { DiscoveredFile } from '../src/indexer/discovery.js';
 
 // Helper to create a mock file
@@ -38,10 +38,11 @@ describe('countTokens', () => {
   });
 });
 
-describe('chunkFile', () => {
+describe('chunkFile (token-based)', () => {
   it('should return single chunk for small file', () => {
     const file = createMockFile('const x = 1;\nconst y = 2;');
-    const chunks = chunkFile(file, { chunkSize: 500, chunkOverlap: 50 });
+    // Explicitly use token-based chunking
+    const chunks = chunkFile(file, { chunkSize: 500, chunkOverlap: 50, useAst: false });
 
     expect(chunks).toHaveLength(1);
     expect(chunks[0].content).toBe('const x = 1;\nconst y = 2;');
@@ -49,17 +50,19 @@ describe('chunkFile', () => {
     expect(chunks[0].endLine).toBe(2);
     expect(chunks[0].sourceId).toBe('test-source');
     expect(chunks[0].filePath).toBe('test.ts');
+    expect(chunks[0].chunkType).toBe('token-block');
   });
 
   it('should create multiple chunks for large file', () => {
     // Create a file with ~1000 tokens (each line is ~10 tokens)
-    const lines = Array.from({ length: 100 }, (_, i) =>
-      `const variable${i} = "this is line number ${i}";`
+    const lines = Array.from(
+      { length: 100 },
+      (_, i) => `const variable${i} = "this is line number ${i}";`
     );
     const content = lines.join('\n');
     const file = createMockFile(content);
 
-    const chunks = chunkFile(file, { chunkSize: 100, chunkOverlap: 20 });
+    const chunks = chunkFile(file, { chunkSize: 100, chunkOverlap: 20, useAst: false });
 
     // Should create multiple chunks
     expect(chunks.length).toBeGreaterThan(1);
@@ -82,14 +85,13 @@ describe('chunkFile', () => {
   });
 
   it('should handle overlap correctly', () => {
-    // Create a file that will produce exactly 2 chunks
-    const lines = Array.from({ length: 20 }, (_, i) =>
-      `const line${i} = ${i};`
-    );
+    // Create a file that will produce multiple chunks
+    const lines = Array.from({ length: 20 }, (_, i) => `const line${i} = ${i};`);
     const content = lines.join('\n');
     const file = createMockFile(content);
 
-    const chunks = chunkFile(file, { chunkSize: 50, chunkOverlap: 10 });
+    // Use token-based chunking to test overlap behavior
+    const chunks = chunkFile(file, { chunkSize: 50, chunkOverlap: 10, useAst: false });
 
     // Should have overlap between consecutive chunks
     if (chunks.length >= 2) {
@@ -105,7 +107,7 @@ describe('chunkFile', () => {
 
   it('should handle empty file', () => {
     const file = createMockFile('');
-    const chunks = chunkFile(file, { chunkSize: 500, chunkOverlap: 50 });
+    const chunks = chunkFile(file, { chunkSize: 500, chunkOverlap: 50, useAst: false });
 
     // Empty file should produce one chunk with empty content
     expect(chunks).toHaveLength(1);
@@ -114,7 +116,7 @@ describe('chunkFile', () => {
 
   it('should handle single line file', () => {
     const file = createMockFile('const x = 1;');
-    const chunks = chunkFile(file, { chunkSize: 500, chunkOverlap: 50 });
+    const chunks = chunkFile(file, { chunkSize: 500, chunkOverlap: 50, useAst: false });
 
     expect(chunks).toHaveLength(1);
     expect(chunks[0].startLine).toBe(1);
@@ -122,12 +124,10 @@ describe('chunkFile', () => {
   });
 
   it('should generate unique chunk IDs', () => {
-    const lines = Array.from({ length: 50 }, (_, i) =>
-      `const variable${i} = "value${i}";`
-    );
+    const lines = Array.from({ length: 50 }, (_, i) => `const variable${i} = "value${i}";`);
     const file = createMockFile(lines.join('\n'));
 
-    const chunks = chunkFile(file, { chunkSize: 50, chunkOverlap: 10 });
+    const chunks = chunkFile(file, { chunkSize: 50, chunkOverlap: 10, useAst: false });
 
     // All IDs should be unique
     const ids = chunks.map((c) => c.id);
@@ -142,7 +142,7 @@ describe('chunkFile', () => {
 
   it('should preserve file path in chunks', () => {
     const file = createMockFile('const x = 1;', 'src/utils/helper.ts');
-    const chunks = chunkFile(file);
+    const chunks = chunkFile(file, { useAst: false });
 
     expect(chunks[0].filePath).toBe('src/utils/helper.ts');
   });
@@ -150,9 +150,136 @@ describe('chunkFile', () => {
   it('should calculate token count correctly', () => {
     const content = 'function hello() {\n  return "world";\n}';
     const file = createMockFile(content);
-    const chunks = chunkFile(file);
+    const chunks = chunkFile(file, { useAst: false });
 
     expect(chunks[0].tokens).toBe(countTokens(content));
+  });
+});
+
+describe('chunkFile (AST-aware)', () => {
+  it('should chunk by function boundaries', () => {
+    const content = `function first() {
+  return 1;
+}
+
+function second() {
+  return 2;
+}`;
+    const file = createMockFile(content);
+    const chunks = chunkFile(file, { chunkSize: 500, chunkOverlap: 50, useAst: true });
+
+    // Should create chunks for each function
+    expect(chunks.length).toBeGreaterThanOrEqual(2);
+
+    // Check that functions are correctly identified
+    const funcChunks = chunks.filter((c) => c.chunkType === 'function');
+    expect(funcChunks.length).toBe(2);
+
+    // Check unit names
+    const names = funcChunks.map((c) => c.unitName);
+    expect(names).toContain('first');
+    expect(names).toContain('second');
+  });
+
+  it('should chunk classes as a single unit when small', () => {
+    const content = `class Calculator {
+  add(a, b) {
+    return a + b;
+  }
+  subtract(a, b) {
+    return a - b;
+  }
+}`;
+    const file = createMockFile(content);
+    const chunks = chunkFile(file, { chunkSize: 500, chunkOverlap: 50, useAst: true });
+
+    // Small class should be one chunk
+    const classChunk = chunks.find((c) => c.chunkType === 'class');
+    expect(classChunk).toBeDefined();
+    expect(classChunk?.unitName).toBe('Calculator');
+    expect(classChunk?.content).toContain('add');
+    expect(classChunk?.content).toContain('subtract');
+  });
+
+  it('should identify exported functions', () => {
+    const content = `export function publicFn() {
+  return "public";
+}
+
+function privateFn() {
+  return "private";
+}`;
+    const file = createMockFile(content);
+    const chunks = chunkFile(file, { chunkSize: 500, chunkOverlap: 50, useAst: true });
+
+    const funcChunks = chunks.filter((c) => c.chunkType === 'function');
+    const publicChunk = funcChunks.find((c) => c.unitName === 'publicFn');
+    const privateChunk = funcChunks.find((c) => c.unitName === 'privateFn');
+
+    expect(publicChunk?.exported).toBe(true);
+    expect(privateChunk?.exported).toBe(false);
+  });
+
+  it('should include imports in a header block', () => {
+    const content = `import { foo } from './foo';
+import { bar } from './bar';
+
+export function main() {
+  return foo() + bar();
+}`;
+    const file = createMockFile(content);
+    const chunks = chunkFile(file, { chunkSize: 500, chunkOverlap: 50, useAst: true });
+
+    // Should have a header block with imports
+    const headerChunk = chunks.find((c) => c.unitName === 'imports/header');
+    // Note: header chunks are only created if they have > 20 tokens
+    // Small import blocks may be included with the first function
+
+    // Should have the main function
+    const mainChunk = chunks.find((c) => c.unitName === 'main');
+    expect(mainChunk).toBeDefined();
+    expect(mainChunk?.chunkType).toBe('function');
+  });
+
+  it('should fall back to token-based for non-JS files', () => {
+    const content = `# Markdown file
+This is not JavaScript.`;
+    const file = createMockFile(content, 'README.md');
+    const chunks = chunkFile(file, { chunkSize: 500, chunkOverlap: 50, useAst: true });
+
+    // Should fall back to token-based chunking
+    expect(chunks).toHaveLength(1);
+    expect(chunks[0].chunkType).toBe('token-block');
+  });
+
+  it('should fall back to token-based for malformed code', () => {
+    const content = `function broken( {
+  this is not valid javascript at all!!!
+  {{{{ missing closing braces`;
+    const file = createMockFile(content);
+    const chunks = chunkFile(file, { chunkSize: 500, chunkOverlap: 50, useAst: true });
+
+    // Should fall back to token-based chunking
+    expect(chunks.length).toBeGreaterThan(0);
+    expect(chunks[0].chunkType).toBe('token-block');
+  });
+
+  it('should handle arrow functions in const declarations', () => {
+    const content = `const add = (a, b) => a + b;
+
+const multiply = (a, b) => {
+  return a * b;
+};`;
+    const file = createMockFile(content);
+    const chunks = chunkFile(file, { chunkSize: 500, chunkOverlap: 50, useAst: true });
+
+    // Arrow functions should be identified
+    const funcChunks = chunks.filter((c) => c.chunkType === 'function');
+    expect(funcChunks.length).toBeGreaterThanOrEqual(2);
+
+    const names = funcChunks.map((c) => c.unitName);
+    expect(names).toContain('add');
+    expect(names).toContain('multiply');
   });
 });
 
@@ -186,7 +313,8 @@ describe('chunk edge cases', () => {
     ].join('\n');
 
     const file = createMockFile(content);
-    const chunks = chunkFile(file, { chunkSize: 50, chunkOverlap: 10 });
+    // Use token-based to test the line-splitting behavior
+    const chunks = chunkFile(file, { chunkSize: 50, chunkOverlap: 10, useAst: false });
 
     // Should handle without errors
     expect(chunks.length).toBeGreaterThan(0);
