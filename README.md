@@ -4,7 +4,10 @@
 > ContextKit selects the *right* context for any query — saving tokens and improving answers.
 
 [![npm version](https://img.shields.io/npm/v/@milo4jo/contextkit)](https://www.npmjs.com/package/@milo4jo/contextkit)
+[![npm downloads](https://img.shields.io/npm/dw/@milo4jo/contextkit)](https://www.npmjs.com/package/@milo4jo/contextkit)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+
+**🆕 v0.5:** Import-aware scoring — files that import your selected code get boosted automatically!
 
 ---
 
@@ -86,12 +89,24 @@ export function validateToken(token: string): User | null {
 
 ## Why ContextKit?
 
+**Real example:** A 50k line codebase needs ~200k tokens to include everything. ContextKit gives you the **relevant 3-8k tokens** for any query. That's **96% token savings** and better answers.
+
 | Approach | Problem |
 |----------|---------|
-| **Dump everything** | Expensive, hits token limits, noisy |
-| **Basic RAG** | Returns "similar" not "relevant" |
-| **Manual selection** | Tedious, doesn't scale |
-| **ContextKit** | ✅ Intelligent, fast, local-first |
+| **Dump everything** | 💸 Expensive, hits token limits, dilutes focus |
+| **Basic RAG** | Returns "similar" chunks, misses dependencies |
+| **Manual selection** | Tedious, inconsistent, doesn't scale |
+| **ContextKit** | ✅ Smart selection, import-aware, local-first |
+
+### Why Not LSP-Based Tools?
+
+Tools like [Serena](https://github.com/oramasearch/serena) use Language Server Protocol for deep code understanding. Great for complex refactoring, but:
+
+- **Heavy setup** — requires language servers per language
+- **Slow startup** — LSP initialization takes seconds
+- **Complex** — more moving parts to configure
+
+**ContextKit takes a different approach:** Semantic search + import graph analysis. Works instantly on any codebase, any language. No language servers needed.
 
 ### vs. LangChain / LlamaIndex
 
@@ -99,7 +114,7 @@ Those are full frameworks. ContextKit does **one thing well**: context selection
 
 ### vs. Vector Databases (Pinecone, Chroma)
 
-They're storage. ContextKit adds the **intelligence layer** — scoring, budgeting, formatting.
+They're storage. ContextKit adds the **intelligence layer** — scoring, budgeting, code-aware formatting.
 
 ---
 
@@ -166,6 +181,9 @@ contextkit select "query" --format markdown  # Default, with code blocks
 contextkit select "query" --format xml       # XML structure (Claude prefers this)
 contextkit select "query" --format json      # JSON for scripts/integrations
 contextkit select "query" --format plain     # Plain text, no formatting
+
+# Include imported files (follows dependency graph)
+contextkit select "query" --include-imports
 
 # Pipe to clipboard (macOS)
 contextkit select "query" --format plain | pbcopy
@@ -283,8 +301,14 @@ settings:
 1. **Chunking** — Files split into ~500 token chunks with overlap
 2. **Embedding** — Each chunk embedded with [gte-small](https://huggingface.co/thenlper/gte-small) (runs locally)
 3. **Similarity** — Query embedded and compared via cosine similarity
-4. **Scoring** — Chunks ranked by similarity + path relevance + recency
-5. **Budgeting** — Top chunks selected until token budget filled
+4. **Import Analysis** — Parses ES6/CommonJS/dynamic imports to build dependency graph
+5. **Multi-Factor Scoring** — Chunks ranked by:
+   - Semantic similarity (40%)
+   - Query term matches (25%)
+   - Path relevance (20%)
+   - Recency (10%)
+   - **Import boost** (5%) — files imported by selected code get boosted
+6. **Budgeting** — Top chunks selected until token budget filled
 
 ### Requirements
 
@@ -311,13 +335,15 @@ contextkit select "How does authentication work?"
 
 - [x] CLI with init, source, index, select
 - [x] MCP server for Claude Desktop
-- [x] Demo project for testing
 - [x] Incremental indexing (only changed files)
 - [x] Watch mode (auto-reindex on save)
 - [x] Multi-factor scoring algorithm
+- [x] Multiple output formats (markdown, XML, JSON, plain)
+- [x] **Import-aware scoring** — understands code dependencies
+- [ ] Function/class boundary awareness
 - [ ] VS Code extension
 - [ ] Cursor integration
-- [ ] Cloud sync (optional)
+- [ ] Neovim plugin
 
 ---
 

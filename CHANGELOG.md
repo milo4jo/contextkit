@@ -7,7 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.5.0] - 2026-02-05
+
 ### Added
+- **Import-Aware Scoring** — Context selection now understands code dependencies
+  - Files imported by selected code get boosted automatically
+  - Import boost weight (5%) in multi-factor scoring
+  - New `--include-imports` flag to automatically include imported files
+  - Builds dependency graph from ES6/CommonJS/dynamic imports
 - **Multiple Output Formats** — Better integration with different tools
   - `--format markdown` — Default, with syntax-highlighted code blocks
   - `--format xml` — XML structure (Claude prefers XML for structured content)
@@ -17,13 +24,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Validates version, sources, paths, patterns, settings
   - Provides actionable suggestions for common mistakes
   - Warns about missing node_modules exclusion, unusual chunk sizes
-- **Import Parser** (v0.5.0 prep) — Parse TypeScript/JavaScript imports
-  - Parse ES6 imports (named, default, namespace, side-effect)
-  - Parse CommonJS require() and dynamic import()
-  - Classify imports as relative/absolute/package
-  - Resolve relative imports to actual file paths
-  - Build dependency graph for smarter retrieval
-- 58 new tests (153 total)
+- 77 new tests (172 total)
 
 ## [0.3.0] - 2026-02-05
 
