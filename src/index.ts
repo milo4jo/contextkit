@@ -8,6 +8,7 @@ import { initCommand } from './commands/init.js';
 import { sourceCommand } from './commands/source/index.js';
 import { indexCommand } from './commands/index-cmd.js';
 import { selectCommand } from './commands/select.js';
+import { cacheCommand } from './commands/cache.js';
 import { mcpCommand } from './commands/mcp.js';
 import { watchCommand } from './commands/watch.js';
 import { ContextKitError, InvalidUsageError } from './errors/index.js';
@@ -74,6 +75,7 @@ program.addCommand(initCommand);
 program.addCommand(sourceCommand);
 program.addCommand(indexCommand);
 program.addCommand(selectCommand);
+program.addCommand(cacheCommand);
 program.addCommand(mcpCommand);
 program.addCommand(watchCommand);
 
@@ -93,6 +95,7 @@ Commands:
   source        Manage source directories
   index         Index all sources (incremental by default)
   select        Select context for a query
+  cache         Manage query cache
   watch         Watch sources and auto-reindex on changes
   mcp           Start MCP server for AI assistants
 

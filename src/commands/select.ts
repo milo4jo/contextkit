@@ -18,6 +18,7 @@ export const selectCommand = new Command('select')
   .option('-s, --sources <sources>', 'Filter sources (comma-separated)')
   .option('--explain', 'Show scoring details')
   .option('--include-imports', 'Include files imported by selected chunks')
+  .option('--no-cache', 'Skip cache lookup')
   .action(async (query: string, options) => {
     ensureInitialized();
 
@@ -56,6 +57,7 @@ export const selectCommand = new Command('select')
         explain: options.explain,
         format: effectiveFormat,
         includeImports: options.includeImports,
+        noCache: options.cache === false,
       });
 
       // Handle empty index

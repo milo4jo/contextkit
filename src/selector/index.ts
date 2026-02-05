@@ -14,6 +14,12 @@ import { rankChunks, buildImportGraph, getRelatedImports, type ImportGraph } fro
 import { fitToBudget, mergeAdjacentChunks } from './budget.js';
 import { formatInFormat, type FormattedOutput, type OutputFormat } from './formatter.js';
 import { parseImportsWithResolution, isJsTsFile } from '../retrieval/imports.js';
+import {
+  generateCacheKey,
+  computeIndexVersion,
+  getCachedResult,
+  setCachedResult,
+} from '../db/index.js';
 
 /** Selection options */
 export interface SelectOptions {
@@ -31,6 +37,8 @@ export interface SelectOptions {
   includeImports?: boolean;
   /** Base path for resolving imports */
   basePath?: string;
+  /** Skip cache lookup */
+  noCache?: boolean;
 }
 
 /** Selection result */
@@ -39,6 +47,8 @@ export interface SelectResult {
   output: FormattedOutput;
   /** Whether index is empty */
   isEmpty: boolean;
+  /** Whether result came from cache */
+  fromCache: boolean;
 }
 
 /**
@@ -49,6 +59,7 @@ export async function selectContext(
   options: SelectOptions
 ): Promise<SelectResult> {
   const startTime = Date.now();
+  const format = options.format || 'markdown';
 
   // Check if index has any chunks
   const countResult = db.prepare('SELECT COUNT(*) as count FROM chunks').get() as { count: number };
@@ -70,7 +81,37 @@ export async function selectContext(
         },
       },
       isEmpty: true,
+      fromCache: false,
     };
+  }
+
+  // Check cache (skip if --explain is used or --no-cache is set)
+  const useCache = !options.explain && !options.noCache;
+  let cacheKey: string | undefined;
+  let indexVersion: string | undefined;
+
+  if (useCache) {
+    cacheKey = generateCacheKey({
+      query: options.query,
+      budget: options.budget,
+      sources: options.sources,
+      format,
+      includeImports: options.includeImports,
+    });
+    indexVersion = computeIndexVersion(db);
+
+    const cachedResult = getCachedResult(db, cacheKey, indexVersion);
+    if (cachedResult) {
+      const data = JSON.parse(cachedResult);
+      return {
+        output: {
+          text: format === 'json' ? JSON.stringify(data, null, 2) : data.context,
+          data,
+        },
+        isEmpty: false,
+        fromCache: true,
+      };
+    }
   }
 
   // Step 1: Search for similar chunks
@@ -128,7 +169,6 @@ export async function selectContext(
 
   // Step 7: Format output
   const timeMs = Date.now() - startTime;
-  const format = options.format || 'markdown';
   const output = formatInFormat(
     format,
     options.query,
@@ -138,9 +178,15 @@ export async function selectContext(
     options.explain
   );
 
+  // Step 8: Store in cache (if caching is enabled)
+  if (useCache && cacheKey && indexVersion) {
+    setCachedResult(db, cacheKey, JSON.stringify(output.data), indexVersion);
+  }
+
   return {
     output,
     isEmpty: false,
+    fromCache: false,
   };
 }
 
