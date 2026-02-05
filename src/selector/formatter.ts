@@ -160,12 +160,14 @@ export function formatWithExplanation(
 
   // Add explanation section
   const explanations = result.chunks.map((chunk) => {
-    const { similarity, recency, pathMatch } = chunk.scoreBreakdown;
+    const { similarity, pathMatch, contentMatch, symbolMatch, fileTypeBoost } = chunk.scoreBreakdown;
     return `  ${chunk.filePath}:${chunk.startLine}
-    similarity: ${(similarity * 100).toFixed(1)}%
-    recency:    ${(recency * 100).toFixed(1)}%
-    path_match: ${(pathMatch * 100).toFixed(1)}%
-    → score:    ${(chunk.score * 100).toFixed(1)}%`;
+    similarity:     ${(similarity * 100).toFixed(1)}%
+    path_match:     ${(pathMatch * 100).toFixed(1)}%
+    content_match:  ${(contentMatch * 100).toFixed(1)}%
+    symbol_match:   ${(symbolMatch * 100).toFixed(1)}%
+    file_type:      ${(fileTypeBoost * 100).toFixed(1)}%
+    → score:        ${(chunk.score * 100).toFixed(1)}%`;
   });
 
   const explainSection = '\n\n## Scoring Details\n\n' + explanations.join('\n\n');

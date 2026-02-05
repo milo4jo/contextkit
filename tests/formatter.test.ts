@@ -30,8 +30,10 @@ function createRankedChunk(
     score,
     scoreBreakdown: {
       similarity: score - 0.1,
-      recency: 0.5,
       pathMatch: 0.2,
+      contentMatch: 0.1,
+      symbolMatch: 0.05,
+      fileTypeBoost: 1.0,
     },
   };
 }
@@ -178,8 +180,10 @@ describe('formatWithExplanation', () => {
 
     expect(output.text).toContain('## Scoring Details');
     expect(output.text).toContain('similarity:');
-    expect(output.text).toContain('recency:');
     expect(output.text).toContain('path_match:');
+    expect(output.text).toContain('content_match:');
+    expect(output.text).toContain('symbol_match:');
+    expect(output.text).toContain('file_type:');
     expect(output.text).toContain('→ score:');
   });
 
@@ -187,16 +191,19 @@ describe('formatWithExplanation', () => {
     const chunk = createRankedChunk('src/test.ts', 'code', 50, 1, 5, 0.85);
     chunk.scoreBreakdown = {
       similarity: 0.75,
-      recency: 0.5,
       pathMatch: 0.25,
+      contentMatch: 0.30,
+      symbolMatch: 0.10,
+      fileTypeBoost: 1.0,
     };
     const result = createBudgetResult([chunk]);
 
     const output = formatWithExplanation('query', result, 1, 100);
 
-    expect(output.text).toContain('75.0%');
-    expect(output.text).toContain('50.0%');
-    expect(output.text).toContain('25.0%');
+    expect(output.text).toContain('75.0%');  // similarity
+    expect(output.text).toContain('25.0%');  // pathMatch
+    expect(output.text).toContain('30.0%');  // contentMatch
+    expect(output.text).toContain('100.0%'); // fileTypeBoost
   });
 
   it('should include file and line info in explanation', () => {

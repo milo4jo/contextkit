@@ -49,8 +49,10 @@ describe('rankChunks', () => {
 
     expect(ranked[0].scoreBreakdown).toBeDefined();
     expect(ranked[0].scoreBreakdown.similarity).toBe(0.8);
-    expect(ranked[0].scoreBreakdown.recency).toBeDefined();
     expect(ranked[0].scoreBreakdown.pathMatch).toBeDefined();
+    expect(ranked[0].scoreBreakdown.contentMatch).toBeDefined();
+    expect(ranked[0].scoreBreakdown.symbolMatch).toBeDefined();
+    expect(ranked[0].scoreBreakdown.fileTypeBoost).toBeDefined();
   });
 
   it('should boost chunks with path matching query keywords', () => {
@@ -95,13 +97,13 @@ describe('rankChunks', () => {
   });
 
   it('should calculate final score correctly', () => {
-    // With similarity=1.0, recency=0.5, pathMatch=0
-    // Score = 0.6*1.0 + 0.2*0.5 + 0.2*0 = 0.7
+    // With similarity=1.0 and no keyword matches, fileTypeBoost=1.0
+    // Score = 0.50*1.0 + 0.15*0 + 0.15*0 + 0.15*0 + 0.05*1.0 = 0.55
     const chunks: ScoredChunk[] = [createScoredChunk('src/random.ts', 1.0)];
 
     const ranked = rankChunks(chunks, 'unrelated query');
 
-    expect(ranked[0].score).toBeCloseTo(0.7, 1);
+    expect(ranked[0].score).toBeCloseTo(0.55, 1);
   });
 
   it('should boost multiple keyword matches', () => {
@@ -145,6 +147,87 @@ describe('rankChunks', () => {
     expect(ranked[0].endLine).toBe(15);
     expect(ranked[0].tokens).toBe(50);
     expect(ranked[0].similarity).toBe(0.8);
+  });
+});
+
+describe('content matching', () => {
+  it('should boost chunks containing query keywords', () => {
+    const chunks: ScoredChunk[] = [
+      createScoredChunk('src/a.ts', 0.8, 'This is the authentication module. It handles user authentication.'),
+      createScoredChunk('src/b.ts', 0.8, 'This module does something else entirely.'),
+    ];
+
+    const ranked = rankChunks(chunks, 'authentication module');
+
+    expect(ranked[0].filePath).toBe('src/a.ts');
+    expect(ranked[0].scoreBreakdown.contentMatch).toBeGreaterThan(0);
+  });
+
+  it('should detect multiple keyword occurrences', () => {
+    const chunks: ScoredChunk[] = [
+      createScoredChunk('src/a.ts', 0.8, 'authentication authentication token token'),
+      createScoredChunk('src/b.ts', 0.8, 'authentication'),
+    ];
+
+    const ranked = rankChunks(chunks, 'authentication token');
+
+    expect(ranked[0].filePath).toBe('src/a.ts');
+    expect(ranked[0].scoreBreakdown.contentMatch).toBeGreaterThan(
+      ranked[1].scoreBreakdown.contentMatch
+    );
+  });
+});
+
+describe('symbol matching', () => {
+  it('should detect function names from query', () => {
+    const chunks: ScoredChunk[] = [
+      createScoredChunk('src/a.ts', 0.8, 'export function getUserById(id) { }'),
+      createScoredChunk('src/b.ts', 0.8, 'export function random() { }'),
+    ];
+
+    const ranked = rankChunks(chunks, 'getUserById');
+
+    expect(ranked[0].filePath).toBe('src/a.ts');
+    expect(ranked[0].scoreBreakdown.symbolMatch).toBeGreaterThan(0);
+  });
+
+  it('should detect camelCase patterns', () => {
+    const chunks: ScoredChunk[] = [
+      createScoredChunk('src/a.ts', 0.8, 'const handleUserAuth = () => {}'),
+      createScoredChunk('src/b.ts', 0.8, 'const x = 1;'),
+    ];
+
+    const ranked = rankChunks(chunks, 'handleUserAuth');
+
+    expect(ranked[0].filePath).toBe('src/a.ts');
+  });
+});
+
+describe('file type boost', () => {
+  it('should rank implementation files higher than tests', () => {
+    const chunks: ScoredChunk[] = [
+      createScoredChunk('src/auth.test.ts', 0.85, 'test code'),
+      createScoredChunk('src/auth.ts', 0.8, 'implementation code'),
+    ];
+
+    const ranked = rankChunks(chunks, 'auth');
+
+    // Implementation file should rank higher despite lower similarity
+    expect(ranked[0].filePath).toBe('src/auth.ts');
+    expect(ranked[0].scoreBreakdown.fileTypeBoost).toBeGreaterThan(
+      ranked[1].scoreBreakdown.fileTypeBoost
+    );
+  });
+
+  it('should rank config files lower', () => {
+    const chunks: ScoredChunk[] = [
+      createScoredChunk('src/database.ts', 0.8, 'db code'),
+      createScoredChunk('config/database.json', 0.8, '{}'),
+    ];
+
+    const ranked = rankChunks(chunks, 'database');
+
+    expect(ranked[0].filePath).toBe('src/database.ts');
   });
 });
 
