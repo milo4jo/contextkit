@@ -3,6 +3,7 @@ import { join } from 'path';
 import { parse, stringify } from 'yaml';
 import { NotInitializedError } from '../errors/index.js';
 import type { Config } from './types.js';
+import { validateConfig, type ValidationResult } from './validation.js';
 
 export const CONFIG_FILE = 'config.yaml';
 export const INDEX_DB = 'index.db';
@@ -113,4 +114,16 @@ settings:
 `;
 }
 
+/**
+ * Load and validate the configuration file
+ * Returns both the config and validation result
+ */
+export function loadAndValidateConfig(): { config: Config; validation: ValidationResult } {
+  const config = loadConfig();
+  const validation = validateConfig(config, process.cwd());
+  return { config, validation };
+}
+
 export type { Config, Source, Settings } from './types.js';
+export { validateConfig, formatValidationResults } from './validation.js';
+export type { ValidationResult, ValidationError, ValidationWarning } from './validation.js';

@@ -13,7 +13,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - `--format xml` — XML structure (Claude prefers XML for structured content)
   - `--format json` — JSON for scripts and programmatic use
   - `--format plain` — Plain text, no formatting (easy clipboard paste)
-- 15 new tests for format functionality (110 total)
+- **Config Validation** — Helpful error messages for invalid configurations
+  - Validates version, sources, paths, patterns, settings
+  - Provides actionable suggestions for common mistakes
+  - Warns about missing node_modules exclusion, unusual chunk sizes
+- 36 new tests (131 total)
 
 ## [0.3.0] - 2026-02-05
 
