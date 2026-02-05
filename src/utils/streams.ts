@@ -67,3 +67,11 @@ export function writeInfo(message: string): void {
   const prefix = shouldUseColor() ? chalk.blue('ℹ') : 'ℹ';
   process.stderr.write(`${prefix} ${message}\n`);
 }
+
+/**
+ * Write dim/muted text to stderr
+ */
+export function writeDim(message: string): void {
+  const text = shouldUseColor() ? chalk.dim(message) : message;
+  process.stderr.write(`${text}\n`);
+}

@@ -9,6 +9,7 @@ import { sourceCommand } from './commands/source/index.js';
 import { indexCommand } from './commands/index-cmd.js';
 import { selectCommand } from './commands/select.js';
 import { mcpCommand } from './commands/mcp.js';
+import { watchCommand } from './commands/watch.js';
 import { ContextKitError, InvalidUsageError } from './errors/index.js';
 import { writeError, writeMessage } from './utils/streams.js';
 
@@ -74,6 +75,7 @@ program.addCommand(sourceCommand);
 program.addCommand(indexCommand);
 program.addCommand(selectCommand);
 program.addCommand(mcpCommand);
+program.addCommand(watchCommand);
 
 // Default action when no command given
 program.action(() => {
@@ -89,8 +91,9 @@ Quick Start:
 Commands:
   init          Initialize ContextKit in current directory
   source        Manage source directories
-  index         Index all sources (re-run after code changes)
+  index         Index all sources (incremental by default)
   select        Select context for a query
+  watch         Watch sources and auto-reindex on changes
   mcp           Start MCP server for AI assistants
 
 Global Options:
