@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+_No unreleased changes._
+
+## [0.3.0] - 2026-02-05
+
 ### Added
 - **Incremental Indexing** — Only re-indexes changed/new files (10x faster)
   - File content hashing (SHA-256) for change detection
@@ -25,7 +29,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Diversity penalty option to spread context
 - New tests for content hashing and scoring (95 total)
 
-## [0.2.0] - 2026-02-05
+## [0.2.0] - 2026-02-04
 
 ### Added
 - **MCP Server** — Model Context Protocol server for Claude Desktop integration

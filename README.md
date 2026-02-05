@@ -306,8 +306,9 @@ contextkit select "How does authentication work?"
 - [x] CLI with init, source, index, select
 - [x] MCP server for Claude Desktop
 - [x] Demo project for testing
-- [ ] Incremental indexing (only changed files)
-- [ ] Watch mode (auto-reindex on save)
+- [x] Incremental indexing (only changed files)
+- [x] Watch mode (auto-reindex on save)
+- [x] Multi-factor scoring algorithm
 - [ ] VS Code extension
 - [ ] Cursor integration
 - [ ] Cloud sync (optional)

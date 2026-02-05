@@ -54,7 +54,7 @@ export const watchCommand = new Command('watch')
     writeMessage('');
 
     // Track pending changes
-    let pendingChanges = new Set<string>();
+    const pendingChanges = new Set<string>();
     let debounceTimer: NodeJS.Timeout | null = null;
     let isIndexing = false;
 

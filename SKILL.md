@@ -4,7 +4,7 @@ description: Use ContextKit CLI to intelligently select code context for LLM pro
 license: MIT
 metadata:
   author: milo4jo
-  version: "1.0.0"
+  version: "0.3.0"
   homepage: https://contextkit-site.vercel.app
   repository: https://github.com/milo4jo/contextkit
 ---

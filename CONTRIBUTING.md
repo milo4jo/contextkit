@@ -43,7 +43,7 @@ contextkit/
 │   ├── mcp/            # MCP server implementation
 │   ├── utils/          # Utilities (streams, prompts, format)
 │   └── errors/         # Error types
-├── tests/              # Test files (83 tests)
+├── tests/              # Test files
 ├── docs/               # Documentation
 ├── examples/           # Demo project
 └── dist/               # Built output (git-ignored)

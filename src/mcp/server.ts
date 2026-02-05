@@ -15,11 +15,19 @@ import {
   CallToolRequestSchema,
   ListToolsRequestSchema,
 } from "@modelcontextprotocol/sdk/types.js";
+import { readFileSync } from "fs";
+import { fileURLToPath } from "url";
+import { dirname, join } from "path";
 import { isInitialized, loadConfig } from "../config/index.js";
 import { openDatabase } from "../db/index.js";
 import { selectContext, type SelectOptions } from "../selector/index.js";
 import { indexSources } from "../indexer/index.js";
 import type Database from "better-sqlite3";
+
+// Get version from package.json
+const __dirname = dirname(fileURLToPath(import.meta.url));
+const pkg = JSON.parse(readFileSync(join(__dirname, '..', '..', 'package.json'), 'utf-8'));
+const VERSION = pkg.version;
 
 /**
  * Get index statistics from database
@@ -48,7 +56,7 @@ export function createMcpServer(): Server {
   const server = new Server(
     {
       name: "contextkit",
-      version: "0.2.0",
+      version: VERSION,
     },
     {
       capabilities: {

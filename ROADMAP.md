@@ -2,13 +2,16 @@
 
 > From MVP to Production-Ready Release
 
-## Current Status (v0.2.0)
+## Current Status (v0.3.0)
 
 ✅ **Done:**
-- Core CLI (init, source, index, select)
+- Core CLI (init, source, index, select, watch)
 - Local-first architecture (embeddings stored locally)
 - MCP Server for Claude Desktop
-- 83 tests passing
+- Incremental indexing (SHA-256 file hashing)
+- Watch mode with debouncing
+- Multi-factor scoring algorithm
+- 95 tests passing
 - Agent Skill for skills.sh
 - Landing page (contextkit-site.vercel.app)
 - npm package (@milo4jo/contextkit)
@@ -137,16 +140,16 @@ Pre-built configurations:
 
 ## Release Plan
 
-### v0.3.0 — Incremental + Watch
+### v0.3.0 — Incremental + Watch ✅ RELEASED
 - [x] Incremental indexing
 - [x] Watch mode
 - [x] File hash tracking
-- [ ] Better progress indicators
-
-### v0.4.0 — Scoring + Formats
 - [x] Multi-factor scoring
-- [ ] Output format options
+
+### v0.4.0 — Formats + Polish
+- [ ] Output format options (xml, clipboard)
 - [ ] Config validation
+- [ ] Better progress indicators
 - [ ] Improved error messages
 
 ### v0.5.0 — Polish
