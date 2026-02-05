@@ -125,12 +125,24 @@ contextkit source remove src       # Remove a source
 
 ### `contextkit index`
 
-Build or rebuild the index. Run after code changes.
+Build or rebuild the index. Uses incremental indexing by default (only re-indexes changed files).
 
 ```bash
-contextkit index                   # Index everything
+contextkit index                   # Incremental index (fast)
+contextkit index --force           # Full re-index
 contextkit index --source src      # Index specific source
 ```
+
+### `contextkit watch`
+
+Watch sources and auto-reindex on changes.
+
+```bash
+contextkit watch                   # Watch with 1s debounce
+contextkit watch --debounce 2000   # Custom debounce (ms)
+```
+
+Press `Ctrl+C` to stop watching.
 
 ### `contextkit select`
 

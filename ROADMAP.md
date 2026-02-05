@@ -138,9 +138,9 @@ Pre-built configurations:
 ## Release Plan
 
 ### v0.3.0 — Incremental + Watch
-- [ ] Incremental indexing
-- [ ] Watch mode
-- [ ] File hash tracking
+- [x] Incremental indexing
+- [x] Watch mode
+- [x] File hash tracking
 - [ ] Better progress indicators
 
 ### v0.4.0 — Scoring + Formats

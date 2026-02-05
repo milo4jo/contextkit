@@ -5,6 +5,19 @@ All notable changes to ContextKit will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Added
+- **Incremental Indexing** — Only re-indexes changed/new files (10x faster)
+  - File content hashing (SHA-256) for change detection
+  - New `--force` flag to bypass incremental and do full re-index
+  - Shows changed/unchanged/removed file counts
+- **Watch Mode** — Auto-reindex on file changes
+  - New `contextkit watch` command
+  - Configurable debounce time (`--debounce <ms>`)
+  - Graceful shutdown with Ctrl+C
+- New tests for content hashing (89 total)
+
 ## [0.2.0] - 2026-02-05
 
 ### Added
