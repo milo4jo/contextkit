@@ -24,22 +24,34 @@ export interface RankedChunk extends ScoredChunk {
     contentMatch: number;
     symbolMatch: number;
     fileTypeBoost: number;
+    importBoost: number;
   };
 }
 
 /** Scoring weights - tuned for code search */
 const WEIGHTS = {
-  similarity: 0.50,    // Semantic similarity is primary signal
+  similarity: 0.45,    // Semantic similarity is primary signal
   pathMatch: 0.15,     // Path contains query keywords
   contentMatch: 0.15,  // Content contains exact keywords
   symbolMatch: 0.15,   // Contains relevant function/class names
   fileTypeBoost: 0.05, // File type priority
+  importBoost: 0.05,   // File is imported by selected chunks
 };
+
+/** Import relationship data for scoring */
+export interface ImportGraph {
+  /** Map of file path -> files it imports */
+  imports: Map<string, string[]>;
+  /** Map of file path -> files that import it */
+  importedBy: Map<string, string[]>;
+}
 
 /** Options for scoring */
 export interface ScoringOptions {
   /** Apply diversity penalty (reduce score for many chunks from same file) */
   diversityPenalty?: boolean;
+  /** Import relationships for boosting related files */
+  importGraph?: ImportGraph;
 }
 
 /**
@@ -54,30 +66,50 @@ export function rankChunks(
   const queryKeywords = extractKeywords(query);
   const querySymbols = extractSymbols(query);
 
-  // Score all chunks
-  const ranked = chunks.map((chunk) => {
-    // Semantic similarity (already 0-1)
+  // First pass: score all chunks without import boost
+  const initialScores = chunks.map((chunk) => {
     const similarityScore = chunk.similarity;
-
-    // Path match bonus (query keywords in file path)
     const pathMatchScore = calculatePathMatch(chunk.filePath, queryKeywords);
-
-    // Content keyword match (exact words in content)
     const contentMatchScore = calculateContentMatch(chunk.content, queryKeywords);
-
-    // Code symbol match (function/class names)
     const symbolMatchScore = calculateSymbolMatch(chunk.content, querySymbols);
-
-    // File type boost
     const fileTypeBoost = calculateFileTypeBoost(chunk.filePath);
 
-    // Combined score
-    const score =
+    const baseScore =
       WEIGHTS.similarity * similarityScore +
       WEIGHTS.pathMatch * pathMatchScore +
       WEIGHTS.contentMatch * contentMatchScore +
       WEIGHTS.symbolMatch * symbolMatchScore +
       WEIGHTS.fileTypeBoost * fileTypeBoost;
+
+    return {
+      chunk,
+      baseScore,
+      similarityScore,
+      pathMatchScore,
+      contentMatchScore,
+      symbolMatchScore,
+      fileTypeBoost,
+    };
+  });
+
+  // Sort by base score to find top files
+  initialScores.sort((a, b) => b.baseScore - a.baseScore);
+
+  // Calculate import boosts if import graph is provided
+  const importBoosts = calculateImportBoosts(initialScores, options.importGraph);
+
+  // Second pass: apply import boosts and create final ranked chunks
+  const ranked = initialScores.map(({
+    chunk,
+    baseScore,
+    similarityScore,
+    pathMatchScore,
+    contentMatchScore,
+    symbolMatchScore,
+    fileTypeBoost,
+  }) => {
+    const importBoost = importBoosts.get(chunk.filePath) || 0;
+    const score = baseScore + WEIGHTS.importBoost * importBoost;
 
     return {
       ...chunk,
@@ -88,6 +120,7 @@ export function rankChunks(
         contentMatch: contentMatchScore,
         symbolMatch: symbolMatchScore,
         fileTypeBoost: fileTypeBoost,
+        importBoost: importBoost,
       },
     };
   });
@@ -101,6 +134,51 @@ export function rankChunks(
   }
 
   return ranked;
+}
+
+/**
+ * Calculate import boosts for files based on their relationship to top-scoring files
+ *
+ * If a top-scoring file imports another file, that file gets a boost.
+ * Boost decays based on how far from top the importer is.
+ */
+function calculateImportBoosts(
+  scoredChunks: Array<{ chunk: ScoredChunk; baseScore: number }>,
+  importGraph?: ImportGraph
+): Map<string, number> {
+  const boosts = new Map<string, number>();
+
+  if (!importGraph) {
+    return boosts;
+  }
+
+  // Get unique files from top chunks (consider top 20 as "selected")
+  const topFiles = new Set<string>();
+  const fileScores = new Map<string, number>();
+
+  for (const { chunk, baseScore } of scoredChunks.slice(0, 20)) {
+    if (!topFiles.has(chunk.filePath)) {
+      topFiles.add(chunk.filePath);
+      fileScores.set(chunk.filePath, baseScore);
+    }
+  }
+
+  // For each top file, boost its imports
+  for (const filePath of topFiles) {
+    const fileScore = fileScores.get(filePath) || 0;
+    const imports = importGraph.imports.get(filePath) || [];
+
+    for (const importedFile of imports) {
+      // Boost proportional to the importer's score
+      // Higher scoring importers give stronger boosts
+      const boost = Math.min(fileScore, 1.0);
+      const currentBoost = boosts.get(importedFile) || 0;
+      // Take max boost if multiple files import the same file
+      boosts.set(importedFile, Math.max(currentBoost, boost));
+    }
+  }
+
+  return boosts;
 }
 
 /**
@@ -352,3 +430,63 @@ const STOP_WORDS = new Set([
   'file',
   'function',
 ]);
+
+/**
+ * Build an import graph from a dependency map
+ */
+export function buildImportGraph(
+  dependencyMap: Map<string, string[]>
+): ImportGraph {
+  const imports = new Map<string, string[]>();
+  const importedBy = new Map<string, string[]>();
+
+  for (const [file, deps] of dependencyMap) {
+    imports.set(file, deps);
+
+    for (const dep of deps) {
+      const existing = importedBy.get(dep) || [];
+      if (!existing.includes(file)) {
+        existing.push(file);
+      }
+      importedBy.set(dep, existing);
+    }
+  }
+
+  return { imports, importedBy };
+}
+
+/**
+ * Get files that should be included based on imports from selected files
+ */
+export function getRelatedImports(
+  selectedFiles: string[],
+  importGraph: ImportGraph,
+  options: { maxDepth?: number } = {}
+): string[] {
+  const maxDepth = options.maxDepth ?? 1;
+  const related = new Set<string>();
+  const visited = new Set<string>(selectedFiles);
+
+  let currentLevel = selectedFiles;
+
+  for (let depth = 0; depth < maxDepth; depth++) {
+    const nextLevel: string[] = [];
+
+    for (const file of currentLevel) {
+      const imports = importGraph.imports.get(file) || [];
+
+      for (const importedFile of imports) {
+        if (!visited.has(importedFile)) {
+          visited.add(importedFile);
+          related.add(importedFile);
+          nextLevel.push(importedFile);
+        }
+      }
+    }
+
+    currentLevel = nextLevel;
+    if (currentLevel.length === 0) break;
+  }
+
+  return Array.from(related);
+}

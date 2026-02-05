@@ -17,6 +17,7 @@ export const selectCommand = new Command('select')
   .option('-f, --format <format>', 'Output format: markdown, xml, json, plain', 'markdown')
   .option('-s, --sources <sources>', 'Filter sources (comma-separated)')
   .option('--explain', 'Show scoring details')
+  .option('--include-imports', 'Include files imported by selected chunks')
   .action(async (query: string, options) => {
     ensureInitialized();
 
@@ -54,6 +55,7 @@ export const selectCommand = new Command('select')
         sources,
         explain: options.explain,
         format: effectiveFormat,
+        includeImports: options.includeImports,
       });
 
       // Handle empty index

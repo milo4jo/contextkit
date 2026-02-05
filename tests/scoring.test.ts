@@ -53,6 +53,7 @@ describe('rankChunks', () => {
     expect(ranked[0].scoreBreakdown.contentMatch).toBeDefined();
     expect(ranked[0].scoreBreakdown.symbolMatch).toBeDefined();
     expect(ranked[0].scoreBreakdown.fileTypeBoost).toBeDefined();
+    expect(ranked[0].scoreBreakdown.importBoost).toBeDefined();
   });
 
   it('should boost chunks with path matching query keywords', () => {
@@ -97,13 +98,13 @@ describe('rankChunks', () => {
   });
 
   it('should calculate final score correctly', () => {
-    // With similarity=1.0 and no keyword matches, fileTypeBoost=1.0
-    // Score = 0.50*1.0 + 0.15*0 + 0.15*0 + 0.15*0 + 0.05*1.0 = 0.55
+    // With similarity=1.0 and no keyword matches, fileTypeBoost=1.0, importBoost=0
+    // Score = 0.45*1.0 + 0.15*0 + 0.15*0 + 0.15*0 + 0.05*1.0 + 0.05*0 = 0.50
     const chunks: ScoredChunk[] = [createScoredChunk('src/random.ts', 1.0)];
 
     const ranked = rankChunks(chunks, 'unrelated query');
 
-    expect(ranked[0].score).toBeCloseTo(0.55, 1);
+    expect(ranked[0].score).toBeCloseTo(0.50, 1);
   });
 
   it('should boost multiple keyword matches', () => {
