@@ -10,12 +10,14 @@ Not an IDE. Not an agent. The missing piece that connects your codebase to AI �
 
 ---
 
-## Current State (v0.5.2)
+## Current State (v0.5.4)
 
 ### ✅ Done
 - **Core CLI:** init, source, index, select, watch, cache
 - **Semantic Search:** Local embeddings, cosine similarity
-- **AST-Aware Chunking:** TypeScript/JavaScript only
+- **AST-Aware Chunking:** TypeScript/JavaScript, Python, Go, Rust
+- **Markdown Parser:** Structure-aware for .md, .mdx, .markdown, .qmd
+- **Repo Map Mode:** `--mode map` for signatures only (like Aider)
 - **Import Graph:** Boost files that import selected code
 - **Multi-Format Output:** markdown, xml, json, plain
 - **MCP Server:** Claude Desktop integration
@@ -24,7 +26,7 @@ Not an IDE. Not an agent. The missing piece that connects your codebase to AI �
 - **Documentation:** Getting started, MCP setup, examples
 
 ### 📊 Metrics
-- 197 tests passing
+- 223 tests passing
 - ~130 npm downloads/week
 - Local-first, no API keys needed
 
@@ -36,17 +38,17 @@ Not an IDE. Not an agent. The missing piece that connects your codebase to AI �
 
 ### Features
 
-#### 1. Repo Map Mode
+#### 1. Repo Map Mode ✅ DONE (v0.5.4)
 ```bash
 # Show signatures only (like Aider)
 contextkit select "auth system" --mode map
 
 # Output:
-src/auth/middleware.ts:
+📄 src/auth/middleware.ts
 │ export function authMiddleware(req, res, next): void
 │ export function validateToken(token: string): User | null
 
-src/auth/jwt.ts:
+📄 src/auth/jwt.ts
 │ export class JWTService
 │   sign(payload: object): string
 │   verify(token: string): object
@@ -54,16 +56,17 @@ src/auth/jwt.ts:
 
 **Why:** LLMs need structure to understand large codebases. Full code is expensive and often unnecessary.
 
-#### 2. Tree-sitter Integration
-- Universal AST parsing (50+ languages)
+#### 2. Tree-sitter Integration ✅ DONE (v0.5.2)
+- Universal AST parsing via web-tree-sitter (WASM)
 - Extract: functions, classes, methods, types
 - Language-agnostic chunking
 
-**Languages to add:**
-- Python (highest demand)
-- Go
-- Rust
-- Java/Kotlin
+**Supported Languages:**
+- ✅ TypeScript/JavaScript (acorn)
+- ✅ Python (tree-sitter)
+- ✅ Go (tree-sitter)
+- ✅ Rust (tree-sitter)
+- ✅ Markdown (.md, .mdx, .qmd)
 
 #### 3. Call Graph Analysis
 ```bash
@@ -80,8 +83,8 @@ contextkit symbol "UserService"
 ```
 
 ### Success Criteria
-- [ ] 5 languages supported (TS, JS, Python, Go, Rust)
-- [ ] Map mode produces useful signatures
+- [x] 5 languages supported (TS, JS, Python, Go, Rust) ✅
+- [x] Map mode produces useful signatures ✅
 - [ ] Call graph works for 2+ languages
 - [ ] 10% faster than v0.5 on large repos
 
