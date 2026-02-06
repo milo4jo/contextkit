@@ -224,10 +224,16 @@ describe('Parser Registry', () => {
       expect(canParse('src/utils/helper.tsx')).toBe(true);
     });
 
+    it('should return true for tree-sitter supported extensions', () => {
+      expect(canParse('test.py')).toBe(true);
+      expect(canParse('test.rs')).toBe(true);
+      expect(canParse('test.go')).toBe(true);
+    });
+
     it('should return false for unsupported extensions', () => {
-      expect(canParse('test.py')).toBe(false);
-      expect(canParse('test.rs')).toBe(false);
       expect(canParse('README.md')).toBe(false);
+      expect(canParse('data.json')).toBe(false);
+      expect(canParse('styles.css')).toBe(false);
     });
   });
 
@@ -240,9 +246,18 @@ describe('Parser Registry', () => {
       expect(result.boundaries.length).toBeGreaterThan(0);
     });
 
-    it('should return failure for unsupported files', () => {
+    it('should indicate async parsing needed for tree-sitter files', () => {
       const code = `print("hello")`;
       const result = parseFile(code, 'test.py');
+
+      // Python requires async parsing via parseFileAsync
+      expect(result.success).toBe(false);
+      expect(result.error).toContain('async parsing');
+    });
+
+    it('should return failure for truly unsupported files', () => {
+      const code = `# Some markdown content`;
+      const result = parseFile(code, 'README.md');
 
       expect(result.success).toBe(false);
       expect(result.error).toContain('No parser available');

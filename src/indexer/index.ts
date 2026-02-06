@@ -8,7 +8,7 @@
 import Database from 'better-sqlite3';
 import { createHash } from 'crypto';
 import { discoverFiles, type DiscoveredFile } from './discovery.js';
-import { chunkFiles, type ChunkOptions } from './chunker.js';
+import { chunkFilesAsync, type ChunkOptions } from './chunker.js';
 import { embedChunks, type EmbeddedChunk } from './embeddings.js';
 import type { Source } from '../config/types.js';
 
@@ -161,6 +161,7 @@ export async function indexSources(
     totalFilesRemoved += removedFiles.length;
 
     // Phase 2: Chunking (only for new/changed files)
+    // Uses async chunking to support tree-sitter languages (Python, Go, Rust)
     onProgress?.({
       phase: 'chunking',
       sourceId: source.id,
@@ -168,7 +169,7 @@ export async function indexSources(
       total: filesToProcess.length,
     });
 
-    const chunks = chunkFiles(filesToProcess, chunkOptions);
+    const chunks = await chunkFilesAsync(filesToProcess, chunkOptions);
 
     onProgress?.({
       phase: 'chunking',

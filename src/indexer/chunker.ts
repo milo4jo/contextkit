@@ -9,7 +9,7 @@
 import { createHash } from 'crypto';
 import { encodingForModel } from 'js-tiktoken';
 import type { DiscoveredFile } from './discovery.js';
-import { parseFile, canParse, type CodeUnitType } from '../parsers/index.js';
+import { parseFile, parseFileAsync, canParse, usesTreeSitter, type CodeUnitType } from '../parsers/index.js';
 
 /** Chunk of content ready for embedding */
 export interface Chunk {
@@ -420,7 +420,7 @@ export function chunkFile(file: DiscoveredFile, options: ChunkOptions = DEFAULT_
 }
 
 /**
- * Chunk multiple files
+ * Chunk multiple files (sync version)
  */
 export function chunkFiles(
   files: DiscoveredFile[],
@@ -430,6 +430,157 @@ export function chunkFiles(
 
   for (const file of files) {
     const chunks = chunkFile(file, options);
+    allChunks.push(...chunks);
+  }
+
+  return allChunks;
+}
+
+/**
+ * Chunk a file using AST-aware boundaries (async version for tree-sitter).
+ * Falls back to token-based chunking if parsing fails.
+ */
+async function chunkFileWithAstAsync(file: DiscoveredFile, options: ChunkOptions): Promise<Chunk[]> {
+  const maxUnitTokens = options.maxUnitTokens ?? options.chunkSize * 2;
+  const lines = file.content.split('\n');
+  const totalLines = lines.length;
+
+  // Try to parse the file (async for tree-sitter languages)
+  const parseResult = await parseFileAsync(file.content, file.relativePath);
+
+  if (!parseResult.success || parseResult.boundaries.length === 0) {
+    // Fall back to token-based chunking
+    return chunkFileTokenBased(file, options);
+  }
+
+  const chunks: Chunk[] = [];
+  const boundaries = parseResult.boundaries;
+
+  // Filter to top-level boundaries (exclude methods if their class is present and small)
+  const topLevelBoundaries = boundaries.filter((b) => {
+    if (b.type === 'method') {
+      const className = b.name.split('.')[0];
+      const classB = boundaries.find((cb) => cb.type === 'class' && cb.name === className);
+      if (classB) {
+        const classContent = extractLines(lines, classB.startLine, classB.endLine);
+        const classTokens = countTokens(classContent);
+        return classTokens > maxUnitTokens;
+      }
+    }
+    return true;
+  });
+
+  let lastCoveredLine = 0;
+
+  for (const boundary of topLevelBoundaries) {
+    if (boundary.startLine > lastCoveredLine + 1) {
+      const gapContent = extractLines(lines, lastCoveredLine + 1, boundary.startLine - 1);
+      const gapTokens = countTokens(gapContent);
+
+      if (gapTokens > 0 && gapContent.trim().length > 0 && gapTokens > 20) {
+        chunks.push({
+          id: generateChunkId(file.sourceId, file.relativePath, lastCoveredLine + 1, boundary.startLine - 1),
+          sourceId: file.sourceId,
+          filePath: file.relativePath,
+          content: gapContent,
+          startLine: lastCoveredLine + 1,
+          endLine: boundary.startLine - 1,
+          tokens: gapTokens,
+          chunkType: 'block',
+          unitName: 'header',
+        });
+      }
+    }
+
+    const content = extractLines(lines, boundary.startLine, boundary.endLine);
+    const tokens = countTokens(content);
+
+    if (tokens <= maxUnitTokens) {
+      chunks.push({
+        id: generateChunkId(file.sourceId, file.relativePath, boundary.startLine, boundary.endLine),
+        sourceId: file.sourceId,
+        filePath: file.relativePath,
+        content,
+        startLine: boundary.startLine,
+        endLine: boundary.endLine,
+        tokens,
+        chunkType: boundary.type,
+        unitName: boundary.name,
+        exported: boundary.exported,
+      });
+    } else {
+      const splitChunks = chunkLargeUnit(
+        file,
+        boundary.startLine,
+        boundary.endLine,
+        options,
+        boundary.type,
+        boundary.name
+      );
+      chunks.push(...splitChunks);
+    }
+
+    lastCoveredLine = Math.max(lastCoveredLine, boundary.endLine);
+  }
+
+  if (lastCoveredLine < totalLines) {
+    const trailingContent = extractLines(lines, lastCoveredLine + 1, totalLines);
+    const trailingTokens = countTokens(trailingContent);
+
+    if (trailingTokens > 0 && trailingContent.trim().length > 0) {
+      chunks.push({
+        id: generateChunkId(file.sourceId, file.relativePath, lastCoveredLine + 1, totalLines),
+        sourceId: file.sourceId,
+        filePath: file.relativePath,
+        content: trailingContent,
+        startLine: lastCoveredLine + 1,
+        endLine: totalLines,
+        tokens: trailingTokens,
+        chunkType: 'block',
+        unitName: 'footer',
+      });
+    }
+  }
+
+  if (chunks.length === 0) {
+    return chunkFileTokenBased(file, options);
+  }
+
+  return chunks;
+}
+
+/**
+ * Chunk a single file into pieces (async version).
+ * Uses AST-aware chunking for all supported languages including tree-sitter.
+ */
+export async function chunkFileAsync(file: DiscoveredFile, options: ChunkOptions = DEFAULT_OPTIONS): Promise<Chunk[]> {
+  const opts = { ...DEFAULT_OPTIONS, ...options };
+
+  // Use AST-aware chunking if enabled and the file type is supported
+  if (opts.useAst && canParse(file.relativePath)) {
+    // Use async parsing for tree-sitter languages
+    if (usesTreeSitter(file.relativePath)) {
+      return chunkFileWithAstAsync(file, opts);
+    }
+    // Use sync parsing for TS/JS
+    return chunkFileWithAst(file, opts);
+  }
+
+  // Fall back to token-based chunking
+  return chunkFileTokenBased(file, opts);
+}
+
+/**
+ * Chunk multiple files (async version, supports all languages)
+ */
+export async function chunkFilesAsync(
+  files: DiscoveredFile[],
+  options: ChunkOptions = DEFAULT_OPTIONS
+): Promise<Chunk[]> {
+  const allChunks: Chunk[] = [];
+
+  for (const file of files) {
+    const chunks = await chunkFileAsync(file, options);
     allChunks.push(...chunks);
   }
 

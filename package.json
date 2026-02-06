@@ -37,6 +37,10 @@
     "commander": "^12.1.0",
     "fast-glob": "^3.3.2",
     "js-tiktoken": "^1.0.15",
+    "tree-sitter-go": "^0.25.0",
+    "tree-sitter-python": "^0.25.0",
+    "tree-sitter-rust": "^0.24.0",
+    "web-tree-sitter": "^0.26.5",
     "yaml": "^2.6.1"
   },
   "devDependencies": {
