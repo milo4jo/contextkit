@@ -7,6 +7,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.5.4] - 2026-02-06
+
+### Added
+- **Repo Map Mode** — Show only signatures, not full code
+  - New `--mode map` option for `contextkit select`
+  - Extracts function/class signatures from TS/JS, Python, Go, Rust
+  - Shows markdown headers for documentation files
+  - Tree-style output format with file grouping
+  - Significantly reduces token usage for codebase overview
+
 ## [0.5.3] - 2026-02-06
 
 ### Added
