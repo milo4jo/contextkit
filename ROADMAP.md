@@ -10,7 +10,7 @@ Not an IDE. Not an agent. The missing piece that connects your codebase to AI �
 
 ---
 
-## Current State (v0.5.4)
+## Current State (v0.5.5)
 
 ### ✅ Done
 - **Core CLI:** init, source, index, select, watch, cache
@@ -18,6 +18,8 @@ Not an IDE. Not an agent. The missing piece that connects your codebase to AI �
 - **AST-Aware Chunking:** TypeScript/JavaScript, Python, Go, Rust
 - **Markdown Parser:** Structure-aware for .md, .mdx, .markdown, .qmd
 - **Repo Map Mode:** `--mode map` for signatures only (like Aider)
+- **Symbol Search:** Find code by name with `contextkit symbol`
+- **Call Graph:** Show callers/callees with `contextkit graph`
 - **Import Graph:** Boost files that import selected code
 - **Multi-Format Output:** markdown, xml, json, plain
 - **MCP Server:** Claude Desktop integration
@@ -68,24 +70,42 @@ contextkit select "auth system" --mode map
 - ✅ Rust (tree-sitter)
 - ✅ Markdown (.md, .mdx, .qmd)
 
-#### 3. Call Graph Analysis
+#### 3. Call Graph Analysis ✅ DONE (v0.5.5)
 ```bash
-contextkit select "handlePayment" --include-callers --include-callees
-```
-- Find what calls a function
-- Find what a function calls
-- Bidirectional dependency walking
+contextkit graph "handlePayment"
 
-#### 4. Symbol Search
+# Output:
+🎯 Call graph for: handlePayment
+📥 Callers (2):
+   ← processOrder (src/orders/service.ts:45)
+   ← checkout (src/cart/checkout.ts:89)
+📤 Calls (3):
+   → validateCard (src/payments/validation.ts)
+   → chargeCard (src/payments/stripe.ts)
+   → sendReceipt (src/notifications/email.ts)
+```
+- Find what calls a function (callers)
+- Find what a function calls (callees)
+- Multi-language support
+
+#### 4. Symbol Search ✅ DONE (v0.5.5)
 ```bash
 contextkit symbol "UserService"
-# Find by name, not just content similarity
+
+# Output:
+📄 src/services/user.ts
+│ ◆ UserService (line 12)
+│   export class UserService
 ```
+- Find by name, not just content similarity
+- Exact and fuzzy matching
+- Type icons (𝑓 function, ◆ class, ◈ interface, ⊤ type)
 
 ### Success Criteria
 - [x] 5 languages supported (TS, JS, Python, Go, Rust) ✅
 - [x] Map mode produces useful signatures ✅
-- [ ] Call graph works for 2+ languages
+- [x] Call graph works for 4 languages ✅
+- [x] Symbol search implemented ✅
 - [ ] 10% faster than v0.5 on large repos
 
 ---
