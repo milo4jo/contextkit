@@ -7,6 +7,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.5.5] - 2026-02-06
+
+### Added
+- **Symbol Search** — Find code by name, not just similarity
+  - New `contextkit symbol <name>` command
+  - Supports exact (`--exact`) and fuzzy matching
+  - Shows symbol type icons (𝑓 function, ◆ class, ◈ interface, ⊤ type)
+  - Multi-language: TypeScript/JavaScript, Python, Go, Rust
+  
+- **Call Graph** — Understand code dependencies
+  - New `contextkit graph <function>` command
+  - Shows callers (who calls this function)
+  - Shows callees (what this function calls)
+  - Helps navigate complex codebases
+
 ## [0.5.4] - 2026-02-06
 
 ### Added
