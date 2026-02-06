@@ -154,6 +154,81 @@ contextkit select "payment processing" --include-imports
 
 This helps pull in related files that depend on the primary results.
 
+### Repo Map Mode
+
+Get a quick overview of code structure without full content:
+
+```bash
+contextkit select "user authentication" --mode map
+```
+
+**Output:**
+```
+📄 src/auth/middleware.ts
+│ export function authMiddleware(req, res, next): void
+│ export function validateToken(token: string): User | null
+
+📄 src/auth/jwt.ts
+│ export class JWTService
+│   sign(payload: object): string
+│   verify(token: string): object
+```
+
+Map mode shows only signatures, dramatically reducing token usage for large codebases.
+
+## Symbol Search
+
+Find code by name when you know what you're looking for:
+
+```bash
+contextkit symbol "UserService"
+```
+
+**Output:**
+```
+📄 src/services/user.ts
+│ ◆ UserService (line 12)
+│   export class UserService
+
+Found 1 symbol(s)
+```
+
+**Options:**
+- `--exact` — Require exact name match
+- `--limit <n>` — Maximum results (default: 20)
+
+**Symbol Icons:**
+- `𝑓` — function
+- `◆` — class
+- `◇` — method
+- `◈` — interface
+- `⊤` — type
+- `●` — constant
+
+## Call Graph
+
+Understand code dependencies:
+
+```bash
+contextkit graph "handlePayment"
+```
+
+**Output:**
+```
+🎯 Call graph for: handlePayment
+
+📥 Callers (2):
+   ← processOrder (src/orders/service.ts:45)
+   ← checkout (src/cart/checkout.ts:89)
+
+📤 Calls (3):
+   → validateCard (src/payments/validation.ts)
+   → chargeCard (src/payments/stripe.ts)
+   → sendReceipt (src/notifications/email.ts)
+```
+
+Shows what functions call your target (callers) and what it calls (callees).
+
 ## Step 5: Integrate with AI Assistants
 
 ### Copy-Paste Workflow
@@ -238,10 +313,18 @@ contextkit source remove <id>
 contextkit index
 contextkit index --force
 
-# Selection
+# Selection (semantic search)
 contextkit select "your query"
 contextkit select "query" --budget 4000
 contextkit select "query" --format json
+contextkit select "query" --mode map    # signatures only
+
+# Symbol search (by name)
+contextkit symbol "FunctionName"
+contextkit symbol "ClassName" --exact
+
+# Call graph
+contextkit graph "functionName"
 
 # Cache management
 contextkit cache stats

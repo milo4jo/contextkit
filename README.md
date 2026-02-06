@@ -7,7 +7,7 @@
 [![npm downloads](https://img.shields.io/npm/dw/@milo4jo/contextkit)](https://www.npmjs.com/package/@milo4jo/contextkit)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
-**🆕 v0.5:** Import-aware scoring — files that import your selected code get boosted automatically!
+**🆕 v0.5.5:** Symbol search & call graph! Find code by name, trace dependencies across your codebase.
 
 ---
 
@@ -185,8 +185,55 @@ contextkit select "query" --format plain     # Plain text, no formatting
 # Include imported files (follows dependency graph)
 contextkit select "query" --include-imports
 
+# Repo map mode (signatures only, saves tokens)
+contextkit select "query" --mode map
+
 # Pipe to clipboard (macOS)
 contextkit select "query" --format plain | pbcopy
+```
+
+### `contextkit symbol`
+
+Search for code by symbol name (faster than semantic search when you know the name).
+
+```bash
+# Find a function or class by name
+contextkit symbol "UserService"
+
+# Exact match only
+contextkit symbol "handleAuth" --exact
+
+# Limit results
+contextkit symbol "parse" --limit 10
+```
+
+**Output:**
+```
+📄 src/services/user.ts
+│ ◆ UserService (line 12)
+│   export class UserService
+```
+
+### `contextkit graph`
+
+Show call relationships for a function.
+
+```bash
+contextkit graph "handlePayment"
+```
+
+**Output:**
+```
+🎯 Call graph for: handlePayment
+
+📥 Callers (2):
+   ← processOrder (src/orders/service.ts:45)
+   ← checkout (src/cart/checkout.ts:89)
+
+📤 Calls (3):
+   → validateCard (src/payments/validation.ts)
+   → chargeCard (src/payments/stripe.ts)
+   → sendReceipt (src/notifications/email.ts)
 ```
 
 ---
