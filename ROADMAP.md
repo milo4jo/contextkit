@@ -1,188 +1,280 @@
-# ContextKit v1.0 Roadmap
+# ContextKit Roadmap 2026
 
-> From MVP to Production-Ready Release
+> From v0.5 to v1.0 — Becoming the Context Layer for AI Coding
 
-## Current Status (v0.3.0)
+## Vision
 
-✅ **Done:**
-- Core CLI (init, source, index, select, watch)
-- Local-first architecture (embeddings stored locally)
-- MCP Server for Claude Desktop
-- Incremental indexing (SHA-256 file hashing)
-- Watch mode with debouncing
-- Multi-factor scoring algorithm
-- 95 tests passing
-- Agent Skill for skills.sh
-- Landing page (contextkit-site.vercel.app)
-- npm package (@milo4jo/contextkit)
+**ContextKit is the context layer that makes any AI coding tool better.**
 
-## v1.0 Requirements
-
-### 🔴 Critical (Must Have)
-
-#### 1. Incremental Indexing
-**Problem:** Currently re-indexes everything on every `contextkit index` call.
-**Solution:** Track file hashes, only re-index changed files.
-**Impact:** 10x faster for large codebases.
-
-```typescript
-// Store file hash in DB
-interface FileRecord {
-  path: string;
-  hash: string;  // SHA-256 of content
-  indexed_at: Date;
-}
-
-// On index: skip files where hash matches
-```
-
-#### 2. Watch Mode
-**Problem:** Manual re-indexing is friction.
-**Solution:** `contextkit watch` that auto-reindexes on file save.
-**Impact:** Seamless developer experience.
-
-```bash
-contextkit watch              # Watch all sources
-contextkit watch --debounce 2s  # Debounce rapid saves
-```
-
-#### 3. Better Scoring Algorithm
-**Problem:** Pure cosine similarity misses nuance.
-**Solution:** Multi-factor scoring:
-- Semantic similarity (embeddings)
-- Path relevance (query mentions "auth" → boost auth/)
-- Recency (recently modified files)
-- Dependency graph (imported by relevant files)
-
-#### 4. Proper Error Messages
-**Problem:** Generic errors confuse users.
-**Solution:** Actionable error messages with suggested fixes.
-
-```
-❌ Before: "Database error"
-✅ After:  "Index not found. Run `contextkit index` first."
-```
-
-### 🟡 Important (Should Have)
-
-#### 5. Config Validation
-- Validate config.yaml on load
-- Warn about invalid patterns
-- Suggest fixes for common mistakes
-
-#### 6. Ignore Patterns
-- Respect .gitignore by default
-- Support .contextkitignore
-- Smart defaults for node_modules, dist, etc.
-
-#### 7. Multiple Output Formats
-```bash
-contextkit select "query" --format markdown  # Current
-contextkit select "query" --format xml       # For Claude
-contextkit select "query" --format json      # For scripts
-contextkit select "query" --format clipboard # Direct to clipboard
-```
-
-#### 8. Progress Indicators
-- Show indexing progress (files, chunks)
-- Estimated time remaining
-- Spinner for long operations
-
-### 🟢 Nice to Have (v1.1+)
-
-#### 9. VS Code Extension
-- Sidebar showing indexed status
-- Quick select from command palette
-- Inline context suggestions
-
-#### 10. Cursor Integration
-- Custom MCP server for Cursor
-- Direct integration via settings
-
-#### 11. Context Recipes
-Pre-built configurations:
-- `contextkit init --recipe typescript`
-- `contextkit init --recipe python`
-- `contextkit init --recipe monorepo`
-
-#### 12. Cloud Sync (Optional)
-- Sync index across machines
-- Team sharing
-- Paid feature for sustainability
+Not an IDE. Not an agent. The missing piece that connects your codebase to AI — regardless of which AI you use.
 
 ---
 
-## Technical Debt
+## Current State (v0.5.2)
 
-### Must Fix Before v1.0
+### ✅ Done
+- **Core CLI:** init, source, index, select, watch, cache
+- **Semantic Search:** Local embeddings, cosine similarity
+- **AST-Aware Chunking:** TypeScript/JavaScript only
+- **Import Graph:** Boost files that import selected code
+- **Multi-Format Output:** markdown, xml, json, plain
+- **MCP Server:** Claude Desktop integration
+- **Query Caching:** Instant repeat queries
+- **Incremental Indexing:** Only re-index changed files
+- **Documentation:** Getting started, MCP setup, examples
 
-1. **Test Coverage Gaps:**
-   - Integration tests for full CLI flow
-   - E2E tests with real embedding model
-   - Error path testing
-
-2. **Documentation:**
-   - API documentation for programmatic use
-   - Architecture diagram
-   - Troubleshooting guide
-
-3. **Performance:**
-   - Benchmark suite
-   - Memory profiling for large repos
-   - Startup time optimization
-
-4. **Cross-Platform:**
-   - Test on Windows
-   - Test on Linux
-   - Path handling edge cases
+### 📊 Metrics
+- 197 tests passing
+- ~130 npm downloads/week
+- Local-first, no API keys needed
 
 ---
 
-## Release Plan
+## Phase 1: Structure-Aware (v0.6) — Target: Feb 2026
 
-### v0.3.0 — Incremental + Watch ✅ RELEASED
-- [x] Incremental indexing
-- [x] Watch mode
-- [x] File hash tracking
-- [x] Multi-factor scoring
+**Goal:** Understand code STRUCTURE, not just content. Match Aider's repo map quality.
 
-### v0.4.0 — Formats + Polish
-- [ ] Output format options (xml, clipboard)
-- [ ] Config validation
-- [ ] Better progress indicators
-- [ ] Improved error messages
+### Features
 
-### v0.5.0 — Polish
-- [ ] Respect .gitignore
-- [ ] Integration tests
-- [ ] Documentation overhaul
-- [ ] Cross-platform testing
+#### 1. Repo Map Mode
+```bash
+# Show signatures only (like Aider)
+contextkit select "auth system" --mode map
 
-### v1.0.0 — Production Ready
-- [ ] Stability guarantees
+# Output:
+src/auth/middleware.ts:
+│ export function authMiddleware(req, res, next): void
+│ export function validateToken(token: string): User | null
+
+src/auth/jwt.ts:
+│ export class JWTService
+│   sign(payload: object): string
+│   verify(token: string): object
+```
+
+**Why:** LLMs need structure to understand large codebases. Full code is expensive and often unnecessary.
+
+#### 2. Tree-sitter Integration
+- Universal AST parsing (50+ languages)
+- Extract: functions, classes, methods, types
+- Language-agnostic chunking
+
+**Languages to add:**
+- Python (highest demand)
+- Go
+- Rust
+- Java/Kotlin
+
+#### 3. Call Graph Analysis
+```bash
+contextkit select "handlePayment" --include-callers --include-callees
+```
+- Find what calls a function
+- Find what a function calls
+- Bidirectional dependency walking
+
+#### 4. Symbol Search
+```bash
+contextkit symbol "UserService"
+# Find by name, not just content similarity
+```
+
+### Success Criteria
+- [ ] 5 languages supported (TS, JS, Python, Go, Rust)
+- [ ] Map mode produces useful signatures
+- [ ] Call graph works for 2+ languages
+- [ ] 10% faster than v0.5 on large repos
+
+---
+
+## Phase 2: Smart Context (v0.7) — Target: Mar 2026
+
+**Goal:** Context that adapts to the task.
+
+### Features
+
+#### 1. Dynamic Budget
+- Auto-expand for "explain codebase" queries
+- Auto-contract when focused on specific files
+- Learn optimal budget from usage patterns
+
+#### 2. Context Recipes
+```bash
+contextkit recipe api-endpoints    # Find all API routes
+contextkit recipe auth-flow        # Trace authentication
+contextkit recipe database-schema  # Find models/migrations
+contextkit recipe test-coverage    # Find tests for a module
+```
+
+Pre-built queries for common tasks.
+
+#### 3. Codebase Overview
+```bash
+contextkit overview
+# Generates: architecture summary, main modules, entry points
+```
+
+Auto-discover project structure without a query.
+
+#### 4. Smart Follow-up
+```bash
+contextkit select "payment processing"
+# ContextKit remembers context
+
+contextkit followup "how does refund work?"
+# Builds on previous context
+```
+
+### Success Criteria
+- [ ] 5+ recipes that users actually use
+- [ ] Overview mode works for 3 project types
+- [ ] Follow-up reduces repeat work by 50%
+
+---
+
+## Phase 3: Integration (v0.8) — Target: Apr 2026
+
+**Goal:** Use ContextKit anywhere — IDE, terminal, browser.
+
+### Features
+
+#### 1. VS Code Extension
+- **Sidebar:** Index status, recent queries
+- **Command Palette:** "ContextKit: Select Context"
+- **Right-click:** "Find Related Context"
+- **Inline:** Hover for symbol context
+
+#### 2. Clipboard Integration
+```bash
+contextkit select "query" --clipboard
+# macOS: pbcopy
+# Linux: xclip
+# Windows: clip
+```
+
+One command to clipboard.
+
+#### 3. GitHub Action
+```yaml
+- uses: milo4jo/contextkit-action@v1
+  with:
+    query: "changes in this PR"
+    output: pr-comment
+```
+
+Auto-comment relevant context on PRs.
+
+#### 4. Browser Extension
+- Paste context into Claude.ai, ChatGPT, etc.
+- One-click from VS Code to browser
+
+### Success Criteria
+- [ ] VS Code extension with 100+ installs
+- [ ] GitHub Action used in 10+ repos
+- [ ] Browser extension works with 3+ AI chat UIs
+
+---
+
+## Phase 4: Production Ready (v1.0) — Target: May 2026
+
+**Goal:** Stable, trusted, documented.
+
+### Requirements
+
+#### Stability
+- [ ] No breaking changes from v1.0 onward
 - [ ] Semantic versioning commitment
-- [ ] Performance benchmarks
-- [ ] Security audit
-- [ ] Final documentation review
+- [ ] 99.9% test pass rate
+- [ ] Zero known data loss bugs
+
+#### Performance
+- [ ] Index 50k files in <5 minutes
+- [ ] Select context in <500ms
+- [ ] Memory usage <500MB for 100k file repos
+
+#### Documentation
+- [ ] Complete API reference
+- [ ] Video tutorials
+- [ ] Case studies (3+)
+- [ ] Troubleshooting guide
+
+#### Enterprise Ready
+- [ ] Self-hosted deployment guide
+- [ ] Audit logging
+- [ ] SSO support (optional)
+- [ ] Enterprise support tier
+
+### Success Criteria
+- [ ] 1,500 GitHub stars
+- [ ] 15k npm downloads/month
+- [ ] 5+ case studies published
+- [ ] $500 MRR (if monetized)
 
 ---
 
-## Success Metrics for v1.0
+## Backlog (Post-1.0)
 
-1. **Reliability:** Zero data loss, graceful error handling
-2. **Performance:** Index 10K files in <60s, select in <1s
-3. **Usability:** 5-minute setup, intuitive commands
-4. **Adoption:** 100+ npm installs, 50+ GitHub stars
-
----
-
-## Open Questions
-
-- [ ] Should we support multiple embedding models?
-- [ ] How to handle very large files (>10K lines)?
-- [ ] Streaming output for MCP?
-- [ ] Plugin system for custom scorers?
+- **Cursor Plugin:** Native Cursor integration
+- **Neovim Plugin:** For the terminal enthusiasts
+- **Cloud Sync:** Optional sync across machines
+- **Team Patterns:** Learn from team's coding style
+- **Custom Scorers:** Plugin system for scoring logic
+- **Streaming Output:** For large context selections
+- **Multi-repo:** Index multiple related repos
 
 ---
 
-*Last updated: 2026-02-05*
+## Technical Decisions
+
+### Confirmed
+- **Local-first:** All processing on user's machine
+- **SQLite:** Simple, portable, fast enough
+- **Tree-sitter:** For multi-language AST
+- **MCP:** For AI assistant integration
+
+### Open
+- **Hosted API?** Maybe for v1.1+
+- **Pro tier?** Features TBD
+- **Telemetry?** Opt-in analytics
+
+---
+
+## Non-Goals
+
+Things we explicitly WON'T do:
+
+1. **Become an IDE** — Use with your existing tools
+2. **Become an agent** — We find context, you decide what to do
+3. **Require cloud** — Works fully offline
+4. **Framework complexity** — Stay simple, stay focused
+
+---
+
+## Timeline
+
+```
+Feb 2026  ━━━━━━━━━━  v0.6 Structure-Aware
+                      ├── Tree-sitter
+                      ├── Repo Map mode
+                      └── Python/Go support
+
+Mar 2026  ━━━━━━━━━━  v0.7 Smart Context
+                      ├── Dynamic budget
+                      ├── Recipes
+                      └── Codebase overview
+
+Apr 2026  ━━━━━━━━━━  v0.8 Integration
+                      ├── VS Code extension
+                      ├── GitHub Action
+                      └── Browser extension
+
+May 2026  ━━━━━━━━━━  v1.0 Production Ready
+                      ├── Stability
+                      ├── Performance
+                      └── Documentation
+```
+
+---
+
+*Last updated: 2026-02-06*
+*Owner: Milo 🦊*
