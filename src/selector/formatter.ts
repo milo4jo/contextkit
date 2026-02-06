@@ -309,6 +309,9 @@ export function formatAsPlain(
   return { text, data };
 }
 
+/** Selection mode */
+type SelectMode = 'full' | 'map';
+
 /**
  * Format output in specified format
  */
@@ -318,27 +321,272 @@ export function formatInFormat(
   result: BudgetResult,
   totalConsidered: number,
   timeMs: number,
-  explain: boolean = false
+  explain: boolean = false,
+  mode: SelectMode = 'full'
 ): FormattedOutput {
+  // If map mode, transform chunks to signatures only
+  const effectiveResult = mode === 'map' ? transformToSignatures(result) : result;
+
   switch (format) {
     case 'xml':
-      return formatAsXml(query, result, totalConsidered, timeMs);
+      return formatAsXml(query, effectiveResult, totalConsidered, timeMs);
     case 'json': {
       // JSON format returns the data structure directly
-      const base = formatOutput(query, result, totalConsidered, timeMs);
+      const base = formatOutput(query, effectiveResult, totalConsidered, timeMs);
       return {
         text: JSON.stringify(base.data, null, 2),
         data: base.data,
       };
     }
     case 'plain':
-      return formatAsPlain(query, result, totalConsidered, timeMs);
+      return formatAsPlain(query, effectiveResult, totalConsidered, timeMs);
     case 'markdown':
     default:
+      if (mode === 'map') {
+        return formatAsRepoMap(query, effectiveResult, totalConsidered, timeMs);
+      }
       return explain
-        ? formatWithExplanation(query, result, totalConsidered, timeMs)
-        : formatOutput(query, result, totalConsidered, timeMs);
+        ? formatWithExplanation(query, effectiveResult, totalConsidered, timeMs)
+        : formatOutput(query, effectiveResult, totalConsidered, timeMs);
   }
+}
+
+/**
+ * Transform chunks to show only signatures/structure
+ */
+function transformToSignatures(result: BudgetResult): BudgetResult {
+  const transformedChunks = result.chunks.map(chunk => {
+    const signature = extractSignatureFromContent(chunk.content, chunk.filePath);
+    return {
+      ...chunk,
+      content: signature,
+      // Recalculate tokens (rough estimate: 1 token per 4 chars)
+      tokens: Math.ceil(signature.length / 4),
+    };
+  });
+
+  const totalTokens = transformedChunks.reduce((sum, c) => sum + c.tokens, 0);
+
+  return {
+    chunks: transformedChunks,
+    totalTokens,
+    excluded: result.excluded,
+  };
+}
+
+/**
+ * Extract signature from chunk content by analyzing the content itself
+ */
+function extractSignatureFromContent(content: string, filePath: string): string {
+  const lines = content.split('\n');
+  const ext = filePath.split('.').pop()?.toLowerCase();
+  const isMarkdown = ext === 'md' || ext === 'mdx' || ext === 'markdown';
+
+  // For markdown, return headers
+  if (isMarkdown) {
+    const headers = lines.filter(l => l.trim().startsWith('#'));
+    if (headers.length > 0) {
+      return headers.join('\n');
+    }
+    // Return first non-empty line for markdown without headers
+    const firstLine = lines.find(l => l.trim());
+    return firstLine ? firstLine.substring(0, 100) : '(markdown content)';
+  }
+
+  // Try to detect and extract code signatures
+  const signatures: string[] = [];
+  let inClass = false;
+  let classIndent = 0;
+
+  for (let i = 0; i < lines.length; i++) {
+    const line = lines[i];
+    const trimmed = line.trim();
+    const indent = line.length - line.trimStart().length;
+
+    // Skip empty lines and comments
+    if (!trimmed || trimmed.startsWith('//') || trimmed.startsWith('#') && !isMarkdown || trimmed.startsWith('/*') || trimmed.startsWith('*')) {
+      continue;
+    }
+
+    // TypeScript/JavaScript class
+    if (trimmed.match(/^(export\s+)?(abstract\s+)?class\s+\w+/)) {
+      signatures.push(trimmed.replace(/\s*\{$/, ''));
+      inClass = true;
+      classIndent = indent;
+      continue;
+    }
+
+    // TypeScript/JavaScript function
+    if (trimmed.match(/^(export\s+)?(async\s+)?function\s+\w+/)) {
+      signatures.push(extractFunctionSignature(trimmed));
+      continue;
+    }
+
+    // Arrow function or const
+    if (trimmed.match(/^(export\s+)?(const|let|var)\s+\w+\s*[=:]/)) {
+      const arrowSig = extractArrowSignature(trimmed, lines.slice(i));
+      signatures.push(arrowSig);
+      continue;
+    }
+
+    // Python class
+    if (trimmed.match(/^class\s+\w+/)) {
+      signatures.push(trimmed.replace(/:$/, ''));
+      inClass = true;
+      classIndent = indent;
+      continue;
+    }
+
+    // Python function/method
+    if (trimmed.match(/^(async\s+)?def\s+\w+/)) {
+      const sig = trimmed.replace(/:$/, '');
+      if (inClass && indent > classIndent) {
+        signatures.push('  ' + sig);
+      } else {
+        signatures.push(sig);
+        inClass = false;
+      }
+      continue;
+    }
+
+    // Go function
+    if (trimmed.match(/^func\s+/)) {
+      signatures.push(trimmed.replace(/\s*\{$/, ''));
+      continue;
+    }
+
+    // Rust function
+    if (trimmed.match(/^(pub\s+)?(async\s+)?fn\s+/)) {
+      signatures.push(trimmed.replace(/\s*\{$/, ''));
+      continue;
+    }
+
+    // TypeScript interface or type
+    if (trimmed.match(/^(export\s+)?(interface|type)\s+\w+/)) {
+      signatures.push(trimmed.replace(/\s*[{=]$/, ''));
+      continue;
+    }
+
+    // Method in class (TypeScript)
+    if (inClass && indent > classIndent && trimmed.match(/^(public|private|protected|static|async|get|set)?\s*(async\s+)?\w+\s*\(/)) {
+      signatures.push('  ' + extractFunctionSignature(trimmed));
+      continue;
+    }
+  }
+
+  if (signatures.length > 0) {
+    return signatures.join('\n');
+  }
+
+  // Fallback: return first meaningful line
+  for (const line of lines) {
+    const trimmed = line.trim();
+    if (trimmed && !trimmed.startsWith('//') && !trimmed.startsWith('/*') && !trimmed.startsWith('*')) {
+      return trimmed.length > 100 ? trimmed.substring(0, 100) + '...' : trimmed;
+    }
+  }
+
+  return '(content)';
+}
+
+/**
+ * Extract function signature (up to opening brace or colon)
+ */
+function extractFunctionSignature(line: string): string {
+  // Remove body start
+  const braceIdx = line.indexOf('{');
+  if (braceIdx > 0) {
+    return line.substring(0, braceIdx).trim();
+  }
+  return line;
+}
+
+/**
+ * Extract arrow function signature
+ */
+function extractArrowSignature(firstLine: string, lines: string[]): string {
+  // For single-line arrow functions
+  const arrowIdx = firstLine.indexOf('=>');
+  if (arrowIdx > 0) {
+    return firstLine.substring(0, arrowIdx + 2).trim() + ' ...';
+  }
+  // Multi-line: look for arrow on next lines
+  for (let i = 0; i < Math.min(3, lines.length); i++) {
+    const line = lines[i];
+    const idx = line.indexOf('=>');
+    if (idx > 0) {
+      return line.substring(0, idx + 2).trim() + ' ...';
+    }
+  }
+  return firstLine;
+}
+
+/**
+ * Format as repo map (signatures grouped by file)
+ */
+function formatAsRepoMap(
+  query: string,
+  result: BudgetResult,
+  totalConsidered: number,
+  timeMs: number
+): FormattedOutput {
+  const { chunks, totalTokens } = result;
+
+  // Group chunks by file
+  const fileGroups = new Map<string, typeof chunks>();
+  for (const chunk of chunks) {
+    const existing = fileGroups.get(chunk.filePath) || [];
+    existing.push(chunk);
+    fileGroups.set(chunk.filePath, existing);
+  }
+
+  // Build text output in tree format
+  const textParts: string[] = [];
+
+  for (const [filePath, fileChunks] of fileGroups) {
+    fileChunks.sort((a, b) => a.startLine - b.startLine);
+
+    textParts.push(`📄 ${filePath}`);
+    for (const chunk of fileChunks) {
+      const lines = chunk.content.split('\n');
+      for (const line of lines) {
+        if (line.trim()) {
+          textParts.push(`│ ${line}`);
+        }
+      }
+    }
+    textParts.push('');
+  }
+
+  // Add stats footer
+  const filesCount = fileGroups.size;
+  const statsLine = `📊 ${totalTokens.toLocaleString()} tokens | ${chunks.length} symbols | ${filesCount} files`;
+
+  const text = textParts.join('\n') + '\n---\n' + statsLine;
+
+  // Build structured data
+  const chunkInfos: ChunkInfo[] = chunks.map((c) => ({
+    file: c.filePath,
+    lines: [c.startLine, c.endLine],
+    tokens: c.tokens,
+    score: Math.round(c.score * 1000) / 1000,
+  }));
+
+  return {
+    text,
+    data: {
+      query,
+      context: textParts.join('\n'),
+      chunks: chunkInfos,
+      stats: {
+        totalTokens,
+        chunksConsidered: totalConsidered,
+        chunksIncluded: chunks.length,
+        filesIncluded: filesCount,
+        timeMs,
+      },
+    },
+  };
 }
 
 /**

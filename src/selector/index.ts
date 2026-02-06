@@ -21,6 +21,9 @@ import {
   setCachedResult,
 } from '../db/index.js';
 
+/** Selection mode */
+export type SelectMode = 'full' | 'map';
+
 /** Selection options */
 export interface SelectOptions {
   /** Query to find context for */
@@ -33,6 +36,8 @@ export interface SelectOptions {
   explain?: boolean;
   /** Output format */
   format?: OutputFormat;
+  /** Selection mode: full (code) or map (signatures only) */
+  mode?: SelectMode;
   /** Include imported files in selection */
   includeImports?: boolean;
   /** Base path for resolving imports */
@@ -60,6 +65,7 @@ export async function selectContext(
 ): Promise<SelectResult> {
   const startTime = Date.now();
   const format = options.format || 'markdown';
+  const mode = options.mode || 'full';
 
   // Check if index has any chunks
   const countResult = db.prepare('SELECT COUNT(*) as count FROM chunks').get() as { count: number };
@@ -96,6 +102,7 @@ export async function selectContext(
       budget: options.budget,
       sources: options.sources,
       format,
+      mode,
       includeImports: options.includeImports,
     });
     indexVersion = computeIndexVersion(db);
@@ -175,7 +182,8 @@ export async function selectContext(
     mergedResult,
     similarChunks.length,
     timeMs,
-    options.explain
+    options.explain,
+    mode
   );
 
   // Step 8: Store in cache (if caching is enabled)

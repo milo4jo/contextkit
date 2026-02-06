@@ -10,11 +10,15 @@ import { InvalidUsageError } from '../errors/index.js';
 /** Valid output formats */
 const VALID_FORMATS = ['markdown', 'xml', 'json', 'plain'] as const;
 
+/** Valid selection modes */
+const VALID_MODES = ['full', 'map'] as const;
+
 export const selectCommand = new Command('select')
   .description('Select context for a query')
   .argument('<query>', 'The query to find context for')
   .option('-b, --budget <tokens>', 'Maximum tokens to include', '8000')
   .option('-f, --format <format>', 'Output format: markdown, xml, json, plain', 'markdown')
+  .option('-m, --mode <mode>', 'Selection mode: full (code), map (signatures only)', 'full')
   .option('-s, --sources <sources>', 'Filter sources (comma-separated)')
   .option('--explain', 'Show scoring details')
   .option('--include-imports', 'Include files imported by selected chunks')
@@ -37,6 +41,14 @@ export const selectCommand = new Command('select')
       );
     }
 
+    // Validate mode
+    const mode = (options.mode?.toLowerCase() ?? 'full') as 'full' | 'map';
+    if (!VALID_MODES.includes(mode)) {
+      throw new InvalidUsageError(
+        `Invalid mode "${options.mode}". Valid modes: ${VALID_MODES.join(', ')}`
+      );
+    }
+
     // Parse sources filter
     const sources = options.sources
       ? options.sources.split(',').map((s: string) => s.trim())
@@ -56,6 +68,7 @@ export const selectCommand = new Command('select')
         sources,
         explain: options.explain,
         format: effectiveFormat,
+        mode,
         includeImports: options.includeImports,
         noCache: options.cache === false,
       });

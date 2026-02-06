@@ -107,6 +107,7 @@ export interface CacheKeyParams {
   budget: number;
   sources?: string[];
   format: string;
+  mode?: string;
   includeImports?: boolean;
 }
 
@@ -139,6 +140,7 @@ export function generateCacheKey(params: CacheKeyParams): string {
     budget: params.budget,
     sources: params.sources?.slice().sort() || [],
     format: params.format,
+    mode: params.mode || 'full',
     includeImports: params.includeImports || false,
   };
 
