@@ -241,13 +241,24 @@ export function main() {
     expect(mainChunk?.chunkType).toBe('function');
   });
 
-  it('should fall back to token-based for non-JS files', () => {
+  it('should use AST-aware chunking for markdown files', () => {
     const content = `# Markdown file
-This is not JavaScript.`;
+
+This is markdown content.`;
     const file = createMockFile(content, 'README.md');
     const chunks = chunkFile(file, { chunkSize: 500, chunkOverlap: 50, useAst: true });
 
-    // Should fall back to token-based chunking
+    // Markdown now uses AST-aware chunking (sections as 'class')
+    expect(chunks).toHaveLength(1);
+    expect(chunks[0].chunkType).toBe('class');
+  });
+
+  it('should fall back to token-based for non-parseable files', () => {
+    const content = `{"key": "value", "another": 123}`;
+    const file = createMockFile(content, 'data.json');
+    const chunks = chunkFile(file, { chunkSize: 500, chunkOverlap: 50, useAst: true });
+
+    // JSON has no parser, falls back to token-based chunking
     expect(chunks).toHaveLength(1);
     expect(chunks[0].chunkType).toBe('token-block');
   });

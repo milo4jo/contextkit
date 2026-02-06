@@ -25,6 +25,12 @@ import {
   generateRepoMap,
 } from './tree-sitter.js';
 
+import {
+  parseMarkdown,
+  isMarkdown,
+  getMarkdownExtensions,
+} from './markdown.js';
+
 export { type ParseResult, type CodeBoundary, type CodeUnitType };
 export { generateRepoMap, getSupportedTreeSitterLanguages };
 
@@ -42,6 +48,12 @@ const treeSitterExtensions = new Set(getTreeSitterExtensions());
 const tsExtensions = ['ts', 'tsx', 'js', 'jsx', 'mjs', 'cjs', 'mts', 'cts'];
 for (const ext of tsExtensions) {
   syncParsers.set(ext, parseTypeScript);
+}
+
+// Register Markdown parser for all supported extensions
+const mdExtensions = getMarkdownExtensions();
+for (const ext of mdExtensions) {
+  syncParsers.set(ext, parseMarkdown);
 }
 
 /**
@@ -153,4 +165,4 @@ export function getSupportedExtensions(): string[] {
 }
 
 // Re-export utility functions
-export { isTypeScriptOrJavaScript, canParseWithTreeSitter };
+export { isTypeScriptOrJavaScript, canParseWithTreeSitter, isMarkdown, getMarkdownExtensions };

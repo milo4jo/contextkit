@@ -230,10 +230,16 @@ describe('Parser Registry', () => {
       expect(canParse('test.go')).toBe(true);
     });
 
+    it('should return true for markdown extensions', () => {
+      expect(canParse('README.md')).toBe(true);
+      expect(canParse('docs.mdx')).toBe(true);
+      expect(canParse('quarto.qmd')).toBe(true);
+    });
+
     it('should return false for unsupported extensions', () => {
-      expect(canParse('README.md')).toBe(false);
       expect(canParse('data.json')).toBe(false);
       expect(canParse('styles.css')).toBe(false);
+      expect(canParse('image.png')).toBe(false);
     });
   });
 
@@ -255,9 +261,17 @@ describe('Parser Registry', () => {
       expect(result.error).toContain('async parsing');
     });
 
-    it('should return failure for truly unsupported files', () => {
-      const code = `# Some markdown content`;
+    it('should parse markdown files', () => {
+      const code = `# Some markdown content\n\nWith text.`;
       const result = parseFile(code, 'README.md');
+
+      expect(result.success).toBe(true);
+      expect(result.boundaries.length).toBeGreaterThan(0);
+    });
+
+    it('should return failure for truly unsupported files', () => {
+      const code = `{"key": "value"}`;
+      const result = parseFile(code, 'data.json');
 
       expect(result.success).toBe(false);
       expect(result.error).toContain('No parser available');
