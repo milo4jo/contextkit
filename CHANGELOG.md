@@ -7,6 +7,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.5.3] - 2026-02-06
+
+### Added
+- **Markdown Parser** — Structure-aware parsing for documentation files
+  - Parses headers as semantic sections
+  - Extracts code blocks with language detection
+  - Parses YAML front matter as metadata
+  - Supports `.md`, `.mdx`, `.markdown`, `.qmd` (Quarto)
+  - Documentation content now searchable with structure awareness
+
 ## [0.5.2] - 2026-02-06
 
 ### Fixed
