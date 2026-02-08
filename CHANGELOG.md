@@ -7,6 +7,26 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.5.8] - 2026-02-08
+
+### Added
+- **MCP Symbol Search** — New `contextkit_symbol` tool for AI assistants
+  - Search functions, classes, interfaces by name
+  - Exact or fuzzy matching
+  - Multi-language support (TypeScript, Python, Go, Rust)
+
+- **MCP Call Graph** — New `contextkit_graph` tool for AI assistants
+  - Shows callers (who calls this function)
+  - Shows callees (what this function calls)
+  - Helps AI understand code flow
+
+- **MCP Map Mode** — `contextkit_select` now supports `mode: "map"`
+  - Returns only signatures, not full code
+  - Uses fewer tokens for codebase overview
+
+### Improved
+- MCP `contextkit_status` now shows version and available tools
+
 ## [0.5.7] - 2026-02-08
 
 ### Improved
