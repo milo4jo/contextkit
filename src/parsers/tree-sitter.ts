@@ -226,6 +226,46 @@ const LANGUAGE_CONFIGS: Record<string, LanguageConfig> = {
       return false;
     },
   },
+
+  php: {
+    package: 'tree-sitter-php',
+    wasmFile: 'tree-sitter-php.wasm',
+    functionTypes: ['function_definition', 'method_declaration'],
+    classTypes: ['class_declaration', 'interface_declaration', 'trait_declaration', 'enum_declaration'],
+    methodTypes: ['method_declaration'],
+    getNodeName: (node: Node) => {
+      const nameNode = node.childForFieldName('name');
+      return nameNode?.text ?? null;
+    },
+    getSignature: (node: Node, content: string) => {
+      const text = content.substring(node.startIndex, node.endIndex);
+      const lines = text.split('\n');
+      
+      // Get everything before the first {
+      let sig = '';
+      for (const line of lines) {
+        sig += line + '\n';
+        if (line.includes('{')) {
+          sig = sig.substring(0, sig.lastIndexOf('{'));
+          break;
+        }
+      }
+      return sig.trim();
+    },
+    isExported: (node: Node) => {
+      // PHP: public methods/functions are exported
+      // Check for visibility modifier
+      const modifiers = node.childForFieldName('modifiers');
+      if (modifiers) {
+        return modifiers.text.includes('public');
+      }
+      // Top-level functions are always "public"
+      if (node.type === 'function_definition') {
+        return true;
+      }
+      return false;
+    },
+  },
 };
 
 /** File extension to language mapping */
@@ -236,6 +276,7 @@ const EXTENSION_TO_LANGUAGE: Record<string, string> = {
   rs: 'rust',
   java: 'java',
   cs: 'csharp',
+  php: 'php',
 };
 
 /**

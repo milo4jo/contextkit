@@ -1,6 +1,6 @@
 {
   "name": "@milo4jo/contextkit",
-  "version": "0.5.9",
+  "version": "0.5.10",
   "description": "Intelligent context selection for LLM applications",
   "author": "Milo <milo4jo@outlook.de>",
   "license": "MIT",
@@ -40,6 +40,7 @@
     "tree-sitter-c-sharp": "^0.23.1",
     "tree-sitter-go": "^0.25.0",
     "tree-sitter-java": "^0.23.5",
+    "tree-sitter-php": "^0.24.2",
     "tree-sitter-python": "^0.25.0",
     "tree-sitter-rust": "^0.24.0",
     "web-tree-sitter": "^0.26.5",

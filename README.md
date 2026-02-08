@@ -7,7 +7,7 @@
 [![npm downloads](https://img.shields.io/npm/dw/@milo4jo/contextkit)](https://www.npmjs.com/package/@milo4jo/contextkit)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
-**🆕 v0.5.9:** Now with Java and C# support! Plus enhanced MCP server with symbol search and call graph.
+**🆕 v0.5.10:** Now with PHP support! Plus Java, C#, and enhanced MCP server with symbol search and call graph.
 
 ---
 

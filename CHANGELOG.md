@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.5.10] - 2026-02-08
+
+### Added
+- **PHP Support** — AST-aware parsing for `.php` files
+  - Classes, interfaces, traits, enums
+  - Functions and methods
+  - Laravel/WordPress/Symfony compatible
+
 ## [0.5.9] - 2026-02-08
 
 ### Added
