@@ -7,7 +7,7 @@
 [![npm downloads](https://img.shields.io/npm/dw/@milo4jo/contextkit)](https://www.npmjs.com/package/@milo4jo/contextkit)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
-**🆕 v0.5.8:** Enhanced MCP server with symbol search, call graph, and map mode for AI assistants!
+**🆕 v0.5.9:** Now with Java and C# support! Plus enhanced MCP server with symbol search and call graph.
 
 ---
 

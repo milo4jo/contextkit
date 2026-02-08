@@ -149,6 +149,83 @@ const LANGUAGE_CONFIGS: Record<string, LanguageConfig> = {
       return false;
     },
   },
+
+  java: {
+    package: 'tree-sitter-java',
+    wasmFile: 'tree-sitter-java.wasm',
+    functionTypes: ['method_declaration', 'constructor_declaration'],
+    classTypes: ['class_declaration', 'interface_declaration', 'enum_declaration', 'record_declaration'],
+    methodTypes: ['method_declaration', 'constructor_declaration'],
+    getNodeName: (node: Node) => {
+      const nameNode = node.childForFieldName('name');
+      return nameNode?.text ?? null;
+    },
+    getSignature: (node: Node, content: string) => {
+      const text = content.substring(node.startIndex, node.endIndex);
+      const lines = text.split('\n');
+      
+      // Get everything before the first {
+      let sig = '';
+      for (const line of lines) {
+        sig += line + '\n';
+        if (line.includes('{')) {
+          sig = sig.substring(0, sig.lastIndexOf('{'));
+          break;
+        }
+      }
+      return sig.trim();
+    },
+    isExported: (node: Node) => {
+      // Check for public modifier
+      const modifiers = node.childForFieldName('modifiers');
+      if (modifiers) {
+        return modifiers.text.includes('public');
+      }
+      return false;
+    },
+  },
+
+  csharp: {
+    package: 'tree-sitter-c-sharp',
+    wasmFile: 'tree-sitter-c_sharp.wasm',
+    functionTypes: ['method_declaration', 'constructor_declaration', 'local_function_statement'],
+    classTypes: ['class_declaration', 'interface_declaration', 'struct_declaration', 'enum_declaration', 'record_declaration'],
+    methodTypes: ['method_declaration', 'constructor_declaration'],
+    getNodeName: (node: Node) => {
+      const nameNode = node.childForFieldName('name');
+      return nameNode?.text ?? null;
+    },
+    getSignature: (node: Node, content: string) => {
+      const text = content.substring(node.startIndex, node.endIndex);
+      const lines = text.split('\n');
+      
+      // Get everything before the first { or =>
+      let sig = '';
+      for (const line of lines) {
+        sig += line + '\n';
+        if (line.includes('{') || line.includes('=>')) {
+          const braceIdx = line.indexOf('{');
+          const arrowIdx = line.indexOf('=>');
+          const idx = braceIdx >= 0 && arrowIdx >= 0 
+            ? Math.min(braceIdx, arrowIdx) 
+            : Math.max(braceIdx, arrowIdx);
+          if (idx > 0) {
+            sig = sig.substring(0, sig.lastIndexOf(line) + idx);
+          }
+          break;
+        }
+      }
+      return sig.trim();
+    },
+    isExported: (node: Node) => {
+      // Check for public modifier
+      const modifiers = node.childForFieldName('modifiers');
+      if (modifiers) {
+        return modifiers.text.includes('public');
+      }
+      return false;
+    },
+  },
 };
 
 /** File extension to language mapping */
@@ -157,6 +234,8 @@ const EXTENSION_TO_LANGUAGE: Record<string, string> = {
   pyw: 'python',
   go: 'go',
   rs: 'rust',
+  java: 'java',
+  cs: 'csharp',
 };
 
 /**

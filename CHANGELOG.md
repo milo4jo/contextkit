@@ -7,6 +7,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.5.9] - 2026-02-08
+
+### Added
+- **Java Support** — AST-aware parsing for `.java` files
+  - Classes, interfaces, enums, records
+  - Methods and constructors
+  - Proper signature extraction
+
+- **C# Support** — AST-aware parsing for `.cs` files
+  - Classes, interfaces, structs, enums, records
+  - Methods, constructors, local functions
+  - Expression-bodied member support
+
 ## [0.5.8] - 2026-02-08
 
 ### Added
