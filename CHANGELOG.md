@@ -244,3 +244,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 - Improved help text with status command
+
+## [0.6.3] - 2026-02-08
+
+### Fixed
+- Call graph now correctly identifies function calls across multiple chunks
+- Fixed call graph showing incorrect callers due to chunk boundary issues
+- Method detection in classes now works properly

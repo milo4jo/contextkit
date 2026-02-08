@@ -61,8 +61,8 @@ function extractFunctionDefs(content: string, filePath: string): Map<string, { s
         continue;
       }
       
-      // Method in class: name() or async name()
-      const methodMatch = trimmed.match(/^(public|private|protected|static|async)?\s*(async\s+)?(\w+)\s*\([^)]*\)\s*[:{]/);
+      // Method in class: name() or async name() (trimmed already removes leading whitespace)
+      const methodMatch = trimmed.match(/^(public|private|protected|static|async\s+)*(async\s+)?(\w+)\s*\([^)]*\)\s*[:{]/);
       if (methodMatch && !['if', 'while', 'for', 'switch', 'catch'].includes(methodMatch[3])) {
         const name = methodMatch[3];
         const endLine = findBlockEnd(lines, i);
@@ -212,33 +212,37 @@ function buildCallGraph(
   const rows = db.prepare(sql).all(...params) as Array<{ file_path: string; content: string }>;
   
   // Build function index (file -> functions)
-  const functionsByFile = new Map<string, Map<string, { startLine: number; endLine: number }>>();
+  // Note: Multiple chunks may exist for the same file, so we need to merge
+  const functionsByFile = new Map<string, Map<string, { startLine: number; endLine: number; chunkContent: string }>>();
   const allFunctions = new Set<string>();
   
   for (const row of rows) {
     const funcs = extractFunctionDefs(row.content, row.file_path);
     if (funcs.size > 0) {
-      functionsByFile.set(row.file_path, funcs);
-      for (const name of funcs.keys()) {
+      const existing = functionsByFile.get(row.file_path) || new Map();
+      for (const [name, info] of funcs) {
+        // Store the chunk content so we can search for calls within this function
+        existing.set(name, { ...info, chunkContent: row.content });
         allFunctions.add(name);
       }
+      functionsByFile.set(row.file_path, existing);
     }
   }
   
   // Find callers (who calls targetName)
   const callers: CallGraphResult['callers'] = [];
   
-  for (const row of rows) {
-    const fileFuncs = functionsByFile.get(row.file_path);
-    if (!fileFuncs) continue;
-    
-    for (const [funcName, { startLine, endLine }] of fileFuncs) {
-      const calls = findFunctionCalls(row.content, startLine, endLine, allFunctions);
+  for (const [filePath, fileFuncs] of functionsByFile) {
+    for (const [funcName, { startLine, endLine, chunkContent }] of fileFuncs) {
+      // Skip the target function itself
+      if (funcName === targetName) continue;
+      
+      const calls = findFunctionCalls(chunkContent, startLine, endLine, allFunctions);
       
       for (const call of calls) {
-        if (call.name === targetName && funcName !== targetName) {
+        if (call.name === targetName) {
           callers.push({
-            file: row.file_path,
+            file: filePath,
             function: funcName,
             line: call.line,
             context: call.context,
@@ -251,14 +255,11 @@ function buildCallGraph(
   // Find callees (what targetName calls)
   const callees: CallGraphResult['callees'] = [];
   
-  for (const row of rows) {
-    const fileFuncs = functionsByFile.get(row.file_path);
-    if (!fileFuncs) continue;
-    
+  for (const [_filePath, fileFuncs] of functionsByFile) {
     const targetFunc = fileFuncs.get(targetName);
     if (!targetFunc) continue;
     
-    const calls = findFunctionCalls(row.content, targetFunc.startLine, targetFunc.endLine, allFunctions);
+    const calls = findFunctionCalls(targetFunc.chunkContent, targetFunc.startLine, targetFunc.endLine, allFunctions);
     
     for (const call of calls) {
       if (call.name !== targetName) {

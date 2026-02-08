@@ -1,6 +1,6 @@
 {
   "name": "@milo4jo/contextkit",
-  "version": "0.6.2",
+  "version": "0.6.3",
   "description": "Intelligent context selection for LLM applications",
   "author": "Milo <milo4jo@outlook.de>",
   "license": "MIT",
