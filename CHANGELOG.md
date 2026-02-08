@@ -7,6 +7,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.5.7] - 2026-02-08
+
+### Improved
+- **Better Error Messages** — More helpful errors with recovery suggestions
+  - New error types: IndexEmptyError, NoSourcesError, EmbeddingError, QueryError, DatabaseError
+  - All errors now suggest next steps
+  - Doctor command referenced in error messages
+
+### Documentation
+- Added performance benchmarks to README
+- Added troubleshooting section with common issues
+- Updated roadmap
+
 ## [0.5.6] - 2026-02-08
 
 ### Added

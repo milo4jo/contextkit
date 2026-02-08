@@ -67,3 +67,51 @@ export class InvalidUsageError extends ContextKitError {
     super(message, 'INVALID_USAGE');
   }
 }
+
+export class IndexEmptyError extends ContextKitError {
+  constructor() {
+    super(
+      'Index is empty. Run `contextkit index` after adding sources.',
+      'INDEX_EMPTY',
+      true // recoverable
+    );
+  }
+}
+
+export class NoSourcesError extends ContextKitError {
+  constructor() {
+    super(
+      'No sources configured. Add sources with `contextkit source add ./src`',
+      'NO_SOURCES',
+      true
+    );
+  }
+}
+
+export class EmbeddingError extends ContextKitError {
+  constructor(detail?: string) {
+    const msg = detail
+      ? `Embedding generation failed: ${detail}`
+      : 'Embedding generation failed. Try `contextkit index --force` to rebuild.';
+    super(msg, 'EMBEDDING_ERROR', true);
+  }
+}
+
+export class QueryError extends ContextKitError {
+  constructor(message: string) {
+    super(
+      `Query failed: ${message}. Run \`contextkit doctor\` to diagnose.`,
+      'QUERY_ERROR',
+      true
+    );
+  }
+}
+
+export class DatabaseError extends ContextKitError {
+  constructor(operation: string, detail?: string) {
+    const msg = detail
+      ? `Database ${operation} failed: ${detail}`
+      : `Database ${operation} failed. Try removing .contextkit/index.db and re-indexing.`;
+    super(msg, 'DATABASE_ERROR');
+  }
+}
