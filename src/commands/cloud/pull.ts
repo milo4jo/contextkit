@@ -69,7 +69,7 @@ export const pullCommand = new Command('pull')
         `/api/v1/projects/${project.id}/sync`
       );
 
-      if (!downloadResponse.index.exists) {
+      if (!downloadResponse.downloadUrl) {
         writeError('No index found for this project. Run `contextkit cloud sync` first.');
         process.exit(1);
       }

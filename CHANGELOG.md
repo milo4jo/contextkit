@@ -7,6 +7,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.6.1] - 2026-02-08
+
+### Fixed
+- `contextkit cloud pull` now works correctly (fixed response parsing)
+
 ## [0.6.0] - 2026-02-08
 
 ### Added

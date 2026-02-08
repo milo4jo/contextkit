@@ -190,7 +190,6 @@ export interface SyncResponse {
 }
 
 export interface IndexMetadata {
-  exists: boolean;
   hash?: string;
   size?: number;
   version?: number;
