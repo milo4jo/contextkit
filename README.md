@@ -7,7 +7,7 @@
 [![npm downloads](https://img.shields.io/npm/dw/@milo4jo/contextkit)](https://www.npmjs.com/package/@milo4jo/contextkit)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
-**🆕 v0.5.5:** Symbol search & call graph! Find code by name, trace dependencies across your codebase.
+**🆕 v0.5.8:** Enhanced MCP server with symbol search, call graph, and map mode for AI assistants!
 
 ---
 
@@ -305,9 +305,50 @@ Once configured, Claude can use these tools:
 
 | Tool | Description |
 |------|-------------|
-| `contextkit_select` | Find relevant context for any query |
-| `contextkit_index` | Re-index the codebase |
-| `contextkit_status` | Check index status (files, chunks, etc.) |
+| `contextkit_select` | Find relevant context for any query. Supports `mode: "map"` for signatures only. |
+| `contextkit_symbol` | Search for functions, classes, types by name. Faster than semantic search. |
+| `contextkit_graph` | Show call graph: what calls a function, what it calls. |
+| `contextkit_index` | Re-index the codebase after changes. |
+| `contextkit_status` | Check index status (files, chunks, version). |
+
+### Example: Symbol Search
+
+> **You:** Find the UserService class
+>
+> **Claude:** *[Uses contextkit_symbol]* Found it in `src/services/user.ts`:
+> ```typescript
+> export class UserService {
+>   async findById(id: string): Promise<User | null>
+>   async create(data: CreateUserDto): Promise<User>
+> }
+> ```
+
+### Example: Call Graph
+
+> **You:** What calls the `validateToken` function?
+>
+> **Claude:** *[Uses contextkit_graph]* `validateToken` is called by:
+> - `authMiddleware` in `src/middleware/auth.ts`
+> - `refreshSession` in `src/auth/session.ts`
+>
+> And it calls:
+> - `decodeJwt` from `src/utils/jwt.ts`
+> - `getUserById` from `src/services/user.ts`
+
+### Example: Map Mode
+
+> **You:** Give me an overview of the codebase structure
+>
+> **Claude:** *[Uses contextkit_select with mode: "map"]* Here's the structure:
+> ```
+> src/auth/
+>   ├── middleware.ts
+>   │   └── 𝑓 authMiddleware(req, res, next)
+>   │   └── 𝑓 requireRole(role)
+>   ├── jwt.ts
+>   │   └── 𝑓 signToken(payload)
+>   │   └── 𝑓 verifyToken(token)
+> ```
 
 ### Example Conversation
 
