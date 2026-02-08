@@ -15,6 +15,7 @@ import { mcpCommand } from './commands/mcp.js';
 import { watchCommand } from './commands/watch.js';
 import { doctorCommand } from './commands/doctor.js';
 import { cloudCommand } from './commands/cloud/index.js';
+import { statusCommand } from './commands/status.js';
 import { ContextKitError, InvalidUsageError } from './errors/index.js';
 import { writeError, writeMessage } from './utils/streams.js';
 
@@ -86,6 +87,7 @@ program.addCommand(mcpCommand);
 program.addCommand(watchCommand);
 program.addCommand(doctorCommand);
 program.addCommand(cloudCommand);
+program.addCommand(statusCommand);
 
 // Default action when no command given
 program.action(() => {
@@ -110,6 +112,7 @@ Commands:
   mcp           Start MCP server for AI assistants
   doctor        Diagnose setup issues
   cloud         Sync with ContextKit Cloud
+  status        Show project status
 
 Global Options:
   --json        Output as JSON

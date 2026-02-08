@@ -235,3 +235,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Token budget management
 - JSON output support for scripting
 - `--explain` flag for score debugging
+
+## [0.6.2] - 2026-02-08
+
+### Added
+- `contextkit status` command — Show project status, index stats, and cloud status
+- `--copy` flag for `select` command — Copy output directly to clipboard
+
+### Changed
+- Improved help text with status command

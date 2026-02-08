@@ -1,11 +1,32 @@
 import { Command } from 'commander';
+import { exec } from 'child_process';
 import { ensureInitialized } from '../config/index.js';
 import { openDatabase } from '../db/index.js';
 import { selectContext, type OutputFormat } from '../selector/index.js';
-import { writeData, writeMessage, writeWarning } from '../utils/streams.js';
+import { writeData, writeMessage, writeWarning, writeSuccess } from '../utils/streams.js';
 import { formatCommand, formatDim } from '../utils/format.js';
 import { getGlobalOpts } from '../utils/cli.js';
 import { InvalidUsageError } from '../errors/index.js';
+
+/**
+ * Copy text to system clipboard
+ */
+async function copyToClipboard(text: string): Promise<void> {
+  const cmd = process.platform === 'darwin' 
+    ? 'pbcopy'
+    : process.platform === 'win32'
+    ? 'clip'
+    : 'xclip -selection clipboard';
+  
+  return new Promise((resolve, reject) => {
+    const proc = exec(cmd, (err) => {
+      if (err) reject(err);
+      else resolve();
+    });
+    proc.stdin?.write(text);
+    proc.stdin?.end();
+  });
+}
 
 /** Valid output formats */
 const VALID_FORMATS = ['markdown', 'xml', 'json', 'plain'] as const;
@@ -23,6 +44,7 @@ export const selectCommand = new Command('select')
   .option('--explain', 'Show scoring details')
   .option('--include-imports', 'Include files imported by selected chunks')
   .option('--no-cache', 'Skip cache lookup')
+  .option('-c, --copy', 'Copy output to clipboard')
   .action(async (query: string, options) => {
     ensureInitialized();
 
@@ -91,6 +113,16 @@ export const selectCommand = new Command('select')
 
       // Output the formatted text
       writeData(result.output.text);
+
+      // Copy to clipboard if requested
+      if (options.copy) {
+        try {
+          await copyToClipboard(result.output.text);
+          writeSuccess('Copied to clipboard!');
+        } catch {
+          writeWarning('Could not copy to clipboard. Install xclip on Linux.');
+        }
+      }
     } finally {
       db.close();
     }

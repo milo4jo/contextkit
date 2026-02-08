@@ -1,5 +1,6 @@
 import Database from 'better-sqlite3';
 import { createHash } from 'crypto';
+import { statSync } from 'fs';
 import { getDbPath } from '../config/index.js';
 
 /**
@@ -230,4 +231,40 @@ export function getCacheStats(db: Database.Database): {
   };
 
   return stats;
+}
+
+/**
+ * Get index statistics for status command
+ */
+export function getIndexStats(db: Database.Database): {
+  fileCount: number;
+  chunkCount: number;
+  embeddedCount: number;
+  dbSize: number;
+  lastIndexed: Date | null;
+} {
+  const fileCount = (db.prepare('SELECT COUNT(*) as count FROM files').get() as { count: number }).count;
+  const chunkCount = (db.prepare('SELECT COUNT(*) as count FROM chunks').get() as { count: number }).count;
+  const embeddedCount = (db.prepare('SELECT COUNT(*) as count FROM chunks WHERE embedding IS NOT NULL').get() as { count: number }).count;
+  
+  const lastRow = db.prepare('SELECT MAX(created_at) as last FROM chunks').get() as { last: string | null };
+  const lastIndexed = lastRow.last ? new Date(lastRow.last) : null;
+
+  // Get database file size
+  const dbPath = db.name;
+  let dbSize = 0;
+  try {
+    const stats = statSync(dbPath);
+    dbSize = stats.size;
+  } catch {
+    // Ignore if can't get size
+  }
+
+  return {
+    fileCount,
+    chunkCount,
+    embeddedCount,
+    dbSize,
+    lastIndexed,
+  };
 }
