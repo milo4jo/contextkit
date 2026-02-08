@@ -7,6 +7,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.6.0] - 2026-02-08
+
+### Added
+- **Cloud Sync** — Sync your indexes to ContextKit Cloud
+  - `contextkit cloud login` — Authenticate with API key
+  - `contextkit cloud logout` — Sign out
+  - `contextkit cloud sync` — Upload index to cloud
+  - `contextkit cloud pull` — Download index from cloud
+  - `contextkit cloud status` — Show sync status
+- Credentials stored securely in `~/.contextkit/credentials`
+- Plan-based limits (Free: 1 project/100MB, Pro: 5/1GB)
+
 ## [0.5.10] - 2026-02-08
 
 ### Added
