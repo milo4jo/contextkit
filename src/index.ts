@@ -13,6 +13,7 @@ import { graphCommand } from './commands/graph.js';
 import { cacheCommand } from './commands/cache.js';
 import { mcpCommand } from './commands/mcp.js';
 import { watchCommand } from './commands/watch.js';
+import { doctorCommand } from './commands/doctor.js';
 import { ContextKitError, InvalidUsageError } from './errors/index.js';
 import { writeError, writeMessage } from './utils/streams.js';
 
@@ -82,6 +83,7 @@ program.addCommand(graphCommand);
 program.addCommand(cacheCommand);
 program.addCommand(mcpCommand);
 program.addCommand(watchCommand);
+program.addCommand(doctorCommand);
 
 // Default action when no command given
 program.action(() => {
@@ -104,6 +106,7 @@ Commands:
   cache         Manage query cache
   watch         Watch sources and auto-reindex on changes
   mcp           Start MCP server for AI assistants
+  doctor        Diagnose setup issues
 
 Global Options:
   --json        Output as JSON

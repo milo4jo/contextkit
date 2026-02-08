@@ -7,6 +7,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.5.6] - 2026-02-08
+
+### Added
+- **Doctor Command** — Diagnose ContextKit setup and configuration
+  - New `contextkit doctor` command
+  - Checks: Node version, config, database, embeddings, cache, disk space
+  - Color-coded output: ✓ ok, ⚠ warning, ✗ error
+  - `--json` flag for programmatic use
+
 ## [0.5.5] - 2026-02-06
 
 ### Added
