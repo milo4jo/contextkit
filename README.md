@@ -7,7 +7,7 @@
 [![npm downloads](https://img.shields.io/npm/dw/@milo4jo/contextkit)](https://www.npmjs.com/package/@milo4jo/contextkit)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
-**🆕 v0.5.10:** Now with PHP support! Plus Java, C#, and enhanced MCP server with symbol search and call graph.
+**🆕 v0.6.1:** Cloud Sync is here! Sync your index across machines with `contextkit cloud sync`.
 
 ---
 
@@ -401,6 +401,49 @@ settings:
 
 ---
 
+## ☁️ Cloud Sync (NEW!)
+
+Sync your index to the cloud and access it from any machine. Perfect for teams and multi-device workflows.
+
+### Quick Start
+
+```bash
+# 1. Get your API key from the dashboard
+#    https://contextkit-site.vercel.app/dashboard/api-keys
+
+# 2. Login
+contextkit cloud login
+# Paste your API key when prompted
+
+# 3. Sync your index
+contextkit cloud sync
+
+# 4. On another machine
+contextkit cloud pull --project my-project
+```
+
+### Commands
+
+| Command | Description |
+|---------|-------------|
+| `contextkit cloud login` | Authenticate with your API key |
+| `contextkit cloud sync` | Upload your index to the cloud |
+| `contextkit cloud pull` | Download an index from the cloud |
+| `contextkit cloud status` | Check sync status |
+| `contextkit cloud logout` | Remove stored credentials |
+
+### Pricing
+
+| Plan | Projects | Storage | Rate Limit |
+|------|----------|---------|------------|
+| **Free** | 1 | 100 MB | 20/min |
+| **Pro** | 5 | 1 GB | 100/min |
+| **Team** | 50 | 10 GB | 500/min |
+
+Get started free at [contextkit-site.vercel.app/dashboard](https://contextkit-site.vercel.app/dashboard).
+
+---
+
 ## Privacy & Security
 
 - ✅ **All processing is local** — nothing leaves your machine
@@ -522,9 +565,10 @@ contextkit select "How does authentication work?"
 - [x] **Doctor command** — diagnose setup issues
 - [ ] ~~Function/class boundary awareness~~ (done via AST chunking)
 - [x] **VS Code extension** — [in development](https://github.com/milo4jo/contextkit-vscode)
+- [x] **Cloud sync for teams** — Sync indexes across machines
 - [ ] Cursor integration
 - [ ] Neovim plugin
-- [ ] Cloud sync for teams
+- [ ] Team collaboration features
 
 ---
 
