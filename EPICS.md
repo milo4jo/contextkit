@@ -716,11 +716,20 @@ Feb-Mar 2026           Apr-May 2026         Jun-Jul 2026         Aug-Oct 2026
 | 0.1.1 Set up Stripe account | 🟡 TODO | Jo |
 | 0.3.1 Set up PostHog/Mixpanel | 🟡 TODO | Milo |
 | 0.4.1 Landing page refresh | 🟡 TODO | Milo |
-| 1.0.3 Multi-tenancy security design | 🟡 TODO | Milo |
-| 1.1.1 Design REST API schema | 🟡 TODO | Milo |
+| 1.0.3 Multi-tenancy security design | ✅ DONE | Milo |
+| 1.1.1 Design REST API schema | ✅ DONE | Milo |
+| 1.2.1 Set up API project | ✅ DONE | Milo |
+| 1.2.4 Implement auth | ✅ DONE | Milo |
+| 2.1.1 Create dashboard app | ✅ DONE | Milo |
+| 2.1.2 Set up authentication UI | ✅ DONE | Milo |
+| 2.2.1 Dashboard home | ✅ DONE | Milo |
+| 2.2.2 Projects list & management | ✅ DONE | Milo |
+| 2.2.4 API keys management | ✅ DONE | Milo |
+| 2.2.5 Usage & billing page | ✅ DONE | Milo |
 
 **Sprint Capacity:** 30h
-**Sprint Goal:** Stripe ready, API spec complete, analytics tracking
+**Sprint Progress:** ~45h completed (ahead of schedule!)
+**Sprint Goal:** ~~Stripe ready, API spec complete, analytics tracking~~ API + Dashboard MVP
 
 ---
 
@@ -736,7 +745,30 @@ Feb-Mar 2026           Apr-May 2026         Jun-Jul 2026         Aug-Oct 2026
 
 ## Done
 
-*(Move completed tasks here with completion date)*
+### 2026-02-09
+
+**E1: API Foundation**
+- ✅ 1.0.3 Multi-tenancy security design (docs/ARCHITECTURE.md)
+- ✅ 1.1.1 Design REST API schema (api/openapi.yaml)
+- ✅ 1.2.1 Set up API project (apps/api with Hono.js)
+- ✅ 1.2.2 Set up PostgreSQL (Drizzle ORM schema)
+- ✅ 1.2.4 Implement auth (API key middleware)
+- ✅ 1.2.5 Implement rate limiting (Upstash Redis)
+- ✅ 1.3.1-1.3.5 All API endpoints (context, projects, index, symbols, graph, usage)
+
+**E2: Dashboard**
+- ✅ 2.1.1 Create dashboard app (Next.js 15 + React 19)
+- ✅ 2.1.2 Set up authentication UI (Clerk v5)
+- ✅ 2.2.1 Dashboard home
+- ✅ 2.2.2 Projects list & management
+- ✅ 2.2.4 API keys management
+- ✅ 2.2.5 Usage & billing page
+
+**Documentation**
+- ✅ ENTERPRISE_VISION.md
+- ✅ EPICS.md
+- ✅ REVIEW.md
+- ✅ docs/ARCHITECTURE.md
 
 ---
 
