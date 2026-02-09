@@ -1,6 +1,8 @@
-import { auth } from "@clerk/nextjs/server";
-import { redirect } from "next/navigation";
-import { Check } from "lucide-react";
+"use client";
+
+import { useState } from "react";
+import { useSearchParams } from "next/navigation";
+import { Check, Loader2 } from "lucide-react";
 
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -65,15 +67,54 @@ const plans = [
   },
 ];
 
-export default async function BillingPage() {
-  const { userId } = await auth();
+export default function BillingPage() {
+  const searchParams = useSearchParams();
+  const [loadingPlan, setLoadingPlan] = useState<string | null>(null);
 
-  if (!userId) {
-    redirect("/sign-in");
+  const success = searchParams.get("success");
+  const canceled = searchParams.get("canceled");
+
+  async function handleUpgrade(plan: "pro" | "team") {
+    setLoadingPlan(plan);
+    try {
+      const response = await fetch("/api/checkout", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ plan }),
+      });
+
+      const data = await response.json();
+
+      if (data.url) {
+        window.location.href = data.url;
+      } else {
+        console.error("No checkout URL returned");
+      }
+    } catch (error) {
+      console.error("Checkout error:", error);
+    } finally {
+      setLoadingPlan(null);
+    }
   }
 
   return (
     <div className="container mx-auto py-10">
+      {/* Success/Cancel alerts */}
+      {success && (
+        <div className="mb-6 p-4 bg-green-50 dark:bg-green-950 border border-green-200 dark:border-green-800 rounded-lg">
+          <p className="text-green-700 dark:text-green-300 font-medium">
+            🎉 Welcome to ContextKit Pro! Your subscription is now active.
+          </p>
+        </div>
+      )}
+      {canceled && (
+        <div className="mb-6 p-4 bg-yellow-50 dark:bg-yellow-950 border border-yellow-200 dark:border-yellow-800 rounded-lg">
+          <p className="text-yellow-700 dark:text-yellow-300">
+            Checkout was canceled. Feel free to try again when you&apos;re ready.
+          </p>
+        </div>
+      )}
+
       <div className="mb-8 text-center">
         <h1 className="text-3xl font-bold">Pricing Plans</h1>
         <p className="text-muted-foreground mt-2">
@@ -118,15 +159,24 @@ export default async function BillingPage() {
                   Current Plan
                 </Button>
               ) : plan.name === "Enterprise" ? (
-                <Button variant="outline" className="w-full">
-                  Contact Sales
+                <Button variant="outline" className="w-full" asChild>
+                  <a href="mailto:enterprise@contextkit.dev">Contact Sales</a>
                 </Button>
               ) : (
                 <Button
                   className="w-full"
                   variant={plan.highlighted ? "default" : "outline"}
+                  onClick={() => handleUpgrade(plan.name.toLowerCase() as "pro" | "team")}
+                  disabled={loadingPlan !== null}
                 >
-                  Upgrade to {plan.name}
+                  {loadingPlan === plan.name.toLowerCase() ? (
+                    <>
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      Loading...
+                    </>
+                  ) : (
+                    `Upgrade to ${plan.name}`
+                  )}
                 </Button>
               )}
             </CardFooter>
