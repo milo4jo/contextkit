@@ -255,7 +255,7 @@ function buildCallGraph(
   // Find callees (what targetName calls)
   const callees: CallGraphResult['callees'] = [];
   
-  for (const [_filePath, fileFuncs] of functionsByFile) {
+  for (const [, fileFuncs] of functionsByFile) {
     const targetFunc = fileFuncs.get(targetName);
     if (!targetFunc) continue;
     
