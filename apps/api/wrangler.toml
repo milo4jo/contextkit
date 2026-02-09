@@ -1,0 +1,54 @@
+# ContextKit API - Cloudflare Workers Configuration
+
+name = "contextkit-api"
+main = "src/index.ts"
+compatibility_date = "2024-02-01"
+
+# Production environment
+[env.production]
+name = "contextkit-api"
+routes = [
+  { pattern = "api.contextkit.dev/*", zone_name = "contextkit.dev" }
+]
+
+[env.production.vars]
+ENVIRONMENT = "production"
+
+# Staging environment
+[env.staging]
+name = "contextkit-api-staging"
+routes = [
+  { pattern = "api-staging.contextkit.dev/*", zone_name = "contextkit.dev" }
+]
+
+[env.staging.vars]
+ENVIRONMENT = "staging"
+
+# Local development
+[vars]
+ENVIRONMENT = "development"
+
+# Secrets (set via wrangler secret put)
+# DATABASE_URL - Neon PostgreSQL connection string
+# QDRANT_URL - Qdrant Cloud URL
+# QDRANT_API_KEY - Qdrant API key
+# OPENAI_API_KEY - For embeddings
+# UPSTASH_REDIS_URL - For rate limiting
+# UPSTASH_REDIS_TOKEN - Redis auth token
+
+# R2 Storage binding
+[[r2_buckets]]
+binding = "STORAGE"
+bucket_name = "contextkit-storage"
+preview_bucket_name = "contextkit-storage-preview"
+
+# KV for caching
+[[kv_namespaces]]
+binding = "CACHE"
+id = "xxx" # Replace with actual KV namespace ID
+preview_id = "xxx"
+
+# Durable Objects for rate limiting (optional)
+# [[durable_objects.bindings]]
+# name = "RATE_LIMITER"
+# class_name = "RateLimiter"

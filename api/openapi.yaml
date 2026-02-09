@@ -1,0 +1,753 @@
+openapi: 3.1.0
+info:
+  title: ContextKit API
+  description: |
+    The ContextKit API provides intelligent context selection for AI coding tools.
+    
+    ## Authentication
+    All API requests require a valid API key passed in the `Authorization` header:
+    ```
+    Authorization: Bearer ck_live_xxxxxxxxxxxxxxxxxxxx
+    ```
+    
+    ## Rate Limits
+    | Plan | Requests/min | Queries/month |
+    |------|--------------|---------------|
+    | Free | 20 | 1,000 |
+    | Pro | 100 | 50,000 |
+    | Team | 500 | Unlimited |
+    
+    ## Errors
+    All errors follow RFC 7807 Problem Details format.
+  version: 1.0.0
+  contact:
+    name: ContextKit Support
+    email: support@contextkit.dev
+    url: https://contextkit.dev
+  license:
+    name: MIT
+    url: https://opensource.org/licenses/MIT
+
+servers:
+  - url: https://api.contextkit.dev/v1
+    description: Production
+  - url: https://api-staging.contextkit.dev/v1
+    description: Staging
+
+security:
+  - bearerAuth: []
+
+tags:
+  - name: Context
+    description: Context selection and retrieval
+  - name: Projects
+    description: Project management
+  - name: Index
+    description: Codebase indexing
+  - name: Symbols
+    description: Symbol search
+  - name: Graph
+    description: Call graph analysis
+  - name: Usage
+    description: Usage and billing
+
+paths:
+  /context/select:
+    post:
+      operationId: selectContext
+      summary: Select relevant context
+      description: |
+        Find the most relevant code context for a natural language query.
+        Returns ranked chunks that fit within the specified token budget.
+      tags: [Context]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SelectRequest'
+            examples:
+              basic:
+                summary: Basic query
+                value:
+                  query: "How does authentication work?"
+                  project_id: "proj_abc123"
+              advanced:
+                summary: Advanced with options
+                value:
+                  query: "payment processing flow"
+                  project_id: "proj_abc123"
+                  budget: 4000
+                  include_imports: true
+                  mode: "full"
+                  format: "markdown"
+      responses:
+        '200':
+          description: Context retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SelectResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '429':
+          $ref: '#/components/responses/RateLimited'
+
+  /projects:
+    get:
+      operationId: listProjects
+      summary: List projects
+      description: List all projects in the organization
+      tags: [Projects]
+      parameters:
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 20
+            maximum: 100
+        - name: offset
+          in: query
+          schema:
+            type: integer
+            default: 0
+      responses:
+        '200':
+          description: Projects listed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProjectList'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+    post:
+      operationId: createProject
+      summary: Create project
+      description: Create a new project in the organization
+      tags: [Projects]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateProjectRequest'
+      responses:
+        '201':
+          description: Project created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Project'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '409':
+          description: Project with this slug already exists
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /projects/{project_id}:
+    get:
+      operationId: getProject
+      summary: Get project
+      description: Get project details including index status
+      tags: [Projects]
+      parameters:
+        - $ref: '#/components/parameters/ProjectId'
+      responses:
+        '200':
+          description: Project details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Project'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+    patch:
+      operationId: updateProject
+      summary: Update project
+      description: Update project settings
+      tags: [Projects]
+      parameters:
+        - $ref: '#/components/parameters/ProjectId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateProjectRequest'
+      responses:
+        '200':
+          description: Project updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Project'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+    delete:
+      operationId: deleteProject
+      summary: Delete project
+      description: Delete a project and all its indexed data
+      tags: [Projects]
+      parameters:
+        - $ref: '#/components/parameters/ProjectId'
+      responses:
+        '204':
+          description: Project deleted
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /index/sync:
+    post:
+      operationId: syncIndex
+      summary: Sync codebase
+      description: |
+        Upload and index a codebase. Accepts a zip/tar archive or JSON with file contents.
+        Indexing is asynchronous - use the returned job_id to check status.
+      tags: [Index]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SyncRequest'
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                project_id:
+                  type: string
+                archive:
+                  type: string
+                  format: binary
+                  description: Zip or tar.gz archive
+              required:
+                - project_id
+                - archive
+      responses:
+        '202':
+          description: Indexing started
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SyncJob'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  /index/status/{job_id}:
+    get:
+      operationId: getIndexStatus
+      summary: Get indexing status
+      description: Check the status of an indexing job
+      tags: [Index]
+      parameters:
+        - name: job_id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Job status
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SyncJob'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /symbols/search:
+    get:
+      operationId: searchSymbols
+      summary: Search symbols
+      description: Search for functions, classes, and types by name
+      tags: [Symbols]
+      parameters:
+        - name: project_id
+          in: query
+          required: true
+          schema:
+            type: string
+        - name: query
+          in: query
+          required: true
+          schema:
+            type: string
+          description: Symbol name to search for
+        - name: exact
+          in: query
+          schema:
+            type: boolean
+            default: false
+          description: Exact match only
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 10
+            maximum: 50
+      responses:
+        '200':
+          description: Symbols found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SymbolList'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  /graph/calls:
+    get:
+      operationId: getCallGraph
+      summary: Get call graph
+      description: Get callers and callees for a function
+      tags: [Graph]
+      parameters:
+        - name: project_id
+          in: query
+          required: true
+          schema:
+            type: string
+        - name: symbol
+          in: query
+          required: true
+          schema:
+            type: string
+          description: Function name to analyze
+      responses:
+        '200':
+          description: Call graph
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CallGraph'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          description: Symbol not found
+
+  /usage:
+    get:
+      operationId: getUsage
+      summary: Get usage stats
+      description: Get current month's usage statistics
+      tags: [Usage]
+      responses:
+        '200':
+          description: Usage statistics
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UsageStats'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      description: API key (ck_live_xxx or ck_test_xxx)
+
+  parameters:
+    ProjectId:
+      name: project_id
+      in: path
+      required: true
+      schema:
+        type: string
+      description: Project ID (proj_xxx) or slug
+
+  schemas:
+    SelectRequest:
+      type: object
+      required:
+        - query
+        - project_id
+      properties:
+        query:
+          type: string
+          description: Natural language query
+          example: "How does authentication work?"
+        project_id:
+          type: string
+          description: Project ID or slug
+        budget:
+          type: integer
+          default: 8000
+          minimum: 500
+          maximum: 100000
+          description: Maximum tokens to return
+        include_imports:
+          type: boolean
+          default: false
+          description: Include imported files in results
+        mode:
+          type: string
+          enum: [full, map]
+          default: full
+          description: |
+            - full: Complete code chunks
+            - map: Signatures only (like Aider repo map)
+        format:
+          type: string
+          enum: [markdown, xml, json, plain]
+          default: markdown
+          description: Output format
+        sources:
+          type: array
+          items:
+            type: string
+          description: Filter to specific source directories
+
+    SelectResponse:
+      type: object
+      properties:
+        context:
+          type: string
+          description: Formatted context ready for LLM
+        chunks:
+          type: array
+          items:
+            $ref: '#/components/schemas/Chunk'
+        metadata:
+          type: object
+          properties:
+            tokens_used:
+              type: integer
+            files_included:
+              type: integer
+            processing_time_ms:
+              type: integer
+            cache_hit:
+              type: boolean
+
+    Chunk:
+      type: object
+      properties:
+        file:
+          type: string
+        start_line:
+          type: integer
+        end_line:
+          type: integer
+        content:
+          type: string
+        score:
+          type: number
+        symbols:
+          type: array
+          items:
+            type: string
+
+    Project:
+      type: object
+      properties:
+        id:
+          type: string
+          example: proj_abc123
+        slug:
+          type: string
+          example: my-project
+        name:
+          type: string
+        description:
+          type: string
+        index_status:
+          type: object
+          properties:
+            files:
+              type: integer
+            chunks:
+              type: integer
+            last_indexed:
+              type: string
+              format: date-time
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+
+    ProjectList:
+      type: object
+      properties:
+        projects:
+          type: array
+          items:
+            $ref: '#/components/schemas/Project'
+        total:
+          type: integer
+        limit:
+          type: integer
+        offset:
+          type: integer
+
+    CreateProjectRequest:
+      type: object
+      required:
+        - name
+      properties:
+        name:
+          type: string
+          minLength: 1
+          maxLength: 100
+        slug:
+          type: string
+          pattern: ^[a-z0-9-]+$
+          description: Auto-generated from name if not provided
+        description:
+          type: string
+          maxLength: 500
+
+    UpdateProjectRequest:
+      type: object
+      properties:
+        name:
+          type: string
+        description:
+          type: string
+        settings:
+          type: object
+
+    SyncRequest:
+      type: object
+      required:
+        - project_id
+        - files
+      properties:
+        project_id:
+          type: string
+        files:
+          type: array
+          items:
+            type: object
+            required:
+              - path
+              - content
+            properties:
+              path:
+                type: string
+              content:
+                type: string
+        incremental:
+          type: boolean
+          default: true
+          description: Only re-index changed files
+
+    SyncJob:
+      type: object
+      properties:
+        job_id:
+          type: string
+        status:
+          type: string
+          enum: [pending, processing, completed, failed]
+        progress:
+          type: object
+          properties:
+            files_total:
+              type: integer
+            files_processed:
+              type: integer
+            chunks_created:
+              type: integer
+        error:
+          type: string
+          description: Error message if failed
+        created_at:
+          type: string
+          format: date-time
+        completed_at:
+          type: string
+          format: date-time
+
+    SymbolList:
+      type: object
+      properties:
+        symbols:
+          type: array
+          items:
+            type: object
+            properties:
+              name:
+                type: string
+              kind:
+                type: string
+                enum: [function, class, interface, type, variable]
+              file:
+                type: string
+              line:
+                type: integer
+              signature:
+                type: string
+
+    CallGraph:
+      type: object
+      properties:
+        symbol:
+          type: string
+        file:
+          type: string
+        line:
+          type: integer
+        callers:
+          type: array
+          items:
+            type: object
+            properties:
+              name:
+                type: string
+              file:
+                type: string
+              line:
+                type: integer
+        callees:
+          type: array
+          items:
+            type: object
+            properties:
+              name:
+                type: string
+              file:
+                type: string
+              line:
+                type: integer
+
+    UsageStats:
+      type: object
+      properties:
+        period:
+          type: object
+          properties:
+            start:
+              type: string
+              format: date
+            end:
+              type: string
+              format: date
+        queries:
+          type: object
+          properties:
+            used:
+              type: integer
+            limit:
+              type: integer
+              nullable: true
+        tokens:
+          type: object
+          properties:
+            used:
+              type: integer
+        storage:
+          type: object
+          properties:
+            used_bytes:
+              type: integer
+            limit_bytes:
+              type: integer
+              nullable: true
+        plan:
+          type: string
+          enum: [free, pro, team, enterprise]
+
+    Error:
+      type: object
+      required:
+        - type
+        - title
+        - status
+      properties:
+        type:
+          type: string
+          format: uri
+        title:
+          type: string
+        status:
+          type: integer
+        detail:
+          type: string
+        instance:
+          type: string
+
+  responses:
+    BadRequest:
+      description: Invalid request
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          example:
+            type: "https://contextkit.dev/errors/bad-request"
+            title: "Bad Request"
+            status: 400
+            detail: "Missing required field: query"
+
+    Unauthorized:
+      description: Invalid or missing API key
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          example:
+            type: "https://contextkit.dev/errors/unauthorized"
+            title: "Unauthorized"
+            status: 401
+            detail: "Invalid API key"
+
+    NotFound:
+      description: Resource not found
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          example:
+            type: "https://contextkit.dev/errors/not-found"
+            title: "Not Found"
+            status: 404
+            detail: "Project not found"
+
+    RateLimited:
+      description: Rate limit exceeded
+      headers:
+        X-RateLimit-Limit:
+          schema:
+            type: integer
+          description: Requests allowed per minute
+        X-RateLimit-Remaining:
+          schema:
+            type: integer
+          description: Requests remaining
+        X-RateLimit-Reset:
+          schema:
+            type: integer
+          description: Unix timestamp when limit resets
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          example:
+            type: "https://contextkit.dev/errors/rate-limited"
+            title: "Too Many Requests"
+            status: 429
+            detail: "Rate limit exceeded. Try again in 30 seconds."
