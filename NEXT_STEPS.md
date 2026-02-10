@@ -20,6 +20,7 @@
 - **✅ Cloudflare KV** — `CACHE` namespace
 - **✅ Clerk Auth** — ContextKit app mit GitHub/Google OAuth
 - **✅ Dashboard E2E Tested** — Alle 5 Pages funktionieren lokal
+- **✅ Dashboard Deployed** — https://dashboard-seven-rouge-80.vercel.app (Next.js 15.5.12)
 
 ### 🔴 Kritische Blocker
 | Blocker | Wer | Warum kritisch |
@@ -44,8 +45,8 @@
 
 ### Tag 3: Dashboard Deployment
 - [ ] **Clerk Production Keys** — Production instance in Clerk erstellen
-- [ ] **Vercel Project** — Dashboard deployen
-- [ ] **DNS** — app.contextkit.dev → Vercel
+- [x] **Vercel Project** — Dashboard deployed ✅ https://dashboard-seven-rouge-80.vercel.app
+- [ ] **DNS** — app.contextkit.dev → Vercel (needs domain config)
 
 ### Tag 4-5: Stripe Integration
 - [ ] **Stripe Account** (Jo) — Products erstellen:

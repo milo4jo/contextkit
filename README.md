@@ -7,7 +7,7 @@
 [![npm downloads](https://img.shields.io/npm/dw/@milo4jo/contextkit)](https://www.npmjs.com/package/@milo4jo/contextkit)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
-**🆕 v0.6.1:** Cloud Sync is here! Sync your index across machines with `contextkit cloud sync`.
+**🆕 v0.6.3:** Cloud Sync + Doctor command! Run `contextkit doctor` to diagnose setup issues.
 
 ---
 

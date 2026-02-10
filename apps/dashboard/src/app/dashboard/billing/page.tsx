@@ -98,31 +98,31 @@ export default function BillingPage() {
   }
 
   return (
-    <div className="container mx-auto py-10">
+    <div className="container mx-auto py-6 px-4 sm:py-10 sm:px-6">
       {/* Success/Cancel alerts */}
       {success && (
-        <div className="mb-6 p-4 bg-green-50 dark:bg-green-950 border border-green-200 dark:border-green-800 rounded-lg">
-          <p className="text-green-700 dark:text-green-300 font-medium">
+        <div className="mb-4 sm:mb-6 p-3 sm:p-4 bg-green-50 dark:bg-green-950 border border-green-200 dark:border-green-800 rounded-lg">
+          <p className="text-green-700 dark:text-green-300 font-medium text-sm sm:text-base">
             🎉 Welcome to ContextKit Pro! Your subscription is now active.
           </p>
         </div>
       )}
       {canceled && (
-        <div className="mb-6 p-4 bg-yellow-50 dark:bg-yellow-950 border border-yellow-200 dark:border-yellow-800 rounded-lg">
-          <p className="text-yellow-700 dark:text-yellow-300">
+        <div className="mb-4 sm:mb-6 p-3 sm:p-4 bg-yellow-50 dark:bg-yellow-950 border border-yellow-200 dark:border-yellow-800 rounded-lg">
+          <p className="text-yellow-700 dark:text-yellow-300 text-sm sm:text-base">
             Checkout was canceled. Feel free to try again when you&apos;re ready.
           </p>
         </div>
       )}
 
-      <div className="mb-8 text-center">
-        <h1 className="text-3xl font-bold">Pricing Plans</h1>
-        <p className="text-muted-foreground mt-2">
+      <div className="mb-6 sm:mb-8 text-center">
+        <h1 className="text-2xl sm:text-3xl font-bold">Pricing Plans</h1>
+        <p className="text-muted-foreground mt-2 text-sm sm:text-base">
           Choose the plan that fits your needs
         </p>
       </div>
 
-      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
+      <div className="grid gap-4 sm:gap-6 sm:grid-cols-2 lg:grid-cols-4">
         {plans.map((plan) => (
           <Card
             key={plan.name}
@@ -139,15 +139,15 @@ export default function BillingPage() {
             </CardHeader>
             <CardContent>
               <div className="mb-4">
-                <span className="text-4xl font-bold">{plan.price}</span>
+                <span className="text-3xl sm:text-4xl font-bold">{plan.price}</span>
                 {plan.period && (
-                  <span className="text-muted-foreground">{plan.period}</span>
+                  <span className="text-muted-foreground text-sm sm:text-base">{plan.period}</span>
                 )}
               </div>
               <ul className="space-y-2">
                 {plan.features.map((feature) => (
-                  <li key={feature} className="flex items-center text-sm">
-                    <Check className="mr-2 h-4 w-4 text-primary" />
+                  <li key={feature} className="flex items-center text-xs sm:text-sm">
+                    <Check className="mr-2 h-3 w-3 sm:h-4 sm:w-4 text-primary shrink-0" />
                     {feature}
                   </li>
                 ))}
@@ -185,51 +185,51 @@ export default function BillingPage() {
       </div>
 
       {/* Current subscription */}
-      <Card className="mt-12">
+      <Card className="mt-8 sm:mt-12">
         <CardHeader>
-          <CardTitle>Current Subscription</CardTitle>
-          <CardDescription>
+          <CardTitle className="text-lg sm:text-xl">Current Subscription</CardTitle>
+          <CardDescription className="text-sm">
             You are currently on the Free plan
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <div className="flex items-center justify-between">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 sm:gap-4">
             <div>
               <p className="font-medium">Free Plan</p>
-              <p className="text-sm text-muted-foreground">
+              <p className="text-xs sm:text-sm text-muted-foreground">
                 Renews monthly (no charge)
               </p>
             </div>
-            <div className="text-right">
-              <p className="text-2xl font-bold">$0</p>
-              <p className="text-sm text-muted-foreground">per month</p>
+            <div className="sm:text-right">
+              <p className="text-xl sm:text-2xl font-bold">$0</p>
+              <p className="text-xs sm:text-sm text-muted-foreground">per month</p>
             </div>
           </div>
         </CardContent>
       </Card>
 
       {/* FAQ */}
-      <Card className="mt-8">
+      <Card className="mt-6 sm:mt-8">
         <CardHeader>
-          <CardTitle>Frequently Asked Questions</CardTitle>
+          <CardTitle className="text-lg sm:text-xl">Frequently Asked Questions</CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
           <div>
-            <h4 className="font-medium">Can I change plans anytime?</h4>
-            <p className="text-sm text-muted-foreground">
+            <h4 className="font-medium text-sm sm:text-base">Can I change plans anytime?</h4>
+            <p className="text-xs sm:text-sm text-muted-foreground">
               Yes! You can upgrade or downgrade at any time. Changes take effect immediately.
             </p>
           </div>
           <div>
-            <h4 className="font-medium">What happens if I exceed my limits?</h4>
-            <p className="text-sm text-muted-foreground">
+            <h4 className="font-medium text-sm sm:text-base">What happens if I exceed my limits?</h4>
+            <p className="text-xs sm:text-sm text-muted-foreground">
               You&apos;ll receive a notification when approaching limits. Once exceeded, 
               queries will be rate-limited until the next billing cycle or upgrade.
             </p>
           </div>
           <div>
-            <h4 className="font-medium">Do you offer refunds?</h4>
-            <p className="text-sm text-muted-foreground">
+            <h4 className="font-medium text-sm sm:text-base">Do you offer refunds?</h4>
+            <p className="text-xs sm:text-sm text-muted-foreground">
               Yes, we offer a 14-day money-back guarantee on all paid plans.
             </p>
           </div>

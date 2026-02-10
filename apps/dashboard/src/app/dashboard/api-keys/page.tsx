@@ -86,15 +86,15 @@ export default function ApiKeysPage() {
   }
 
   return (
-    <div className="container mx-auto py-10">
-      <div className="flex items-center justify-between mb-8">
+    <div className="container mx-auto py-6 px-4 sm:py-10 sm:px-6">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6 sm:mb-8">
         <div>
-          <h1 className="text-3xl font-bold">API Keys</h1>
-          <p className="text-muted-foreground mt-2">
+          <h1 className="text-2xl sm:text-3xl font-bold">API Keys</h1>
+          <p className="text-muted-foreground mt-2 text-sm sm:text-base">
             Manage your API keys for accessing the ContextKit API
           </p>
         </div>
-        <Button onClick={() => setShowCreateForm(true)}>
+        <Button onClick={() => setShowCreateForm(true)} className="w-full sm:w-auto">
           <Plus className="mr-2 h-4 w-4" />
           Create API Key
         </Button>
@@ -198,41 +198,41 @@ export default function ApiKeysPage() {
           </CardContent>
         </Card>
       ) : (
-        <div className="space-y-4">
+        <div className="space-y-3 sm:space-y-4">
           {apiKeys.map((key) => (
             <Card key={key.id}>
-              <CardContent className="flex items-center justify-between py-4">
-                <div className="flex items-center gap-4">
-                  <div className="p-2 rounded-full bg-muted">
-                    <Key className="h-5 w-5" />
+              <CardContent className="py-4">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                  <div className="flex items-center gap-3 sm:gap-4">
+                    <div className="p-2 rounded-full bg-muted shrink-0">
+                      <Key className="h-4 w-4 sm:h-5 sm:w-5" />
+                    </div>
+                    <div className="min-w-0">
+                      <p className="font-medium">{key.name}</p>
+                      <p className="text-xs sm:text-sm text-muted-foreground font-mono truncate">
+                        {key.prefix}••••••••••••••••••••
+                      </p>
+                    </div>
                   </div>
-                  <div>
-                    <p className="font-medium">{key.name}</p>
-                    <p className="text-sm text-muted-foreground font-mono">
-                      {key.prefix}••••••••••••••••••••
-                    </p>
+                  <div className="flex items-center justify-between sm:justify-end gap-4 pl-11 sm:pl-0">
+                    <div className="text-left sm:text-right text-xs sm:text-sm text-muted-foreground">
+                      <p>Created: {new Date(key.createdAt).toLocaleDateString()}</p>
+                      <p>
+                        Last used:{" "}
+                        {key.lastUsed
+                          ? new Date(key.lastUsed).toLocaleDateString()
+                          : "Never"}
+                      </p>
+                    </div>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="text-destructive hover:text-destructive shrink-0"
+                      onClick={() => handleDeleteKey(key.id)}
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
                   </div>
-                </div>
-                <div className="flex items-center gap-4">
-                  <div className="text-right text-sm text-muted-foreground">
-                    <p>
-                      Created: {new Date(key.createdAt).toLocaleDateString()}
-                    </p>
-                    <p>
-                      Last used:{" "}
-                      {key.lastUsed
-                        ? new Date(key.lastUsed).toLocaleDateString()
-                        : "Never"}
-                    </p>
-                  </div>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    className="text-destructive hover:text-destructive"
-                    onClick={() => handleDeleteKey(key.id)}
-                  >
-                    <Trash2 className="h-4 w-4" />
-                  </Button>
                 </div>
               </CardContent>
             </Card>

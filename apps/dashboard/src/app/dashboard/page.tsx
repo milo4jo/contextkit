@@ -14,16 +14,16 @@ export default async function DashboardPage() {
   }
 
   return (
-    <div className="container mx-auto py-10">
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold">Welcome back, {user?.firstName || "Developer"}!</h1>
-        <p className="text-muted-foreground mt-2">
+    <div className="container mx-auto py-6 px-4 sm:py-10 sm:px-6">
+      <div className="mb-6 sm:mb-8">
+        <h1 className="text-2xl sm:text-3xl font-bold">Welcome back, {user?.firstName || "Developer"}!</h1>
+        <p className="text-muted-foreground mt-2 text-sm sm:text-base">
           Manage your projects and monitor your usage.
         </p>
       </div>
 
       {/* Quick Stats */}
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4 mb-8">
+      <div className="grid gap-3 sm:gap-4 grid-cols-2 lg:grid-cols-4 mb-6 sm:mb-8">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Total Projects</CardTitle>
@@ -127,7 +127,7 @@ export default async function DashboardPage() {
       </div>
 
       {/* Quick Actions */}
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+      <div className="grid gap-3 sm:gap-4 sm:grid-cols-2 lg:grid-cols-3">
         <Card>
           <CardHeader>
             <CardTitle>Create Project</CardTitle>

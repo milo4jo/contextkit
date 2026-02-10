@@ -35,8 +35,8 @@ export default async function ProjectsPage() {
   const projects = mockProjects;
 
   return (
-    <div className="container mx-auto py-10">
-      <div className="flex items-center justify-between mb-8">
+    <div className="container mx-auto py-6 px-4 sm:py-10 sm:px-6">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6 sm:mb-8">
         <div>
           <h1 className="text-3xl font-bold">Projects</h1>
           <p className="text-muted-foreground mt-2">
@@ -68,7 +68,7 @@ export default async function ProjectsPage() {
           </CardContent>
         </Card>
       ) : (
-        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+        <div className="grid gap-3 sm:gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {projects.map((project) => (
             <Link key={project.id} href={`/dashboard/projects/${project.slug}`}>
               <Card className="hover:border-primary transition-colors cursor-pointer">
