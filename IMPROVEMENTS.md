@@ -4,11 +4,12 @@
 
 ## 🐛 Bugs to Fix
 
-### 1. Call Graph Returns Wrong Data
+### 1. Call Graph Returns Wrong Data ✅ FIXED
 **Priority:** High
 **Issue:** `contextkit graph "login"` shows incorrect callers
 **Expected:** Should show `authenticate` calls `login`
 **Actual:** Shows `generateToken` calls `login` (wrong)
+**Fix:** Chunk overlap was overwriting function entries. Now skip if already exists.
 
 ### 2. Symbol Line Numbers Off
 **Priority:** Medium
