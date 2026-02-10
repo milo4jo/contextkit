@@ -11,10 +11,11 @@
 **Actual:** Shows `generateToken` calls `login` (wrong)
 **Fix:** Chunk overlap was overwriting function entries. Now skip if already exists.
 
-### 2. Symbol Line Numbers Off
+### 2. Symbol Line Numbers Off ✅ FIXED
 **Priority:** Medium
 **Issue:** `contextkit symbol "AuthService"` shows "line 1" instead of actual line
 **Expected:** Should show correct line number (line 9)
+**Fix:** Now uses chunk's start_line from database to calculate absolute line numbers.
 
 ### 3. --explain Flag Doesn't Explain
 **Priority:** Medium
@@ -144,8 +145,8 @@ contextkit history --run 3  # Re-run query #3
 4. ✅ Better error messages
 
 ### Next Week
-1. Fix call graph accuracy
-2. Fix symbol line numbers
+1. ~~Fix call graph accuracy~~ ✅ Done
+2. ~~Fix symbol line numbers~~ ✅ Done
 3. Interactive mode (MVP)
 
 ### Later
