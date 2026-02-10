@@ -36,17 +36,16 @@ ENVIRONMENT = "development"
 # UPSTASH_REDIS_URL - For rate limiting
 # UPSTASH_REDIS_TOKEN - Redis auth token
 
-# R2 Storage binding
-[[r2_buckets]]
-binding = "STORAGE"
-bucket_name = "contextkit-storage"
-preview_bucket_name = "contextkit-storage-preview"
+# R2 Storage binding (disabled until payment method added)
+# [[r2_buckets]]
+# binding = "STORAGE"
+# bucket_name = "contextkit-storage"
+# preview_bucket_name = "contextkit-storage-preview"
 
 # KV for caching
 [[kv_namespaces]]
 binding = "CACHE"
-id = "xxx" # Replace with actual KV namespace ID
-preview_id = "xxx"
+id = "b362242e75d04067b87f050f4b649bbd"
 
 # Durable Objects for rate limiting (optional)
 # [[durable_objects.bindings]]

@@ -4,7 +4,17 @@ import { NextResponse } from "next/server";
 // TODO: Replace with actual database queries
 // For now, we use mock data
 
-const mockProjects = new Map([
+interface Project {
+  id: string;
+  name: string;
+  slug: string;
+  description: string | null;
+  index_status: { files: number; chunks: number; last_indexed: string | null };
+  created_at: string;
+  updated_at: string;
+}
+
+const mockProjects = new Map<string, Project>([
   [
     "proj_1",
     {

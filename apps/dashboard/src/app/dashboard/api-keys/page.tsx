@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Plus, Key, Copy, Trash2, Eye, EyeOff, Check } from "lucide-react";
+import { Plus, Key, Copy, Trash2, Check } from "lucide-react";
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
