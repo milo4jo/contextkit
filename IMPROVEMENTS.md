@@ -48,12 +48,13 @@
 **Current:** Shows internal lines like `const token = ...`
 **Proposed:** Only show actual signatures (functions, classes, exports)
 
-### 4. Add Command Aliases
+### 4. Add Command Aliases ✅ DONE
 **Impact:** Low (convenience)
 ```
-contextkit search → contextkit select
-contextkit find → contextkit symbol  
-contextkit info → contextkit status
+contextkit search → contextkit select ✅
+contextkit query → contextkit select ✅
+contextkit find → contextkit symbol ✅
+contextkit info → contextkit status ✅
 ```
 
 ### 5. Better Error Messages
@@ -125,11 +126,11 @@ contextkit history --run 3  # Re-run query #3
 
 | Task | Effort | Impact |
 |------|--------|--------|
-| Fix `--explain` to show scores | 2h | Medium |
-| Add `--copy` clipboard flag | 1h | High |
-| Add `contextkit status` | 2h | Medium |
+| ~~Fix `--explain` to show scores~~ | ✅ | Done |
+| ~~Add `--copy` clipboard flag~~ | ✅ | Done |
+| ~~Add `contextkit status`~~ | ✅ | Done |
 | Fix error messages with suggestions | 1h | Medium |
-| Add aliases (search, find, info) | 30min | Low |
+| ~~Add aliases (search, find, info)~~ | ✅ | Done |
 
 ---
 

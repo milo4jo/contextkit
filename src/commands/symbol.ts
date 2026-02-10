@@ -436,6 +436,7 @@ function getTypeIcon(type: SymbolMatch['symbolType']): string {
 }
 
 export const symbolCommand = new Command('symbol')
+  .alias('find')
   .description('Search for symbols by name')
   .argument('<name>', 'Symbol name to search for')
   .option('-e, --exact', 'Exact match only')
