@@ -2,18 +2,22 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { useAuth } from "@clerk/nextjs";
 import Link from "next/link";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, AlertTriangle } from "lucide-react";
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { createProject } from "@/lib/api";
 
 export default function NewProjectPage() {
   const router = useRouter();
+  const { getToken } = useAuth();
   const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
 
@@ -26,23 +30,19 @@ export default function NewProjectPage() {
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setIsLoading(true);
+    setError(null);
 
     try {
-      // TODO: Call API to create project
-      const response = await fetch("/api/projects", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name, description, slug }),
-      });
-
-      if (!response.ok) {
-        throw new Error("Failed to create project");
+      const token = await getToken();
+      if (!token) {
+        throw new Error("Not authenticated");
       }
 
+      await createProject(token, { name, description });
       router.push("/dashboard/projects");
-    } catch (error) {
-      console.error("Error creating project:", error);
-      // TODO: Show error toast
+    } catch (err) {
+      console.error("Error creating project:", err);
+      setError(err instanceof Error ? err.message : "Failed to create project");
     } finally {
       setIsLoading(false);
     }
@@ -57,6 +57,13 @@ export default function NewProjectPage() {
         <ArrowLeft className="mr-2 h-4 w-4" />
         Back to Projects
       </Link>
+
+      {error && (
+        <div className="mb-6 p-4 bg-destructive/10 border border-destructive rounded-lg flex items-center gap-2 text-destructive">
+          <AlertTriangle className="h-5 w-5" />
+          {error}
+        </div>
+      )}
 
       <Card>
         <CardHeader>
