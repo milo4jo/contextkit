@@ -129,7 +129,7 @@ contextkit history --run 3  # Re-run query #3
 | ~~Fix `--explain` to show scores~~ | ✅ | Done |
 | ~~Add `--copy` clipboard flag~~ | ✅ | Done |
 | ~~Add `contextkit status`~~ | ✅ | Done |
-| Fix error messages with suggestions | 1h | Medium |
+| ~~Fix error messages with suggestions~~ | ✅ | Done |
 | ~~Add aliases (search, find, info)~~ | ✅ | Done |
 
 ---
