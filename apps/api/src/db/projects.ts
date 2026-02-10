@@ -122,6 +122,33 @@ export async function listProjects(
 }
 
 /**
+ * Get all projects for an organization (simple list)
+ */
+export async function getProjectsByOrgId(
+  env: Env,
+  orgId: string
+): Promise<Project[]> {
+  const db = getDb(env);
+
+  const results = await db
+    .select()
+    .from(projects)
+    .where(eq(projects.orgId, orgId))
+    .orderBy(projects.createdAt);
+
+  return results.map((row) => ({
+    id: row.id,
+    orgId: row.orgId,
+    name: row.name,
+    slug: row.slug,
+    description: row.description,
+    settings: row.settings as ProjectSettings,
+    createdAt: row.createdAt!,
+    updatedAt: row.updatedAt!,
+  }));
+}
+
+/**
  * Create a new project
  */
 export async function createProject(
@@ -198,18 +225,17 @@ export async function updateProject(
 }
 
 /**
- * Delete project
+ * Delete project by ID
  */
 export async function deleteProject(
   env: Env,
-  orgId: string,
   projectId: string
 ): Promise<boolean> {
   const db = getDb(env);
 
   const result = await db
     .delete(projects)
-    .where(and(eq(projects.id, projectId), eq(projects.orgId, orgId)))
+    .where(eq(projects.id, projectId))
     .returning({ id: projects.id });
 
   return result.length > 0;

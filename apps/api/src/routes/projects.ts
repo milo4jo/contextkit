@@ -195,7 +195,12 @@ projectRoutes.delete("/:project_id", async (c) => {
   const orgId = c.get("orgId");
   const projectId = c.req.param("project_id");
 
-  const deleted = await deleteProject(c.env, orgId, projectId);
+  // Verify project belongs to org first
+  const project = await getProject(c.env, orgId, projectId);
+  if (!project) {
+    throw new NotFoundError("Project");
+  }
+  const deleted = await deleteProject(c.env, projectId);
 
   if (!deleted) {
     throw new NotFoundError("Project");

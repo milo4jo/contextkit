@@ -127,3 +127,14 @@ export async function recordUsage(
     console.error("Failed to record usage:", error);
   }
 }
+
+
+// Alias for dashboard routes
+export async function getUsageByOrgId(env: Env, orgId: string) {
+  const stats = await getUsageStats(env, orgId);
+  return {
+    queries: stats.queries,
+    storage: stats.storageBytes,
+    tokens: stats.tokens,
+  };
+}

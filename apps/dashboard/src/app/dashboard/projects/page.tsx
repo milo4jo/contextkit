@@ -5,25 +5,26 @@ import { Plus, Folder, Clock, Hash } from "lucide-react";
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-
-// TODO: Fetch from API when database is connected
-const mockProjects: Array<{
-  id: string;
-  name: string;
-  slug: string;
-  description: string;
-  indexStatus: { files: number; chunks: number; lastIndexed: string };
-}> = [];
+import { getProjects } from "@/lib/api";
 
 export default async function ProjectsPage() {
-  const { userId } = await auth();
+  const { userId, getToken } = await auth();
 
   if (!userId) {
     redirect("/sign-in");
   }
 
-  // TODO: Fetch projects from API
-  const projects = mockProjects;
+  const token = await getToken();
+  let projects: Awaited<ReturnType<typeof getProjects>>["projects"] = [];
+
+  if (token) {
+    try {
+      const response = await getProjects(token);
+      projects = response.projects;
+    } catch (error) {
+      console.error("Failed to fetch projects:", error);
+    }
+  }
 
   return (
     <div className="container mx-auto py-6 px-4 sm:py-10 sm:px-6">
@@ -68,7 +69,7 @@ export default async function ProjectsPage() {
                     <Folder className="mr-2 h-5 w-5" />
                     {project.name}
                   </CardTitle>
-                  <CardDescription>{project.description}</CardDescription>
+                  <CardDescription>{project.description || "No description"}</CardDescription>
                 </CardHeader>
                 <CardContent>
                   <div className="flex items-center gap-4 text-sm text-muted-foreground">
@@ -78,7 +79,9 @@ export default async function ProjectsPage() {
                     </span>
                     <span className="flex items-center">
                       <Clock className="mr-1 h-3 w-3" />
-                      {new Date(project.indexStatus.lastIndexed).toLocaleDateString()}
+                      {project.indexStatus.lastIndexed 
+                        ? new Date(project.indexStatus.lastIndexed).toLocaleDateString()
+                        : "Not indexed"}
                     </span>
                   </div>
                   <div className="mt-2">

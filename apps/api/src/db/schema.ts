@@ -33,13 +33,20 @@ export const organizations = pgTable(
 );
 
 // Users
-export const users = pgTable("users", {
-  id: uuid("id").primaryKey().defaultRandom(),
-  email: text("email").notNull().unique(),
-  name: text("name"),
-  avatarUrl: text("avatar_url"),
-  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow(),
-});
+export const users = pgTable(
+  "users",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    clerkId: text("clerk_id").unique(), // Clerk user ID for dashboard auth
+    email: text("email").notNull().unique(),
+    name: text("name"),
+    avatarUrl: text("avatar_url"),
+    createdAt: timestamp("created_at", { withTimezone: true }).defaultNow(),
+  },
+  (table) => ({
+    clerkIdIdx: uniqueIndex("user_clerk_id_idx").on(table.clerkId),
+  })
+);
 
 // Organization memberships
 export const orgMembers = pgTable(

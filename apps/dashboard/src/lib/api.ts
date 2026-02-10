@@ -1,163 +1,169 @@
 /**
- * ContextKit API Client for Dashboard
+ * ContextKit API Client
+ *
+ * Handles all API calls from the dashboard to the backend
  */
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || "https://api.contextkit.dev";
+const API_URL = process.env.NEXT_PUBLIC_API_URL || "https://contextkit-api.milo4jo.workers.dev";
 
 interface ApiOptions {
+  token?: string;
   method?: "GET" | "POST" | "PATCH" | "DELETE";
   body?: unknown;
-  apiKey?: string;
 }
 
-class ApiError extends Error {
-  constructor(
-    public status: number,
-    public detail: string
-  ) {
-    super(detail);
-    this.name = "ApiError";
-  }
-}
-
-async function apiRequest<T>(
-  endpoint: string,
-  options: ApiOptions = {}
-): Promise<T> {
-  const { method = "GET", body, apiKey } = options;
+async function apiCall<T>(endpoint: string, options: ApiOptions = {}): Promise<T> {
+  const { token, method = "GET", body } = options;
 
   const headers: Record<string, string> = {
     "Content-Type": "application/json",
   };
 
-  if (apiKey) {
-    headers["Authorization"] = `Bearer ${apiKey}`;
+  if (token) {
+    headers["Authorization"] = `Bearer ${token}`;
   }
 
-  const response = await fetch(`${API_URL}/v1${endpoint}`, {
+  const response = await fetch(`${API_URL}/dashboard${endpoint}`, {
     method,
     headers,
     body: body ? JSON.stringify(body) : undefined,
   });
 
   if (!response.ok) {
-    const error = await response.json().catch(() => ({ detail: "Unknown error" }));
-    throw new ApiError(response.status, error.detail || error.message);
-  }
-
-  // Handle 204 No Content
-  if (response.status === 204) {
-    return {} as T;
+    const error = await response.json().catch(() => ({}));
+    throw new Error(error.error || error.detail || `API error: ${response.status}`);
   }
 
   return response.json();
 }
 
-// Projects
+// === User / Organization ===
+
+export interface User {
+  id: string;
+  email: string;
+  name: string | null;
+  avatarUrl: string | null;
+}
+
+export interface Organization {
+  id: string;
+  name: string;
+  slug: string;
+  plan: "free" | "pro" | "team" | "enterprise";
+}
+
+export interface MeResponse {
+  user: User;
+  organization: Organization;
+}
+
+export async function getMe(token: string): Promise<MeResponse> {
+  return apiCall("/me", { token });
+}
+
+// === Projects ===
+
 export interface Project {
   id: string;
-  slug: string;
   name: string;
+  slug: string;
   description: string | null;
-  index_status: {
+  createdAt: string;
+  updatedAt: string;
+  indexStatus: {
     files: number;
     chunks: number;
-    last_indexed: string | null;
-  } | null;
-  created_at: string;
-  updated_at: string;
+    lastIndexed: string | null;
+    status: "pending" | "indexing" | "indexed" | "failed";
+  };
 }
 
-export interface ProjectList {
+export interface ProjectsResponse {
   projects: Project[];
-  total: number;
-  limit: number;
-  offset: number;
 }
 
-export async function listProjects(apiKey: string): Promise<ProjectList> {
-  return apiRequest<ProjectList>("/projects", { apiKey });
+export async function getProjects(token: string): Promise<ProjectsResponse> {
+  return apiCall("/projects", { token });
 }
 
-export async function getProject(apiKey: string, projectId: string): Promise<Project> {
-  return apiRequest<Project>(`/projects/${projectId}`, { apiKey });
+export interface CreateProjectInput {
+  name: string;
+  description?: string;
 }
 
 export async function createProject(
-  apiKey: string,
-  data: { name: string; description?: string }
-): Promise<Project> {
-  return apiRequest<Project>("/projects", {
-    method: "POST",
-    body: data,
-    apiKey,
-  });
+  token: string,
+  data: CreateProjectInput
+): Promise<{ project: Project }> {
+  return apiCall("/projects", { token, method: "POST", body: data });
 }
 
-export async function deleteProject(apiKey: string, projectId: string): Promise<void> {
-  return apiRequest<void>(`/projects/${projectId}`, {
-    method: "DELETE",
-    apiKey,
-  });
+export async function getProject(
+  token: string,
+  slug: string
+): Promise<{ project: Project }> {
+  return apiCall(`/projects/${slug}`, { token });
 }
 
-// Context
-export interface SelectResponse {
-  context: string;
-  chunks: Array<{
-    file: string;
-    start_line: number;
-    end_line: number;
-    content: string;
-    score: number;
-  }>;
-  metadata: {
-    tokens_used: number;
-    files_included: number;
-    processing_time_ms: number;
-    cache_hit: boolean;
-  };
+export async function deleteProject(
+  token: string,
+  slug: string
+): Promise<{ success: boolean }> {
+  return apiCall(`/projects/${slug}`, { token, method: "DELETE" });
 }
 
-export async function selectContext(
-  apiKey: string,
-  data: {
-    query: string;
-    project_id: string;
-    budget?: number;
-    mode?: "full" | "map";
-    format?: "markdown" | "xml" | "json" | "plain";
-  }
-): Promise<SelectResponse> {
-  return apiRequest<SelectResponse>("/context/select", {
-    method: "POST",
-    body: data,
-    apiKey,
-  });
+// === API Keys ===
+
+export interface ApiKey {
+  id: string;
+  name: string;
+  prefix: string;
+  lastUsedAt: string | null;
+  createdAt: string;
 }
 
-// Usage
-export interface UsageStats {
-  period: {
-    start: string;
-    end: string;
-  };
-  queries: {
-    used: number;
-    limit: number | null;
-  };
-  tokens: {
-    used: number;
-  };
-  storage: {
-    used_bytes: number;
-    limit_bytes: number | null;
+export interface ApiKeysResponse {
+  apiKeys: ApiKey[];
+}
+
+export async function getApiKeys(token: string): Promise<ApiKeysResponse> {
+  return apiCall("/api-keys", { token });
+}
+
+export interface CreateApiKeyInput {
+  name: string;
+}
+
+export interface CreateApiKeyResponse {
+  apiKey: ApiKey & { key: string }; // Full key only on creation
+}
+
+export async function createApiKey(
+  token: string,
+  data: CreateApiKeyInput
+): Promise<CreateApiKeyResponse> {
+  return apiCall("/api-keys", { token, method: "POST", body: data });
+}
+
+export async function deleteApiKey(
+  token: string,
+  id: string
+): Promise<{ success: boolean }> {
+  return apiCall(`/api-keys/${id}`, { token, method: "DELETE" });
+}
+
+// === Usage ===
+
+export interface UsageResponse {
+  usage: {
+    queries: { used: number; limit: number };
+    storage: { used: number; limit: number };
+    tokens: { used: number };
   };
   plan: string;
 }
 
-export async function getUsage(apiKey: string): Promise<UsageStats> {
-  return apiRequest<UsageStats>("/usage", { apiKey });
+export async function getUsage(token: string): Promise<UsageResponse> {
+  return apiCall("/usage", { token });
 }
-
-export { ApiError };

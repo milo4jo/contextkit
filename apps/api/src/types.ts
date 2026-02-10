@@ -27,6 +27,9 @@ export interface Variables {
   apiKeyId: string;
   plan: Plan;
   requestId: string;
+  // Dashboard auth (Clerk)
+  clerkUserId?: string;
+  userEmail?: string;
 }
 
 // Plans

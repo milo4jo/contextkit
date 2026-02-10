@@ -11,6 +11,7 @@ import { secureHeaders } from "hono/secure-headers";
 import { timing } from "hono/timing";
 
 import { authMiddleware } from "./middleware/auth";
+import { dashboardAuthMiddleware } from "./middleware/dashboard-auth";
 import { rateLimitMiddleware } from "./middleware/rate-limit";
 import { errorHandler } from "./middleware/error-handler";
 
@@ -20,6 +21,7 @@ import { indexRoutes } from "./routes/index-sync";
 import { symbolRoutes } from "./routes/symbols";
 import { graphRoutes } from "./routes/graph";
 import { usageRoutes } from "./routes/usage";
+import { dashboardRoutes } from "./routes/dashboard";
 
 import type { Env, Variables } from "./types";
 
@@ -35,6 +37,7 @@ app.use(
     origin: [
       "https://contextkit.dev",
       "https://dashboard.contextkit.dev",
+      "https://dashboard-seven-rouge-80.vercel.app",
       "http://localhost:3000",
     ],
     allowMethods: ["GET", "POST", "PATCH", "DELETE", "OPTIONS"],
@@ -74,6 +77,12 @@ v1.route("/graph", graphRoutes);
 v1.route("/usage", usageRoutes);
 
 app.route("/v1", v1);
+
+// Dashboard API (Clerk auth)
+const dashboard = new Hono<{ Bindings: Env; Variables: Variables }>();
+dashboard.use("*", dashboardAuthMiddleware);
+dashboard.route("/", dashboardRoutes);
+app.route("/dashboard", dashboard);
 
 // 404 handler
 app.notFound((c) => {

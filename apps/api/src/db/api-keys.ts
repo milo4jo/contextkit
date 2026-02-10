@@ -106,6 +106,11 @@ export async function listApiKeys(
 }
 
 /**
+ * Get API keys by organization ID (alias for dashboard)
+ */
+export const getApiKeysByOrgId = listApiKeys;
+
+/**
  * Create a new API key
  */
 export async function createApiKey(
@@ -165,13 +170,23 @@ export async function updateApiKeyLastUsed(
 }
 
 /**
- * Delete API key
+ * Delete API key (with org validation)
  */
 export async function deleteApiKey(
   env: Env,
-  id: string
+  id: string,
+  orgId?: string
 ): Promise<boolean> {
   const db = getDb(env);
+
+  if (orgId) {
+    const { and } = await import("drizzle-orm");
+    const result = await db
+      .delete(apiKeys)
+      .where(and(eq(apiKeys.id, id), eq(apiKeys.orgId, orgId)))
+      .returning({ id: apiKeys.id });
+    return result.length > 0;
+  }
 
   const result = await db
     .delete(apiKeys)

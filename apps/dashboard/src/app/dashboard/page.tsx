@@ -4,13 +4,42 @@ import Link from "next/link";
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { getProjects, getApiKeys, getUsage } from "@/lib/api";
 
 export default async function DashboardPage() {
-  const { userId } = await auth();
+  const { userId, getToken } = await auth();
   const user = await currentUser();
 
   if (!userId) {
     redirect("/sign-in");
+  }
+
+  // Get Clerk session token for API auth
+  const token = await getToken();
+
+  // Fetch data from API
+  let projectCount = 0;
+  let queryCount = 0;
+  let queryLimit = 1000;
+  let apiKeyCount = 0;
+  let plan = "free";
+
+  if (token) {
+    try {
+      const [projectsRes, usageRes, keysRes] = await Promise.all([
+        getProjects(token).catch(() => ({ projects: [] })),
+        getUsage(token).catch(() => ({ usage: { queries: { used: 0, limit: 1000 } }, plan: "free" })),
+        getApiKeys(token).catch(() => ({ apiKeys: [] })),
+      ]);
+
+      projectCount = projectsRes.projects.length;
+      queryCount = usageRes.usage.queries.used;
+      queryLimit = usageRes.usage.queries.limit;
+      plan = usageRes.plan;
+      apiKeyCount = keysRes.apiKeys.length;
+    } catch (error) {
+      console.error("Failed to fetch dashboard data:", error);
+    }
   }
 
   return (
@@ -41,9 +70,9 @@ export default async function DashboardPage() {
             </svg>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">0</div>
+            <div className="text-2xl font-bold">{projectCount}</div>
             <p className="text-xs text-muted-foreground">
-              Create your first project
+              {projectCount === 0 ? "Create your first project" : `${projectCount} project${projectCount === 1 ? "" : "s"}`}
             </p>
           </CardContent>
         </Card>
@@ -65,9 +94,9 @@ export default async function DashboardPage() {
             </svg>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">0</div>
+            <div className="text-2xl font-bold">{queryCount.toLocaleString()}</div>
             <p className="text-xs text-muted-foreground">
-              0 / 1,000 on Free plan
+              {queryCount.toLocaleString()} / {queryLimit === -1 ? "∞" : queryLimit.toLocaleString()} on {plan} plan
             </p>
           </CardContent>
         </Card>
@@ -91,9 +120,9 @@ export default async function DashboardPage() {
             </svg>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">0</div>
+            <div className="text-2xl font-bold">{apiKeyCount}</div>
             <p className="text-xs text-muted-foreground">
-              Generate your first key
+              {apiKeyCount === 0 ? "Generate your first key" : `${apiKeyCount} active key${apiKeyCount === 1 ? "" : "s"}`}
             </p>
           </CardContent>
         </Card>
@@ -116,11 +145,17 @@ export default async function DashboardPage() {
             </svg>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">Free</div>
+            <div className="text-2xl font-bold capitalize">{plan}</div>
             <p className="text-xs text-muted-foreground">
-              <Link href="/dashboard/billing" className="text-primary hover:underline">
-                Upgrade to Pro
-              </Link>
+              {plan === "free" ? (
+                <Link href="/dashboard/billing" className="text-primary hover:underline">
+                  Upgrade to Pro
+                </Link>
+              ) : (
+                <Link href="/dashboard/billing" className="text-primary hover:underline">
+                  Manage subscription
+                </Link>
+              )}
             </p>
           </CardContent>
         </Card>
@@ -164,7 +199,7 @@ export default async function DashboardPage() {
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <a href="https://docs.contextkit.dev" target="_blank" rel="noopener noreferrer">
+            <a href="https://github.com/milo4jo/contextkit#readme" target="_blank" rel="noopener noreferrer">
               <Button variant="outline">Documentation</Button>
             </a>
           </CardContent>
