@@ -48,9 +48,11 @@ app.get("/me", async (c) => {
 
   if (!org) {
     // Create personal organization for new users
+    // Use more of clerkUserId + timestamp for uniqueness
+    const uniqueSuffix = `${clerkUserId.slice(-8)}-${Date.now().toString(36)}`;
     org = await createOrganization(c.env, {
       name: user.name || email?.split("@")[0] || "My Organization",
-      slug: `org-${clerkUserId.slice(0, 8)}`,
+      slug: `org-${uniqueSuffix}`,
       ownerId: user.id,
     });
   }
@@ -122,9 +124,10 @@ app.post("/projects", zValidator("json", createProjectSchema), async (c) => {
   let org = await getOrganizationByUserId(c.env, user.id);
 
   if (!org) {
+    const uniqueSuffix = `${clerkUserId.slice(-8)}-${Date.now().toString(36)}`;
     org = await createOrganization(c.env, {
       name: user.name || email?.split("@")[0] || "My Organization",
-      slug: `org-${clerkUserId.slice(0, 8)}`,
+      slug: `org-${uniqueSuffix}`,
       ownerId: user.id,
     });
   }
@@ -250,9 +253,10 @@ app.post("/api-keys", zValidator("json", createApiKeySchema), async (c) => {
   let org = await getOrganizationByUserId(c.env, user.id);
 
   if (!org) {
+    const uniqueSuffix = `${clerkUserId.slice(-8)}-${Date.now().toString(36)}`;
     org = await createOrganization(c.env, {
       name: user.name || email?.split("@")[0] || "My Organization",
-      slug: `org-${clerkUserId.slice(0, 8)}`,
+      slug: `org-${uniqueSuffix}`,
       ownerId: user.id,
     });
   }
