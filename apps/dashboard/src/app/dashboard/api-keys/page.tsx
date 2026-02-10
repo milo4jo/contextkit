@@ -8,23 +8,14 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 
-// Mock data - will be replaced with API calls
-const mockApiKeys = [
-  {
-    id: "key_1",
-    name: "Development",
-    prefix: "ck_test_a1b2",
-    lastUsed: "2026-02-09T10:30:00Z",
-    createdAt: "2026-01-15T08:00:00Z",
-  },
-  {
-    id: "key_2",
-    name: "Production",
-    prefix: "ck_live_x9y8",
-    lastUsed: "2026-02-09T14:22:00Z",
-    createdAt: "2026-01-20T12:00:00Z",
-  },
-];
+// TODO: Fetch from API when database is connected
+const mockApiKeys: Array<{
+  id: string;
+  name: string;
+  prefix: string;
+  lastUsed: string | null;
+  createdAt: string;
+}> = [];
 
 export default function ApiKeysPage() {
   const [apiKeys, setApiKeys] = useState(mockApiKeys);

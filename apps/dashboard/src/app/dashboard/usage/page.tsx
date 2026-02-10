@@ -5,10 +5,11 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Progress } from "@/components/ui/progress";
 
 // Mock data
+// TODO: Fetch from API when database is connected
 const mockUsage = {
-  queries: { used: 342, limit: 1000 },
-  storage: { used: 25 * 1024 * 1024, limit: 100 * 1024 * 1024 }, // bytes
-  tokens: { used: 1_250_000 },
+  queries: { used: 0, limit: 1000 },
+  storage: { used: 0, limit: 100 * 1024 * 1024 }, // bytes
+  tokens: { used: 0 },
   plan: "free" as const,
 };
 

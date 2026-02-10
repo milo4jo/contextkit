@@ -6,23 +6,14 @@ import { Plus, Folder, Clock, Hash } from "lucide-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 
-// Mock data - will be replaced with API calls
-const mockProjects = [
-  {
-    id: "proj_1",
-    name: "Frontend App",
-    slug: "frontend-app",
-    description: "React frontend application",
-    indexStatus: { files: 127, chunks: 892, lastIndexed: "2026-02-09T10:30:00Z" },
-  },
-  {
-    id: "proj_2", 
-    name: "API Server",
-    slug: "api-server",
-    description: "Node.js backend API",
-    indexStatus: { files: 89, chunks: 634, lastIndexed: "2026-02-08T15:45:00Z" },
-  },
-];
+// TODO: Fetch from API when database is connected
+const mockProjects: Array<{
+  id: string;
+  name: string;
+  slug: string;
+  description: string;
+  indexStatus: { files: number; chunks: number; lastIndexed: string };
+}> = [];
 
 export default async function ProjectsPage() {
   const { userId } = await auth();

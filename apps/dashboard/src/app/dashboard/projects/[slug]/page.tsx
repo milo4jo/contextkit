@@ -7,7 +7,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 
-// Mock data - will be replaced with API calls
+// TODO: Fetch from API when database is connected
 const mockProjects: Record<string, {
   id: string;
   name: string;
@@ -27,48 +27,7 @@ const mockProjects: Record<string, {
     chunkOverlap: number;
     excludePatterns: string[];
   };
-}> = {
-  "frontend-app": {
-    id: "proj_1",
-    name: "Frontend App",
-    slug: "frontend-app",
-    description: "React frontend application with TypeScript",
-    repoUrl: "https://github.com/example/frontend-app",
-    branch: "main",
-    indexStatus: {
-      files: 127,
-      chunks: 892,
-      tokens: 245000,
-      lastIndexed: "2026-02-09T10:30:00Z",
-      status: "indexed",
-    },
-    config: {
-      chunkSize: 1500,
-      chunkOverlap: 200,
-      excludePatterns: ["node_modules", "dist", ".git"],
-    },
-  },
-  "api-server": {
-    id: "proj_2",
-    name: "API Server",
-    slug: "api-server",
-    description: "Node.js backend API with Express",
-    repoUrl: "https://github.com/example/api-server",
-    branch: "main",
-    indexStatus: {
-      files: 89,
-      chunks: 634,
-      tokens: 178000,
-      lastIndexed: "2026-02-08T15:45:00Z",
-      status: "indexed",
-    },
-    config: {
-      chunkSize: 1500,
-      chunkOverlap: 200,
-      excludePatterns: ["node_modules", "dist", ".git"],
-    },
-  },
-};
+}> = {};
 
 interface ProjectPageProps {
   params: Promise<{ slug: string }>;
