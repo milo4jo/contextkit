@@ -25,15 +25,19 @@ interface SymbolMatch {
 }
 
 /** Extract symbols from chunk content */
-function extractSymbols(content: string, filePath: string): SymbolMatch[] {
+function extractSymbols(content: string, filePath: string, chunkStartLine: number = 1): SymbolMatch[] {
   const symbols: SymbolMatch[] = [];
   const lines = content.split('\n');
   const ext = filePath.split('.').pop()?.toLowerCase();
 
+  // Helper to convert relative end line to absolute
+  const toAbsoluteLine = (relativeEnd: number) => chunkStartLine + relativeEnd - 1;
+
   for (let i = 0; i < lines.length; i++) {
     const line = lines[i];
     const trimmed = line.trim();
-    const lineNum = i + 1;
+    // Calculate absolute line number (chunk start + offset within chunk)
+    const lineNum = chunkStartLine + i;
 
     // TypeScript/JavaScript patterns
     if (ext === 'ts' || ext === 'tsx' || ext === 'js' || ext === 'jsx') {
@@ -45,7 +49,7 @@ function extractSymbols(content: string, filePath: string): SymbolMatch[] {
           symbolName: funcMatch[3],
           symbolType: 'function',
           startLine: lineNum,
-          endLine: findBlockEnd(lines, i),
+          endLine: toAbsoluteLine(findBlockEnd(lines, i)),
           signature: extractSignatureLine(trimmed),
           content: '',
         });
@@ -60,7 +64,7 @@ function extractSymbols(content: string, filePath: string): SymbolMatch[] {
           symbolName: classMatch[3],
           symbolType: 'class',
           startLine: lineNum,
-          endLine: findBlockEnd(lines, i),
+          endLine: toAbsoluteLine(findBlockEnd(lines, i)),
           signature: extractSignatureLine(trimmed),
           content: '',
         });
@@ -75,7 +79,7 @@ function extractSymbols(content: string, filePath: string): SymbolMatch[] {
           symbolName: interfaceMatch[2],
           symbolType: 'interface',
           startLine: lineNum,
-          endLine: findBlockEnd(lines, i),
+          endLine: toAbsoluteLine(findBlockEnd(lines, i)),
           signature: extractSignatureLine(trimmed),
           content: '',
         });
@@ -90,7 +94,7 @@ function extractSymbols(content: string, filePath: string): SymbolMatch[] {
           symbolName: typeMatch[2],
           symbolType: 'type',
           startLine: lineNum,
-          endLine: findTypeEnd(lines, i),
+          endLine: toAbsoluteLine(findTypeEnd(lines, i)),
           signature: trimmed,
           content: '',
         });
@@ -106,7 +110,7 @@ function extractSymbols(content: string, filePath: string): SymbolMatch[] {
           symbolName: constMatch[3],
           symbolType: isFunction ? 'function' : 'constant',
           startLine: lineNum,
-          endLine: findStatementEnd(lines, i),
+          endLine: toAbsoluteLine(findStatementEnd(lines, i)),
           signature: extractSignatureLine(trimmed),
           content: '',
         });
@@ -124,7 +128,7 @@ function extractSymbols(content: string, filePath: string): SymbolMatch[] {
           symbolName: pyFuncMatch[2],
           symbolType: 'function',
           startLine: lineNum,
-          endLine: findPythonBlockEnd(lines, i),
+          endLine: toAbsoluteLine(findPythonBlockEnd(lines, i)),
           signature: trimmed.replace(/:$/, ''),
           content: '',
         });
@@ -139,7 +143,7 @@ function extractSymbols(content: string, filePath: string): SymbolMatch[] {
           symbolName: pyClassMatch[1],
           symbolType: 'class',
           startLine: lineNum,
-          endLine: findPythonBlockEnd(lines, i),
+          endLine: toAbsoluteLine(findPythonBlockEnd(lines, i)),
           signature: trimmed.replace(/:$/, ''),
           content: '',
         });
@@ -157,7 +161,7 @@ function extractSymbols(content: string, filePath: string): SymbolMatch[] {
           symbolName: goFuncMatch[1],
           symbolType: 'function',
           startLine: lineNum,
-          endLine: findBlockEnd(lines, i),
+          endLine: toAbsoluteLine(findBlockEnd(lines, i)),
           signature: trimmed.replace(/\s*\{$/, ''),
           content: '',
         });
@@ -172,7 +176,7 @@ function extractSymbols(content: string, filePath: string): SymbolMatch[] {
           symbolName: goMethodMatch[1],
           symbolType: 'method',
           startLine: lineNum,
-          endLine: findBlockEnd(lines, i),
+          endLine: toAbsoluteLine(findBlockEnd(lines, i)),
           signature: trimmed.replace(/\s*\{$/, ''),
           content: '',
         });
@@ -187,7 +191,7 @@ function extractSymbols(content: string, filePath: string): SymbolMatch[] {
           symbolName: goTypeMatch[1],
           symbolType: 'type',
           startLine: lineNum,
-          endLine: findBlockEnd(lines, i),
+          endLine: toAbsoluteLine(findBlockEnd(lines, i)),
           signature: trimmed.replace(/\s*\{$/, ''),
           content: '',
         });
@@ -205,7 +209,7 @@ function extractSymbols(content: string, filePath: string): SymbolMatch[] {
           symbolName: rustFuncMatch[3],
           symbolType: 'function',
           startLine: lineNum,
-          endLine: findBlockEnd(lines, i),
+          endLine: toAbsoluteLine(findBlockEnd(lines, i)),
           signature: trimmed.replace(/\s*\{$/, ''),
           content: '',
         });
@@ -220,7 +224,7 @@ function extractSymbols(content: string, filePath: string): SymbolMatch[] {
           symbolName: rustStructMatch[3],
           symbolType: 'class',
           startLine: lineNum,
-          endLine: findBlockEnd(lines, i),
+          endLine: toAbsoluteLine(findBlockEnd(lines, i)),
           signature: trimmed.replace(/\s*\{$/, ''),
           content: '',
         });
@@ -235,7 +239,7 @@ function extractSymbols(content: string, filePath: string): SymbolMatch[] {
           symbolName: rustTraitMatch[2],
           symbolType: 'interface',
           startLine: lineNum,
-          endLine: findBlockEnd(lines, i),
+          endLine: toAbsoluteLine(findBlockEnd(lines, i)),
           signature: trimmed.replace(/\s*\{$/, ''),
           content: '',
         });
@@ -337,8 +341,8 @@ function searchSymbols(
 ): SymbolMatch[] {
   const { exact = false, limit = 20, sources } = options;
   
-  // Build SQL query
-  let sql = 'SELECT DISTINCT file_path, content FROM chunks';
+  // Build SQL query - include start_line for correct line number calculation
+  let sql = 'SELECT DISTINCT file_path, content, start_line FROM chunks';
   const params: string[] = [];
   
   if (sources && sources.length > 0) {
@@ -346,14 +350,16 @@ function searchSymbols(
     params.push(...sources);
   }
   
-  const rows = db.prepare(sql).all(...params) as Array<{ file_path: string; content: string }>;
+  const rows = db.prepare(sql).all(...params) as Array<{ file_path: string; content: string; start_line: number }>;
   
   // Extract and filter symbols
   const allSymbols: SymbolMatch[] = [];
   const queryLower = query.toLowerCase();
   
   for (const row of rows) {
-    const symbols = extractSymbols(row.content, row.file_path);
+    // Pass chunk's start_line so symbol line numbers are absolute, not relative
+    const chunkStartLine = row.start_line || 1;
+    const symbols = extractSymbols(row.content, row.file_path, chunkStartLine);
     
     for (const sym of symbols) {
       const nameLower = sym.symbolName.toLowerCase();
