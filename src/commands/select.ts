@@ -35,6 +35,7 @@ const VALID_FORMATS = ['markdown', 'xml', 'json', 'plain'] as const;
 const VALID_MODES = ['full', 'map'] as const;
 
 export const selectCommand = new Command('select')
+  .aliases(['search', 'query'])
   .description('Select context for a query')
   .argument('<query>', 'The query to find context for')
   .option('-b, --budget <tokens>', 'Maximum tokens to include', '8000')

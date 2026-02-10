@@ -9,6 +9,7 @@ import { getGlobalOpts } from '../utils/cli.js';
 import { loadCredentials } from '../auth/credentials.js';
 
 export const statusCommand = new Command('status')
+  .alias('info')
   .description('Show ContextKit project status')
   .action(async () => {
     const opts = getGlobalOpts(statusCommand);

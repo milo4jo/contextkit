@@ -221,8 +221,11 @@ function buildCallGraph(
     if (funcs.size > 0) {
       const existing = functionsByFile.get(row.file_path) || new Map();
       for (const [name, info] of funcs) {
-        // Store the chunk content so we can search for calls within this function
-        existing.set(name, { ...info, chunkContent: row.content });
+        // Only store if we don't already have this function
+        // (prevents chunk overlap from overwriting with wrong content/line numbers)
+        if (!existing.has(name)) {
+          existing.set(name, { ...info, chunkContent: row.content });
+        }
         allFunctions.add(name);
       }
       functionsByFile.set(row.file_path, existing);
@@ -255,7 +258,7 @@ function buildCallGraph(
   // Find callees (what targetName calls)
   const callees: CallGraphResult['callees'] = [];
   
-  for (const [_filePath, fileFuncs] of functionsByFile) {
+  for (const [, fileFuncs] of functionsByFile) {
     const targetFunc = fileFuncs.get(targetName);
     if (!targetFunc) continue;
     

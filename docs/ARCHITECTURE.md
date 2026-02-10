@@ -1,309 +1,484 @@
-# Architecture
+# ContextKit Cloud Architecture
 
-> Living document. Updated as design evolves.
-
-## Design Principles
-
-1. **Single Responsibility** — ContextKit selects context. Nothing more.
-2. **Separation of Concerns** — Clear boundaries between components
-3. **Dependency Inversion** — Abstract over storage, embeddings, etc.
-4. **Offline-First** — Core works locally, cloud enhances
-5. **Deterministic** — Same inputs → same outputs (for testing)
-6. **Observable** — Every decision is traceable
+> **Technical design for the B2B Enterprise Cloud Platform**
+> 
+> Version: 1.0 | Date: 2026-02-09 | Author: Milo 🦊
 
 ---
 
-## Core Concepts
+## Overview
 
-### Sources
-Where information comes from.
-
-```typescript
-interface Source {
-  id: string;
-  type: 'file' | 'directory' | 'api' | 'database';
-  uri: string;
-  config: SourceConfig;
-}
-```
-
-**Types:**
-- `file` — Single file (markdown, code, etc.)
-- `directory` — Folder of files
-- `api` — REST/GraphQL endpoint
-- `database` — SQL/NoSQL query
-
-### Chunks
-Atomic units of context.
-
-```typescript
-interface Chunk {
-  id: string;
-  sourceId: string;
-  content: string;
-  metadata: {
-    path?: string;
-    line?: number;
-    timestamp?: Date;
-    tokens: number;
-  };
-  embedding?: number[];
-}
-```
-
-### Layers
-Priority levels for context.
-
-```typescript
-enum Layer {
-  SYSTEM = 1,    // Always included, never trimmed
-  CRITICAL = 2,  // High priority, rarely trimmed
-  RELEVANT = 3,  // Query-relevant, may be trimmed
-  BACKGROUND = 4 // Nice to have, first to trim
-}
-```
-
-### Budget
-Token allocation.
-
-```typescript
-interface Budget {
-  total: number;          // Max tokens for context
-  reserved: {
-    system: number;       // Reserved for system layer
-    buffer: number;       // Safety margin
-  };
-}
-```
-
----
-
-## Component Architecture
+ContextKit Cloud transforms the local-first CLI into a multi-tenant cloud platform while maintaining full backward compatibility with local usage.
 
 ```
 ┌─────────────────────────────────────────────────────────────────┐
-│                        ContextKit Core                          │
-├─────────────────────────────────────────────────────────────────┤
-│                                                                 │
-│  ┌─────────────┐     ┌─────────────┐     ┌─────────────┐       │
-│  │   Ingester  │     │   Indexer   │     │  Selector   │       │
-│  │             │     │             │     │             │       │
-│  │ • Parse     │ ──▶ │ • Chunk     │ ──▶ │ • Score     │       │
-│  │ • Validate  │     │ • Embed     │     │ • Rank      │       │
-│  │ • Normalize │     │ • Store     │     │ • Fit       │       │
-│  └─────────────┘     └─────────────┘     └─────────────┘       │
+│                         CLIENTS                                  │
+│  ┌─────────┐  ┌─────────┐  ┌─────────┐  ┌─────────┐            │
+│  │   CLI   │  │ VS Code │  │ GitHub  │  │  REST   │            │
+│  │ (local) │  │  Ext    │  │ Action  │  │  API    │            │
+│  └────┬────┘  └────┬────┘  └────┬────┘  └────┬────┘            │
+│       │            │            │            │                   │
+│       ▼            └────────────┴────────────┘                   │
+│  ┌─────────┐                    │                                │
+│  │ SQLite  │              ┌─────▼─────┐                          │
+│  │ (local) │              │ Cloud API │                          │
+│  └─────────┘              └─────┬─────┘                          │
+│                                 │                                │
+└─────────────────────────────────┼────────────────────────────────┘
+                                  │
+┌─────────────────────────────────▼────────────────────────────────┐
+│                       CLOUD PLATFORM                             │
+│                                                                  │
+│  ┌──────────────────────────────────────────────────────────┐   │
+│  │                     API Gateway                           │   │
+│  │            (Auth, Rate Limiting, Routing)                 │   │
+│  └──────────────────────────┬───────────────────────────────┘   │
+│                             │                                    │
+│         ┌───────────────────┼───────────────────┐               │
 │         │                   │                   │               │
-│         └───────────────────┴───────────────────┘               │
-│                             │                                   │
-│                             ▼                                   │
-│                    ┌─────────────┐                              │
-│                    │  Formatter  │                              │
-│                    │             │                              │
-│                    │ • Structure │                              │
-│                    │ • Template  │                              │
-│                    │ • Output    │                              │
-│                    └─────────────┘                              │
-│                                                                 │
-├─────────────────────────────────────────────────────────────────┤
-│                        Adapters (Pluggable)                     │
-├───────────────┬───────────────┬───────────────┬─────────────────┤
-│   Embedding   │    Storage    │    Tokenizer  │     Output      │
-│   • OpenAI    │    • SQLite   │    • Tiktoken │     • Text      │
-│   • Voyage    │    • Postgres │    • Claude   │     • JSON      │
-│   • Local     │    • Memory   │    • Llama    │     • XML       │
-└───────────────┴───────────────┴───────────────┴─────────────────┘
+│    ┌────▼────┐        ┌─────▼─────┐      ┌─────▼─────┐         │
+│    │ Context │        │   Index   │      │ Analytics │         │
+│    │ Service │        │  Service  │      │  Service  │         │
+│    └────┬────┘        └─────┬─────┘      └─────┬─────┘         │
+│         │                   │                   │               │
+│         └───────────────────┼───────────────────┘               │
+│                             │                                    │
+│  ┌──────────────────────────▼───────────────────────────────┐   │
+│  │                     DATA LAYER                            │   │
+│  │  ┌────────────┐  ┌────────────┐  ┌────────────┐          │   │
+│  │  │ PostgreSQL │  │   Qdrant   │  │  R2/S3     │          │   │
+│  │  │ (metadata) │  │ (vectors)  │  │ (files)    │          │   │
+│  │  └────────────┘  └────────────┘  └────────────┘          │   │
+│  └──────────────────────────────────────────────────────────┘   │
+│                                                                  │
+└──────────────────────────────────────────────────────────────────┘
 ```
 
 ---
 
-## Data Flow
+## Multi-Tenancy Model
+
+### Tenant Hierarchy
 
 ```
-┌──────────────────────────────────────────────────────────────┐
-│ 1. INGEST                                                    │
-│    Sources → Chunks                                          │
-│    • Read files/APIs                                         │
-│    • Parse content                                           │
-│    • Extract metadata                                        │
-└──────────────────────────────────────────────────────────────┘
-                              ↓
-┌──────────────────────────────────────────────────────────────┐
-│ 2. INDEX                                                     │
-│    Chunks → Indexed Chunks                                   │
-│    • Generate embeddings                                     │
-│    • Store in vector DB                                      │
-│    • Build search index                                      │
-└──────────────────────────────────────────────────────────────┘
-                              ↓
-┌──────────────────────────────────────────────────────────────┐
-│ 3. SELECT (per query)                                        │
-│    Query + Budget → Ranked Chunks                            │
-│    • Parse query intent                                      │
-│    • Retrieve candidates (embedding search)                  │
-│    • Score by multiple signals (relevance, recency, etc.)    │
-│    • Rank and fit to budget                                  │
-└──────────────────────────────────────────────────────────────┘
-                              ↓
-┌──────────────────────────────────────────────────────────────┐
-│ 4. FORMAT                                                    │
-│    Ranked Chunks → Structured Context                        │
-│    • Order by layer/priority                                 │
-│    • Apply template                                          │
-│    • Output as string/JSON                                   │
-└──────────────────────────────────────────────────────────────┘
+Organization (tenant)
+├── Users (members)
+│   ├── Owner (1)
+│   ├── Admins (0+)
+│   └── Members (0+)
+├── Projects (0+)
+│   ├── Sources (directories to index)
+│   ├── Index (chunks + embeddings)
+│   └── Settings (config)
+└── API Keys (0+)
+    ├── Scopes (projects, permissions)
+    └── Usage (queries, limits)
 ```
+
+### Isolation Strategy
+
+| Layer | Isolation Method |
+|-------|------------------|
+| **API** | API key → org_id lookup, all queries scoped |
+| **PostgreSQL** | Row-level security (RLS) with `org_id` column |
+| **Qdrant** | Separate collection per organization |
+| **R2/S3** | Prefix: `orgs/{org_id}/projects/{project_id}/` |
+
+### Security Boundaries
+
+1. **API Key Scoping**
+   - Each API key belongs to one organization
+   - Keys can be scoped to specific projects
+   - Permissions: `read`, `write`, `admin`
+
+2. **Row-Level Security (PostgreSQL)**
+   ```sql
+   CREATE POLICY tenant_isolation ON projects
+     USING (org_id = current_setting('app.current_org_id')::uuid);
+   ```
+
+3. **Vector Isolation (Qdrant)**
+   - Collection naming: `org_{org_id}`
+   - No cross-collection queries possible
+   - Alternative: Single collection with `org_id` payload filter
 
 ---
 
-## Public API
+## Database Schema
 
-### Core Interface
+### PostgreSQL Tables
+
+```sql
+-- Organizations (tenants)
+CREATE TABLE organizations (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  name TEXT NOT NULL,
+  slug TEXT UNIQUE NOT NULL,
+  plan TEXT NOT NULL DEFAULT 'free', -- free, pro, team, enterprise
+  stripe_customer_id TEXT,
+  created_at TIMESTAMPTZ DEFAULT NOW(),
+  updated_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- Users
+CREATE TABLE users (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  email TEXT UNIQUE NOT NULL,
+  name TEXT,
+  avatar_url TEXT,
+  created_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- Organization memberships
+CREATE TABLE org_members (
+  org_id UUID REFERENCES organizations(id) ON DELETE CASCADE,
+  user_id UUID REFERENCES users(id) ON DELETE CASCADE,
+  role TEXT NOT NULL DEFAULT 'member', -- owner, admin, member
+  created_at TIMESTAMPTZ DEFAULT NOW(),
+  PRIMARY KEY (org_id, user_id)
+);
+
+-- Projects
+CREATE TABLE projects (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  org_id UUID REFERENCES organizations(id) ON DELETE CASCADE,
+  name TEXT NOT NULL,
+  slug TEXT NOT NULL,
+  description TEXT,
+  settings JSONB DEFAULT '{}',
+  created_at TIMESTAMPTZ DEFAULT NOW(),
+  updated_at TIMESTAMPTZ DEFAULT NOW(),
+  UNIQUE (org_id, slug)
+);
+
+-- API Keys
+CREATE TABLE api_keys (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  org_id UUID REFERENCES organizations(id) ON DELETE CASCADE,
+  name TEXT NOT NULL,
+  key_hash TEXT NOT NULL, -- SHA-256 of the key
+  key_prefix TEXT NOT NULL, -- First 8 chars for identification
+  scopes JSONB DEFAULT '[]', -- ["project:read", "project:write"]
+  project_ids UUID[] DEFAULT '{}', -- Empty = all projects
+  last_used_at TIMESTAMPTZ,
+  expires_at TIMESTAMPTZ,
+  created_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- Index metadata (what files are indexed)
+CREATE TABLE indexed_files (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  project_id UUID REFERENCES projects(id) ON DELETE CASCADE,
+  file_path TEXT NOT NULL,
+  content_hash TEXT NOT NULL,
+  chunk_count INTEGER NOT NULL,
+  indexed_at TIMESTAMPTZ DEFAULT NOW(),
+  UNIQUE (project_id, file_path)
+);
+
+-- Usage tracking
+CREATE TABLE usage_events (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  org_id UUID REFERENCES organizations(id) ON DELETE CASCADE,
+  api_key_id UUID REFERENCES api_keys(id) ON DELETE SET NULL,
+  event_type TEXT NOT NULL, -- 'query', 'index', 'sync'
+  project_id UUID,
+  tokens_used INTEGER,
+  duration_ms INTEGER,
+  created_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- Usage aggregates (for billing)
+CREATE TABLE usage_monthly (
+  org_id UUID REFERENCES organizations(id) ON DELETE CASCADE,
+  month DATE NOT NULL, -- First day of month
+  queries INTEGER DEFAULT 0,
+  tokens INTEGER DEFAULT 0,
+  storage_bytes BIGINT DEFAULT 0,
+  PRIMARY KEY (org_id, month)
+);
+
+-- Indexes
+CREATE INDEX idx_projects_org ON projects(org_id);
+CREATE INDEX idx_api_keys_org ON api_keys(org_id);
+CREATE INDEX idx_api_keys_prefix ON api_keys(key_prefix);
+CREATE INDEX idx_usage_events_org_created ON usage_events(org_id, created_at);
+CREATE INDEX idx_indexed_files_project ON indexed_files(project_id);
+```
+
+### Qdrant Collections
 
 ```typescript
-interface ContextKit {
-  // Setup
-  addSource(source: Source): Promise<void>;
-  removeSource(id: string): Promise<void>;
-  
-  // Index management
-  index(): Promise<IndexStats>;
-  reindex(sourceId?: string): Promise<void>;
-  
-  // Selection (the main function)
-  select(options: SelectOptions): Promise<SelectResult>;
-  
-  // Observability
-  explain(resultId: string): Explanation;
-}
+// Collection per organization
+const collectionConfig = {
+  name: `org_${orgId}`,
+  vectors: {
+    size: 384, // gte-small dimension
+    distance: "Cosine"
+  },
+  payload_schema: {
+    project_id: "keyword",
+    file_path: "keyword",
+    chunk_index: "integer",
+    start_line: "integer",
+    end_line: "integer"
+  }
+};
 
-interface SelectOptions {
-  query: string;
-  budget: number;
-  layers?: Layer[];
-  sources?: string[];       // Filter to specific sources
-  includeMetadata?: boolean;
-}
-
-interface SelectResult {
-  id: string;               // For tracking/explain
-  context: string;          // The formatted context
-  chunks: ChunkInfo[];      // What was included
-  stats: {
-    totalTokens: number;
-    chunksConsidered: number;
-    chunksIncluded: number;
-    processingTimeMs: number;
-  };
-}
+// Query with project filter
+const searchParams = {
+  collection: `org_${orgId}`,
+  vector: queryEmbedding,
+  filter: {
+    must: [
+      { key: "project_id", match: { value: projectId } }
+    ]
+  },
+  limit: 20
+};
 ```
 
-### CLI Interface
+---
 
-```bash
-# Initialize in a project
-contextkit init
+## API Design
 
-# Add sources
-contextkit source add ./src --type directory
-contextkit source add ./docs --type directory
+### Authentication
 
-# Index sources
-contextkit index
-
-# Select context for a query
-contextkit select "How does authentication work?" --budget 8000
-
-# Explain a selection
-contextkit explain <result-id>
 ```
+Authorization: Bearer ck_live_xxxxxxxxxxxxxxxxxxxx
+              └─ prefix ─┘└─── random (32 chars) ───┘
+```
+
+**Key format:**
+- `ck_live_` — Production key
+- `ck_test_` — Test/development key
+- 32 random alphanumeric characters
+
+**Validation flow:**
+1. Extract key prefix (first 8 chars after `ck_`)
+2. Look up key by prefix in `api_keys` table
+3. Verify full key hash matches
+4. Check expiration, scopes, project access
+5. Set `org_id` in request context
+
+### Rate Limiting
+
+| Plan | Requests/min | Queries/month |
+|------|--------------|---------------|
+| Free | 20 | 1,000 |
+| Pro | 100 | 50,000 |
+| Team | 500 | Unlimited |
+| Enterprise | Custom | Unlimited |
+
+**Implementation:** Redis (Upstash) with sliding window
+
+```typescript
+const rateLimitKey = `ratelimit:${orgId}:${minute}`;
+const count = await redis.incr(rateLimitKey);
+if (count === 1) await redis.expire(rateLimitKey, 60);
+if (count > limit) throw new RateLimitError();
+```
+
+### Endpoints
+
+See `api/openapi.yaml` for full specification.
+
+**Core endpoints:**
+- `POST /v1/context/select` — Get relevant context
+- `POST /v1/index/sync` — Upload and index codebase
+- `GET /v1/projects` — List projects
+- `POST /v1/projects` — Create project
+- `GET /v1/symbols/search` — Search by symbol name
+- `GET /v1/graph/calls` — Get call graph
 
 ---
 
 ## Storage Architecture
 
-### Local Mode (Default)
+### Local (CLI)
+
 ```
-~/.contextkit/
-├── config.yaml           # Global config
-└── projects/
-    └── <project-hash>/
-        ├── index.db      # SQLite with chunks + embeddings
-        └── cache/        # Embedding cache
+.contextkit/
+├── config.yaml          # Project config
+├── index.db             # SQLite (chunks + embeddings)
+└── cache/               # Query cache
 ```
 
-### Cloud Mode (Optional)
-- Hosted API for heavy lifting
-- Sync local ↔ cloud
-- Team collaboration features
+### Cloud
+
+```
+PostgreSQL (Neon)
+├── organizations
+├── projects
+├── api_keys
+├── indexed_files
+└── usage_*
+
+Qdrant Cloud
+├── org_{uuid}/          # Collection per org
+│   └── vectors          # Embeddings with project_id payload
+
+Cloudflare R2
+└── orgs/{org_id}/
+    └── projects/{project_id}/
+        ├── index.db     # SQLite backup (optional)
+        └── files/       # Original files (optional)
+```
 
 ---
 
-## Error Handling
+## Embedding Strategy
+
+### Cloud Embeddings
+
+**Option chosen:** OpenAI text-embedding-3-small
+
+| Factor | OpenAI | Self-hosted |
+|--------|--------|-------------|
+| Latency | ~200ms | 1-5s (CPU) |
+| Cost | $0.02/1M tokens | $200/mo server |
+| Scaling | Automatic | Manual |
+| Quality | Excellent | Good (gte-small) |
+
+**Cost projection:**
+- Average query: ~500 tokens
+- 50k queries/month: 25M tokens = $0.50/month
+- Indexing 100k LOC: ~2M tokens = $0.04
+
+### Caching
+
+1. **Query cache:** Same query → same results (1 hour TTL)
+2. **Embedding cache:** Same text → same embedding (permanent)
+3. **Index cache:** File unchanged → skip re-embedding
+
+---
+
+## Deployment
+
+### Infrastructure (Cloudflare + Neon + Qdrant)
+
+```yaml
+# Production Stack
+API:
+  provider: Cloudflare Workers
+  regions: Global edge
+  
+Database:
+  provider: Neon
+  plan: Scale (auto-scaling)
+  region: us-east-1
+  
+Vectors:
+  provider: Qdrant Cloud
+  plan: Starter (1GB free)
+  region: us-east-1
+  
+Storage:
+  provider: Cloudflare R2
+  egress: Free
+  
+Redis:
+  provider: Upstash
+  plan: Pay-as-you-go
+```
+
+### Cost Estimate (1000 users)
+
+| Service | Monthly Cost |
+|---------|--------------|
+| Cloudflare Workers | $5 |
+| Neon (Scale) | $19 |
+| Qdrant (1GB) | $0 (free tier) |
+| R2 (10GB) | $1.50 |
+| Upstash Redis | $5 |
+| OpenAI Embeddings | $10 |
+| **Total** | **~$40/month** |
+
+---
+
+## Migration Path
+
+### Phase 1: Abstraction Layer (Current)
 
 ```typescript
-// All errors extend ContextKitError
-class ContextKitError extends Error {
-  code: string;
-  recoverable: boolean;
+// Storage interface
+interface StorageAdapter {
+  getChunks(projectId: string): Promise<Chunk[]>;
+  storeChunks(projectId: string, chunks: Chunk[]): Promise<void>;
+  searchSimilar(embedding: number[], limit: number): Promise<Chunk[]>;
 }
 
-// Specific errors
-class SourceNotFoundError extends ContextKitError {}
-class BudgetExceededError extends ContextKitError {}
-class IndexNotReadyError extends ContextKitError {}
-class EmbeddingFailedError extends ContextKitError {}
+// Local implementation
+class SQLiteAdapter implements StorageAdapter { ... }
+
+// Cloud implementation  
+class CloudAdapter implements StorageAdapter { ... }
 ```
 
-**Strategy:**
-- Fail fast for configuration errors
-- Graceful degradation for runtime errors
-- Always return partial results when possible
+### Phase 2: CLI Flag
+
+```bash
+# Local (default)
+contextkit select "auth middleware"
+
+# Cloud
+contextkit select "auth middleware" --cloud
+# or
+CONTEXTKIT_CLOUD=true contextkit select "auth middleware"
+```
+
+### Phase 3: Seamless Sync
+
+```bash
+# Push local index to cloud
+contextkit cloud push
+
+# Pull cloud index to local
+contextkit cloud pull
+
+# Auto-sync mode
+contextkit cloud sync --watch
+```
 
 ---
 
-## Caching Strategy
+## Security Checklist
 
-| What | Where | TTL | Invalidation |
-|------|-------|-----|--------------|
-| Embeddings | Local SQLite | Forever | On content change |
-| Index | Local SQLite | Forever | On reindex |
-| Query results | Memory | 5 min | Manual or TTL |
-
----
-
-## Security Considerations
-
-- **API Keys**: Stored in OS keychain, never in config files
-- **Source Access**: Respects file system permissions
-- **Cloud Sync**: E2E encrypted, opt-in only
-- **No Telemetry**: By default, nothing phones home
+- [ ] API keys hashed with SHA-256 (never stored plaintext)
+- [ ] Rate limiting per org and per key
+- [ ] Row-level security in PostgreSQL
+- [ ] Tenant isolation in Qdrant (separate collections)
+- [ ] HTTPS only (Cloudflare automatic)
+- [ ] Input validation (Zod schemas)
+- [ ] SQL injection prevention (parameterized queries)
+- [ ] Audit logging for sensitive operations
+- [ ] Secret scanning in CI/CD
+- [ ] Dependency vulnerability scanning
 
 ---
 
-## Tech Stack
+## Monitoring
 
-| Component | Choice | Rationale |
-|-----------|--------|-----------|
-| Language | TypeScript | DX, ecosystem, cross-platform |
-| Local Storage | SQLite + sqlite-vss | Portable, no deps |
-| Default Embeddings | Local model (gte-small) | Offline-first |
-| Tokenizer | tiktoken (WASM) | Accurate, fast |
-| CLI Framework | Commander.js | Standard, stable |
+### Metrics (Prometheus/Grafana)
+
+- `api_requests_total{endpoint, status}`
+- `api_latency_seconds{endpoint}`
+- `index_operations_total{org_id}`
+- `query_tokens_total{org_id}`
+- `active_organizations`
+- `storage_bytes{org_id}`
+
+### Alerts
+
+| Alert | Condition | Severity |
+|-------|-----------|----------|
+| High error rate | 5xx > 1% for 5min | Critical |
+| High latency | p95 > 2s for 10min | Warning |
+| Rate limit spike | 429s > 100/min | Warning |
+| Database connections | > 80% pool | Warning |
+| Qdrant unhealthy | Health check fails | Critical |
 
 ---
 
-## Testing Strategy
-
-- **Unit Tests**: Every component in isolation
-- **Integration Tests**: Full flow with fixtures
-- **Snapshot Tests**: Context output stability
-- **Determinism Tests**: Same input → same output
-- **Performance Tests**: Selection under <100ms for typical queries
-
----
-
-## Open Questions
-
-- [ ] How to handle very large codebases (>100K files)?
-- [ ] Incremental indexing vs full reindex?
-- [ ] Plugin system for custom scorers?
+*Document Owner: Milo 🦊*
+*Last Updated: 2026-02-09*

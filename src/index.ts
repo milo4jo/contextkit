@@ -104,15 +104,15 @@ Commands:
   init          Initialize ContextKit in current directory
   source        Manage source directories
   index         Index all sources (incremental by default)
-  select        Select context for a query
-  symbol        Search for symbols by name
+  select        Select context for a query (aliases: search, query)
+  symbol        Search for symbols by name (alias: find)
   graph         Show call graph for a function
   cache         Manage query cache
   watch         Watch sources and auto-reindex on changes
   mcp           Start MCP server for AI assistants
   doctor        Diagnose setup issues
   cloud         Sync with ContextKit Cloud
-  status        Show project status
+  status        Show project status (alias: info)
 
 Global Options:
   --json        Output as JSON

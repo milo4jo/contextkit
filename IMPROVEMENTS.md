@@ -4,16 +4,18 @@
 
 ## 🐛 Bugs to Fix
 
-### 1. Call Graph Returns Wrong Data
+### 1. Call Graph Returns Wrong Data ✅ FIXED
 **Priority:** High
 **Issue:** `contextkit graph "login"` shows incorrect callers
 **Expected:** Should show `authenticate` calls `login`
 **Actual:** Shows `generateToken` calls `login` (wrong)
+**Fix:** Chunk overlap was overwriting function entries. Now skip if already exists.
 
-### 2. Symbol Line Numbers Off
+### 2. Symbol Line Numbers Off ✅ FIXED
 **Priority:** Medium
 **Issue:** `contextkit symbol "AuthService"` shows "line 1" instead of actual line
 **Expected:** Should show correct line number (line 9)
+**Fix:** Now uses chunk's start_line from database to calculate absolute line numbers.
 
 ### 3. --explain Flag Doesn't Explain
 **Priority:** Medium
@@ -48,12 +50,13 @@
 **Current:** Shows internal lines like `const token = ...`
 **Proposed:** Only show actual signatures (functions, classes, exports)
 
-### 4. Add Command Aliases
+### 4. Add Command Aliases ✅ DONE
 **Impact:** Low (convenience)
 ```
-contextkit search → contextkit select
-contextkit find → contextkit symbol  
-contextkit info → contextkit status
+contextkit search → contextkit select ✅
+contextkit query → contextkit select ✅
+contextkit find → contextkit symbol ✅
+contextkit info → contextkit status ✅
 ```
 
 ### 5. Better Error Messages
@@ -125,11 +128,11 @@ contextkit history --run 3  # Re-run query #3
 
 | Task | Effort | Impact |
 |------|--------|--------|
-| Fix `--explain` to show scores | 2h | Medium |
-| Add `--copy` clipboard flag | 1h | High |
-| Add `contextkit status` | 2h | Medium |
-| Fix error messages with suggestions | 1h | Medium |
-| Add aliases (search, find, info) | 30min | Low |
+| ~~Fix `--explain` to show scores~~ | ✅ | Done |
+| ~~Add `--copy` clipboard flag~~ | ✅ | Done |
+| ~~Add `contextkit status`~~ | ✅ | Done |
+| ~~Fix error messages with suggestions~~ | ✅ | Done |
+| ~~Add aliases (search, find, info)~~ | ✅ | Done |
 
 ---
 
@@ -142,8 +145,8 @@ contextkit history --run 3  # Re-run query #3
 4. ✅ Better error messages
 
 ### Next Week
-1. Fix call graph accuracy
-2. Fix symbol line numbers
+1. ~~Fix call graph accuracy~~ ✅ Done
+2. ~~Fix symbol line numbers~~ ✅ Done
 3. Interactive mode (MVP)
 
 ### Later
