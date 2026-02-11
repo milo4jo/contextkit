@@ -7,7 +7,7 @@
 [![npm downloads](https://img.shields.io/npm/dw/@milo4jo/contextkit)](https://www.npmjs.com/package/@milo4jo/contextkit)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
-**🆕 v0.6.3:** Cloud Sync + Doctor command! Run `contextkit doctor` to diagnose setup issues.
+**🆕 v0.6.6:** Interactive mode, diff command, and export/import for index sharing!
 
 ---
 
@@ -262,6 +262,74 @@ contextkit graph "handlePayment"
    → validateCard (src/payments/validation.ts)
    → chargeCard (src/payments/stripe.ts)
    → sendReceipt (src/notifications/email.ts)
+```
+
+### `contextkit interactive` (alias: `i`)
+
+REPL-style mode for exploring context without re-initializing for each query.
+
+```bash
+contextkit interactive              # Start interactive mode
+contextkit i                        # Short alias
+contextkit i --budget 4000          # Set default token budget
+```
+
+**Available commands in interactive mode:**
+```
+contextkit> authentication          # Select context (default)
+contextkit> /symbol UserService     # Find symbols
+contextkit> /graph handlePayment    # Show call graph
+contextkit> /diff                   # Show changes since last index
+contextkit> /status                 # Project status
+contextkit> /help                   # Show all commands
+contextkit> /exit                   # Exit
+```
+
+### `contextkit diff`
+
+Show what has changed since the last index. Helps decide if re-indexing is needed.
+
+```bash
+contextkit diff                     # Show all changes
+contextkit diff --source src        # Check specific source
+```
+
+**Output:**
+```
+📊 Changes since last index
+
+📁 src (2 modified, 1 added, 0 removed)
+  Modified:
+    • src/auth/middleware.ts (3 chunks)
+    • src/utils/helpers.ts (2 chunks)
+  Added:
+    + src/services/new-service.ts
+
+💡 Run 'contextkit index' to update
+```
+
+### `contextkit export`
+
+Export your index to a JSON file for sharing or backup.
+
+```bash
+contextkit export                        # Export to contextkit-export.json
+contextkit export my-index.json          # Export to custom file
+contextkit export --no-embeddings        # Smaller file, but requires re-indexing
+```
+
+Useful for:
+- Sharing indexes with teammates
+- Backing up before major changes
+- Migrating to another machine
+
+### `contextkit import`
+
+Import an index from a JSON export file.
+
+```bash
+contextkit import my-index.json          # Import index
+contextkit import backup.json --force    # Overwrite existing without asking
 ```
 
 ---
