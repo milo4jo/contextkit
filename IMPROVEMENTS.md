@@ -102,13 +102,14 @@ Run 'contextkit index' to update.
 ```
 **Status:** Shipped in v0.6.5 — also available in interactive mode as `/diff`
 
-### 3. Export/Import Index
+### 3. Export/Import Index ✅ DONE
 **Impact:** Medium
 **Commands:**
 ```bash
 contextkit export > index.json  # For debugging/sharing
 contextkit import index.json    # Restore from export
 ```
+**Status:** Shipped in v0.6.6
 
 ### 4. Config Presets
 **Impact:** Medium

@@ -31,7 +31,7 @@ Add to `claude_desktop_config.json`:
 
 Now you can just ask Claude: "Find the code related to authentication" and it will use the tool to get the right context.
 
-Open source: https://github.com/milo4jo/pixtools
+Open source: https://github.com/milo4jo/contextkit
 
 What do you think? Any features you'd want?
 
@@ -65,7 +65,7 @@ contextkit select "How does error handling work?"
 
 It outputs formatted markdown with the relevant code chunks, ready to paste into any LLM chat.
 
-Open source (MIT): https://github.com/milo4jo/pixtools
+Open source (MIT): https://github.com/milo4jo/contextkit
 
 Feedback welcome!
 
@@ -97,7 +97,7 @@ Outputs the exact files and functions related to auth, formatted and ready to pa
 - Token-budget aware (you specify the limit, it optimizes)
 - MCP server (for Claude Desktop integration)
 
-It's open source: https://github.com/milo4jo/pixtools
+It's open source: https://github.com/milo4jo/contextkit
 
 I'm curious — how do you currently manage context when using AI for coding?
 
@@ -128,7 +128,7 @@ Key design decisions:
 
 Tech: TypeScript, gte-small for embeddings (runs locally via onnxruntime), SQLite for the index.
 
-Open source (MIT): https://github.com/milo4jo/pixtools
+Open source (MIT): https://github.com/milo4jo/contextkit
 
 I'm particularly interested in feedback on:
 1. The MCP integration — is this the right direction for tool UX?
@@ -179,7 +179,7 @@ Key design decisions:
 ✅ MCP integration (Claude Desktop support)
 
 **Tweet 5:**
-Open source (MIT): github.com/milo4jo/pixtools
+Open source (MIT): github.com/milo4jo/contextkit
 
 Install:
 ```

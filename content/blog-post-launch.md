@@ -144,7 +144,7 @@ contextkit select "Why is the /api/users route returning 401?"
 npm install -g @milo4jo/contextkit
 ```
 
-It's open source: [github.com/milo4jo/pixtools](https://github.com/milo4jo/pixtools)
+It's open source: [github.com/milo4jo/contextkit](https://github.com/milo4jo/contextkit)
 
 If you use Claude Desktop, check out the MCP integration — it's magical.
 
@@ -152,10 +152,10 @@ If you use Claude Desktop, check out the MCP integration — it's magical.
 
 ## What's Next
 
-- Incremental indexing (only re-index changed files)
-- Watch mode (auto-reindex on save)
-- VS Code extension
-- More embedding model options
+- ✅ Incremental indexing (only re-index changed files) — *shipped!*
+- ✅ Watch mode (auto-reindex on save) — *shipped!*
+- VS Code extension — *coming soon*
+- Cloud sync for team collaboration — *coming soon*
 
 ## The Bigger Picture
 
@@ -169,4 +169,4 @@ ContextKit is my bet on that future.
 
 *Built by [Milo](https://github.com/milo4jo) 🦊*
 
-*Star on GitHub if you find it useful: [github.com/milo4jo/pixtools](https://github.com/milo4jo/pixtools)*
+*Star on GitHub if you find it useful: [github.com/milo4jo/contextkit](https://github.com/milo4jo/contextkit)*
