@@ -7,6 +7,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.6.6] - 2026-02-11
+
+### Added
+- **Export/Import Commands** — Share and backup your indexes
+  - `contextkit export [output]` — Export index to JSON file
+  - `contextkit import <file>` — Import index from JSON export
+  - `--no-embeddings` flag to reduce export size (requires re-indexing on import)
+  - `--force` flag to overwrite existing index on import
+  - `--merge` flag to add imported sources to existing index
+
 ## [0.6.5] - 2026-02-11
 
 ### Added
