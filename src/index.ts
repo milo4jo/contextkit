@@ -17,6 +17,7 @@ import { doctorCommand } from './commands/doctor.js';
 import { cloudCommand } from './commands/cloud/index.js';
 import { statusCommand } from './commands/status.js';
 import { interactiveCommand } from './commands/interactive.js';
+import { diffCommand } from './commands/diff.js';
 import { ContextKitError, InvalidUsageError } from './errors/index.js';
 import { writeError, writeMessage } from './utils/streams.js';
 
@@ -90,6 +91,7 @@ program.addCommand(doctorCommand);
 program.addCommand(cloudCommand);
 program.addCommand(statusCommand);
 program.addCommand(interactiveCommand);
+program.addCommand(diffCommand);
 
 // Default action when no command given
 program.action(() => {
@@ -110,6 +112,7 @@ Commands:
   symbol        Search for symbols by name (alias: find)
   graph         Show call graph for a function
   interactive   REPL mode for exploring context (aliases: i, repl)
+  diff          Show changes since last index
   cache         Manage query cache
   watch         Watch sources and auto-reindex on changes
   mcp           Start MCP server for AI assistants

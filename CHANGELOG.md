@@ -7,6 +7,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.6.5] - 2026-02-11
+
+### Added
+- **Diff Command** — Shows what has changed since last index
+  - `contextkit diff` — List modified, added, and removed files
+  - Shows affected chunk counts for each file
+  - Available in interactive mode as `/diff`
+  - Supports `--source` filter and `--json` output
+- New formatting utilities: `formatSuccess`, `formatWarning`, `formatError`
+
 ## [0.6.4] - 2026-02-11
 
 ### Added

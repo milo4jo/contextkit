@@ -88,7 +88,7 @@ Type a query, press Enter. Type 'exit' to quit.
 ```
 **Status:** Shipped in v0.6.4 — includes /select, /symbol, /graph, /status, /clear, /copy, /last, /help, /exit
 
-### 2. Diff Mode
+### 2. Diff Mode ✅ DONE
 **Impact:** Medium
 **Command:** `contextkit diff`
 Shows what changed since last index:
@@ -100,6 +100,7 @@ Changed files:
 
 Run 'contextkit index' to update.
 ```
+**Status:** Shipped in v0.6.5 — also available in interactive mode as `/diff`
 
 ### 3. Export/Import Index
 **Impact:** Medium
@@ -152,7 +153,7 @@ contextkit history --run 3  # Re-run query #3
 3. ~~Interactive mode (MVP)~~ ✅ Done
 
 ### Later
-1. Diff mode
+1. ~~Diff mode~~ ✅ Done
 2. Export/import
 3. Config presets
 4. Query history
@@ -204,4 +205,4 @@ Health:      All good ✓
 
 ---
 
-*Last updated: 2026-02-08*
+*Last updated: 2026-02-11*

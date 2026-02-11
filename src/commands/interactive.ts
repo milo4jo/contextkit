@@ -16,11 +16,12 @@
 
 import { Command } from 'commander';
 import { createInterface } from 'readline';
-import { ensureInitialized } from '../config/index.js';
+import { ensureInitialized, loadConfig } from '../config/index.js';
 import { openDatabase } from '../db/index.js';
 import { selectContext, type SelectOptions } from '../selector/index.js';
 import { searchSymbols, formatSymbolOutput } from './symbol.js';
 import { buildCallGraph, formatCallGraph } from './graph.js';
+import { discoverFiles } from '../indexer/discovery.js';
 import { writeMessage, writeError } from '../utils/streams.js';
 import chalk from 'chalk';
 import type Database from 'better-sqlite3';
@@ -31,6 +32,7 @@ ${chalk.bold.cyan('🎯 ContextKit Interactive Mode')}
 ${chalk.dim('Type a query to select context, or use commands:')}
 ${chalk.dim('  /symbol <name>  - Find symbols')}
 ${chalk.dim('  /graph <func>   - Show call graph')}
+${chalk.dim('  /diff           - Show changes since last index')}
 ${chalk.dim('  /status         - Project status')}
 ${chalk.dim('  /help           - Show all commands')}
 ${chalk.dim('  /exit           - Exit')}
@@ -60,6 +62,7 @@ ${chalk.bold('Available Commands:')}
   ${chalk.cyan('/select <query>')}   Explicitly select context
   ${chalk.cyan('/symbol <name>')}    Search for symbols by name
   ${chalk.cyan('/graph <func>')}     Show call graph for a function
+  ${chalk.cyan('/diff')}             Show changes since last index
   ${chalk.cyan('/status')}           Show project status
   ${chalk.cyan('/clear')}            Clear the screen
   ${chalk.cyan('/last')}             Re-show last results
@@ -136,6 +139,118 @@ ${chalk.bold('📊 Project Status')}
 }
 
 /**
+ * Show diff info - what has changed since last index
+ */
+async function showDiffInfo(db: Database.Database, projectDir: string): Promise<string | null> {
+  const config = loadConfig();
+
+  if (config.sources.length === 0) {
+    console.log(chalk.dim('No sources configured'));
+    return null;
+  }
+
+  let output = '';
+  let totalModified = 0;
+  let totalAdded = 0;
+  let totalRemoved = 0;
+
+  for (const source of config.sources) {
+    // Get stored files
+    const storedRows = db.prepare(`
+      SELECT file_path, content_hash FROM files WHERE source_id = ?
+    `).all(source.id) as Array<{ file_path: string; content_hash: string }>;
+
+    const storedFiles = new Map<string, string>();
+    for (const row of storedRows) {
+      storedFiles.set(row.file_path, row.content_hash);
+    }
+
+    // Get chunk counts per file
+    const chunkRows = db.prepare(`
+      SELECT file_path, COUNT(*) as count FROM chunks WHERE source_id = ? GROUP BY file_path
+    `).all(source.id) as Array<{ file_path: string; count: number }>;
+
+    const chunkCounts = new Map<string, number>();
+    for (const row of chunkRows) {
+      chunkCounts.set(row.file_path, row.count);
+    }
+
+    // Discover current files
+    const discovery = discoverFiles(source, projectDir);
+    const currentPaths = new Set<string>();
+
+    const modified: Array<{ path: string; chunks?: number }> = [];
+    const added: string[] = [];
+    const removed: Array<{ path: string; chunks: number }> = [];
+
+    for (const file of discovery.files) {
+      currentPaths.add(file.relativePath);
+      const storedHash = storedFiles.get(file.relativePath);
+
+      if (!storedHash) {
+        added.push(file.relativePath);
+      } else if (storedHash !== file.contentHash) {
+        modified.push({
+          path: file.relativePath,
+          chunks: chunkCounts.get(file.relativePath),
+        });
+      }
+    }
+
+    for (const [path] of storedFiles) {
+      if (!currentPaths.has(path)) {
+        removed.push({
+          path,
+          chunks: chunkCounts.get(path) ?? 0,
+        });
+      }
+    }
+
+    totalModified += modified.length;
+    totalAdded += added.length;
+    totalRemoved += removed.length;
+
+    if (modified.length > 0 || added.length > 0 || removed.length > 0) {
+      output += chalk.cyan(`[${source.id}]\n`);
+
+      for (const file of modified) {
+        const chunks = file.chunks ? chalk.dim(` (${file.chunks} chunks affected)`) : '';
+        output += `  ${chalk.yellow('M')} ${file.path}${chunks}\n`;
+      }
+
+      for (const file of added) {
+        output += `  ${chalk.green('A')} ${file}\n`;
+      }
+
+      for (const file of removed) {
+        const chunks = file.chunks > 0 ? chalk.dim(` (${file.chunks} chunks)`) : '';
+        output += `  ${chalk.red('D')} ${file.path}${chunks}\n`;
+      }
+
+      output += '\n';
+    }
+  }
+
+  if (totalModified === 0 && totalAdded === 0 && totalRemoved === 0) {
+    console.log(chalk.green('\n✓ Index is up to date\n'));
+    return null;
+  }
+
+  console.log(`\n${chalk.bold('Changes since last index:')}\n`);
+  console.log(output);
+
+  const parts = [];
+  if (totalModified > 0) parts.push(chalk.yellow(`${totalModified} modified`));
+  if (totalAdded > 0) parts.push(chalk.green(`${totalAdded} added`));
+  if (totalRemoved > 0) parts.push(chalk.red(`${totalRemoved} removed`));
+
+  console.log(chalk.dim(`Summary: ${parts.join(', ')}`));
+  console.log(`\nRun ${chalk.cyan('contextkit index')} to update the index.\n`);
+
+  return output;
+}
+
+/**
  * Handle a command in interactive mode
  */
 async function handleCommand(input: string, state: SessionState): Promise<boolean> {
@@ -170,6 +285,20 @@ async function handleCommand(input: string, state: SessionState): Promise<boolea
       showStatusInfo(state.db, state.projectDir);
     } catch (err) {
       writeError(`Status error: ${err instanceof Error ? err.message : String(err)}`);
+    }
+    return true;
+  }
+
+  // Diff
+  if (trimmed === '/diff' || trimmed === 'diff') {
+    try {
+      const output = await showDiffInfo(state.db, state.projectDir);
+      if (output) {
+        state.lastResults = output;
+        state.lastQuery = '/diff';
+      }
+    } catch (err) {
+      writeError(`Diff error: ${err instanceof Error ? err.message : String(err)}`);
     }
     return true;
   }
@@ -331,6 +460,7 @@ async function startInteractive(options: InteractiveOptions): Promise<void> {
         '/select',
         '/symbol',
         '/graph',
+        '/diff',
         '/status',
         '/clear',
         '/last',

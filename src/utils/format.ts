@@ -61,3 +61,24 @@ export function formatBytes(bytes: number): string {
 
   return `${(bytes / Math.pow(k, i)).toFixed(i > 0 ? 1 : 0)} ${units[i]}`;
 }
+
+/**
+ * Format success/green text
+ */
+export function formatSuccess(text: string): string {
+  return shouldUseColor() ? chalk.green(text) : text;
+}
+
+/**
+ * Format warning/yellow text
+ */
+export function formatWarning(text: string): string {
+  return shouldUseColor() ? chalk.yellow(text) : text;
+}
+
+/**
+ * Format error/red text
+ */
+export function formatError(text: string): string {
+  return shouldUseColor() ? chalk.red(text) : text;
+}
