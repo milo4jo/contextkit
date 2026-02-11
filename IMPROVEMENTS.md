@@ -17,10 +17,11 @@
 **Expected:** Should show correct line number (line 9)
 **Fix:** Now uses chunk's start_line from database to calculate absolute line numbers.
 
-### 3. --explain Flag Doesn't Explain
+### 3. --explain Flag ✅ FIXED
 **Priority:** Medium
 **Issue:** `--explain` shows same output as without flag
 **Expected:** Should show scoring breakdown (similarity score, term matches, etc.)
+**Status:** Working correctly - shows Scoring Details section with similarity/path/content/symbol scores
 
 ---
 
