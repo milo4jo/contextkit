@@ -70,7 +70,7 @@ contextkit info → contextkit status ✅
 
 ## 🚀 New Features (High Impact)
 
-### 1. Interactive Mode
+### 1. Interactive Mode ✅ DONE
 **Impact:** High
 **Command:** `contextkit interactive` or `contextkit -i`
 ```
@@ -86,6 +86,7 @@ Type a query, press Enter. Type 'exit' to quit.
 > /graph login
 [shows graph]
 ```
+**Status:** Shipped in v0.6.4 — includes /select, /symbol, /graph, /status, /clear, /copy, /last, /help, /exit
 
 ### 2. Diff Mode
 **Impact:** Medium
@@ -148,7 +149,7 @@ contextkit history --run 3  # Re-run query #3
 ### Next Week
 1. ~~Fix call graph accuracy~~ ✅ Done
 2. ~~Fix symbol line numbers~~ ✅ Done
-3. Interactive mode (MVP)
+3. ~~Interactive mode (MVP)~~ ✅ Done
 
 ### Later
 1. Diff mode

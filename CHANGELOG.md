@@ -7,6 +7,23 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.6.4] - 2026-02-11
+
+### Added
+- **Interactive Mode** — REPL-style context exploration (`contextkit interactive` or `contextkit i`)
+  - Type queries directly without re-running commands
+  - `/select <query>` — Find context (or just type the query)
+  - `/symbol <name>` — Search for symbols
+  - `/graph <func>` — Show call graph
+  - `/status` — Show project status
+  - `/copy` — Copy last results to clipboard
+  - `/clear`, `/last`, `/help`, `/exit` — Navigation commands
+  - Tab completion and command history
+
+### Fixed
+- Exported `searchSymbols`, `formatSymbolOutput` from symbol command
+- Exported `buildCallGraph`, `formatCallGraph` from graph command
+
 ## [0.6.1] - 2026-02-08
 
 ### Fixed

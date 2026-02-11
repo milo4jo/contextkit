@@ -441,6 +441,9 @@ function getTypeIcon(type: SymbolMatch['symbolType']): string {
   }
 }
 
+// Export for use in interactive mode
+export { searchSymbols, formatSymbolOutput, SymbolMatch };
+
 export const symbolCommand = new Command('symbol')
   .alias('find')
   .description('Search for symbols by name')

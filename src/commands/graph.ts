@@ -336,6 +336,9 @@ function formatCallGraph(result: CallGraphResult, json: boolean): string {
   return lines.join('\n');
 }
 
+// Export for use in interactive mode
+export { buildCallGraph, formatCallGraph, CallGraphResult };
+
 export const graphCommand = new Command('graph')
   .description('Show call graph for a function')
   .argument('<function>', 'Function name to analyze')
