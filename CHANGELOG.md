@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.6.9] - 2026-02-11
+
+### Fixed
+- **Database Migration Bug** — Fixed "no such table: query_history" error for users upgrading from versions before v0.6.8
+  - `openDatabase()` now runs schema migrations to ensure all tables exist
+  - Safe for existing databases (uses CREATE TABLE IF NOT EXISTS)
+  - Affects: `contextkit history`, any command using query tracking
+
 ## [0.6.8] - 2026-02-11
 
 ### Added

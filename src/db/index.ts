@@ -88,11 +88,17 @@ export function initDatabase(dbPath: string): Database.Database {
 
 /**
  * Open the existing database
+ * Also runs schema migration to ensure all tables exist (for upgrades)
  */
 export function openDatabase(): Database.Database {
   const dbPath = getDbPath();
   const db = new Database(dbPath);
   db.pragma('foreign_keys = ON');
+  
+  // Run schema to ensure all tables exist (CREATE TABLE IF NOT EXISTS is safe)
+  // This handles migrations when new tables are added in updates
+  db.exec(SCHEMA);
+  
   return db;
 }
 
