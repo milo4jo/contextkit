@@ -49,12 +49,26 @@ CREATE TABLE IF NOT EXISTS query_cache (
   hit_count INTEGER DEFAULT 0
 );
 
+-- Query history table
+CREATE TABLE IF NOT EXISTS query_history (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  query TEXT NOT NULL,
+  budget INTEGER NOT NULL,
+  format TEXT NOT NULL,
+  mode TEXT DEFAULT 'full',
+  sources TEXT,
+  tokens_used INTEGER,
+  chunks_found INTEGER,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
 -- Indexes for performance
 CREATE INDEX IF NOT EXISTS idx_chunks_source ON chunks(source_id);
 CREATE INDEX IF NOT EXISTS idx_chunks_file ON chunks(file_path);
 CREATE INDEX IF NOT EXISTS idx_files_source ON files(source_id);
 CREATE INDEX IF NOT EXISTS idx_files_path ON files(source_id, file_path);
 CREATE INDEX IF NOT EXISTS idx_cache_created ON query_cache(created_at);
+CREATE INDEX IF NOT EXISTS idx_history_created ON query_history(created_at);
 `;
 
 /**
@@ -267,4 +281,103 @@ export function getIndexStats(db: Database.Database): {
     dbSize,
     lastIndexed,
   };
+}
+
+// ============================================================================
+// Query History Functions
+// ============================================================================
+
+/** Query history entry */
+export interface HistoryEntry {
+  id: number;
+  query: string;
+  budget: number;
+  format: string;
+  mode: string;
+  sources: string | null;
+  tokensUsed: number | null;
+  chunksFound: number | null;
+  createdAt: string;
+}
+
+/** Parameters for recording a query */
+export interface RecordQueryParams {
+  query: string;
+  budget: number;
+  format: string;
+  mode?: string;
+  sources?: string[];
+  tokensUsed?: number;
+  chunksFound?: number;
+}
+
+/**
+ * Record a query in history
+ */
+export function recordQuery(db: Database.Database, params: RecordQueryParams): void {
+  db.prepare(`
+    INSERT INTO query_history (query, budget, format, mode, sources, tokens_used, chunks_found)
+    VALUES (?, ?, ?, ?, ?, ?, ?)
+  `).run(
+    params.query,
+    params.budget,
+    params.format,
+    params.mode || 'full',
+    params.sources?.join(',') || null,
+    params.tokensUsed ?? null,
+    params.chunksFound ?? null
+  );
+}
+
+/**
+ * Get query history
+ */
+export function getQueryHistory(db: Database.Database, limit: number = 20): HistoryEntry[] {
+  const rows = db.prepare(`
+    SELECT 
+      id,
+      query,
+      budget,
+      format,
+      mode,
+      sources,
+      tokens_used as tokensUsed,
+      chunks_found as chunksFound,
+      created_at as createdAt
+    FROM query_history
+    ORDER BY created_at DESC
+    LIMIT ?
+  `).all(limit) as HistoryEntry[];
+
+  return rows;
+}
+
+/**
+ * Get a specific history entry by ID
+ */
+export function getHistoryEntry(db: Database.Database, id: number): HistoryEntry | null {
+  const row = db.prepare(`
+    SELECT 
+      id,
+      query,
+      budget,
+      format,
+      mode,
+      sources,
+      tokens_used as tokensUsed,
+      chunks_found as chunksFound,
+      created_at as createdAt
+    FROM query_history
+    WHERE id = ?
+  `).get(id) as HistoryEntry | undefined;
+
+  return row || null;
+}
+
+/**
+ * Clear query history
+ */
+export function clearHistory(db: Database.Database): number {
+  const result = db.prepare('DELETE FROM query_history').run();
+  return result.changes;
 }

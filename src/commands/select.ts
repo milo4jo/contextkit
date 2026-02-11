@@ -1,7 +1,7 @@
 import { Command } from 'commander';
 import { exec } from 'child_process';
 import { ensureInitialized } from '../config/index.js';
-import { openDatabase } from '../db/index.js';
+import { openDatabase, recordQuery } from '../db/index.js';
 import { selectContext, type OutputFormat } from '../selector/index.js';
 import { writeData, writeMessage, writeWarning, writeSuccess } from '../utils/streams.js';
 import { formatCommand, formatDim } from '../utils/format.js';
@@ -111,6 +111,18 @@ export const selectCommand = new Command('select')
         writeMessage('');
         return;
       }
+
+      // Record query in history
+      const totalTokens = result.output.data.chunks.reduce((sum, c) => sum + c.tokens, 0);
+      recordQuery(db, {
+        query,
+        budget,
+        format: effectiveFormat,
+        mode,
+        sources,
+        tokensUsed: totalTokens,
+        chunksFound: result.output.data.chunks.length,
+      });
 
       // Output the formatted text
       writeData(result.output.text);

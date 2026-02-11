@@ -7,6 +7,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.6.8] - 2026-02-11
+
+### Added
+- **Query History** — Track and re-run past queries
+  - `contextkit history` — View recent queries with timestamps and stats
+  - `contextkit history --run <id>` — Get details and command to re-run a query
+  - `contextkit history --clear` — Clear all history
+  - `contextkit history --json` — Output history as JSON
+  - Queries are automatically recorded with token usage and chunk counts
+
 ## [0.6.7] - 2026-02-11
 
 ### Added

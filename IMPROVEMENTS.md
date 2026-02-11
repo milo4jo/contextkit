@@ -120,12 +120,13 @@ contextkit init --preset monorepo  # Multiple packages
 ```
 **Status:** Shipped in v0.6.7 — includes react, node, python, monorepo, fullstack presets
 
-### 5. Query History
+### 5. Query History ✅ DONE
 **Impact:** Low
 ```bash
 contextkit history        # Show past queries
 contextkit history --run 3  # Re-run query #3
 ```
+**Status:** Shipped in v0.6.8
 
 ---
 

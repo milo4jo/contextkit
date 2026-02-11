@@ -20,6 +20,7 @@ import { interactiveCommand } from './commands/interactive.js';
 import { diffCommand } from './commands/diff.js';
 import { exportCommand } from './commands/export.js';
 import { importCommand } from './commands/import.js';
+import { historyCommand } from './commands/history.js';
 import { ContextKitError, InvalidUsageError } from './errors/index.js';
 import { writeError, writeMessage } from './utils/streams.js';
 
@@ -96,6 +97,7 @@ program.addCommand(interactiveCommand);
 program.addCommand(diffCommand);
 program.addCommand(exportCommand);
 program.addCommand(importCommand);
+program.addCommand(historyCommand);
 
 // Default action when no command given
 program.action(() => {
@@ -119,6 +121,7 @@ Commands:
   diff          Show changes since last index
   export        Export index to JSON for sharing/backup
   import        Import index from JSON export
+  history       View and re-run past queries
   cache         Manage query cache
   watch         Watch sources and auto-reindex on changes
   mcp           Start MCP server for AI assistants
