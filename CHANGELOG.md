@@ -7,6 +7,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.6.7] - 2026-02-11
+
+### Added
+- **Config Presets** — Quick setup for common project types
+  - `contextkit init --preset react` — React/Next.js projects
+  - `contextkit init --preset node` — Node.js/TypeScript projects
+  - `contextkit init --preset python` — Python projects
+  - `contextkit init --preset monorepo` — Monorepo structures (packages/*, apps/*)
+  - `contextkit init --preset fullstack` — Full-stack apps with frontend and API
+  - `contextkit init --list-presets` — Show all available presets
+  - Each preset includes optimized sources, patterns, and chunk settings
+
 ## [0.6.6] - 2026-02-11
 
 ### Added

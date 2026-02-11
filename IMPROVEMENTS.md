@@ -111,13 +111,14 @@ contextkit import index.json    # Restore from export
 ```
 **Status:** Shipped in v0.6.6
 
-### 4. Config Presets
+### 4. Config Presets ✅ DONE
 **Impact:** Medium
 ```bash
 contextkit init --preset react     # Optimized for React projects
 contextkit init --preset python    # Optimized for Python
 contextkit init --preset monorepo  # Multiple packages
 ```
+**Status:** Shipped in v0.6.7 — includes react, node, python, monorepo, fullstack presets
 
 ### 5. Query History
 **Impact:** Low

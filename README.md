@@ -153,8 +153,17 @@ Scaling (tested on larger codebases):
 Initialize ContextKit in your project. Creates `.contextkit/` directory.
 
 ```bash
-contextkit init
+contextkit init                    # Start fresh (then add sources manually)
+contextkit init --preset react     # React/Next.js projects
+contextkit init --preset node      # Node.js/TypeScript projects  
+contextkit init --preset python    # Python projects
+contextkit init --preset monorepo  # Monorepo (packages/*, apps/*)
+contextkit init --preset fullstack # Full-stack (src + api)
+contextkit init --list-presets     # Show all presets
+contextkit init --force            # Reinitialize (deletes existing index)
 ```
+
+Presets provide optimized configurations with pre-defined sources, file patterns, and chunk settings for your project type.
 
 ### `contextkit source`
 
