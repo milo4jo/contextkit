@@ -464,6 +464,36 @@ Once configured, Claude can use these tools:
 > - `src/auth/jwt.ts` - Token validation
 > - ...
 
+### Setup for Cursor
+
+Cursor (v0.45+) supports MCP servers. Here's how to set up ContextKit:
+
+**1. Open Cursor Settings:**
+
+Press `Cmd+,` (macOS) or `Ctrl+,` (Windows/Linux), then search for "MCP".
+
+**2. Add MCP server config:**
+
+In Cursor's MCP settings (usually `~/.cursor/mcp.json` or via UI), add:
+
+```json
+{
+  "servers": {
+    "contextkit": {
+      "command": "contextkit-mcp",
+      "args": [],
+      "env": {
+        "CONTEXTKIT_PROJECT": "/path/to/your/project"
+      }
+    }
+  }
+}
+```
+
+**3. Restart Cursor**
+
+Now Cursor's AI can use ContextKit to search your codebase!
+
 ### Manual Server Start
 
 For debugging or other MCP clients:
