@@ -7,7 +7,7 @@
 [![npm downloads](https://img.shields.io/npm/dw/@milo4jo/contextkit)](https://www.npmjs.com/package/@milo4jo/contextkit)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
-**🆕 v0.6.6:** Interactive mode, diff command, and export/import for index sharing!
+**🆕 v0.6.9:** Query history, config presets, interactive mode, and index export/import!
 
 ---
 
@@ -339,6 +339,34 @@ Import an index from a JSON export file.
 ```bash
 contextkit import my-index.json          # Import index
 contextkit import backup.json --force    # Overwrite existing without asking
+```
+
+### `contextkit history`
+
+View and re-run past queries. Helpful for repeating common searches.
+
+```bash
+contextkit history                       # Show recent queries (last 20)
+contextkit history -n 50                 # Show more entries
+contextkit history --run 5               # View details for query #5
+contextkit history --clear               # Clear all history
+contextkit history --json                # Output as JSON
+```
+
+**Output:**
+```
+📜 Query History
+
+  #  5  How does authentication work?
+       2h ago  6 chunks, 2847 tokens
+
+  #  4  database connection setup
+       3h ago  4 chunks, 1523 tokens
+
+  #  3  error handling patterns
+       1d ago  8 chunks, 3201 tokens
+
+Use `contextkit history --run <id>` to see full details.
 ```
 
 ---
