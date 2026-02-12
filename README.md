@@ -544,7 +544,7 @@ Sync your index to the cloud and access it from any machine. Perfect for teams a
 
 ```bash
 # 1. Get your API key from the dashboard
-#    https://contextkit-site.vercel.app/dashboard/api-keys
+#    https://contextkit.dev/dashboard/api-keys
 
 # 2. Login
 contextkit cloud login
@@ -575,7 +575,7 @@ contextkit cloud pull --project my-project
 | **Pro** | 5 | 1 GB | 100/min |
 | **Team** | 50 | 10 GB | 500/min |
 
-Get started free at [contextkit-site.vercel.app/dashboard](https://contextkit-site.vercel.app/dashboard).
+Get started free at [contextkit.dev/dashboard](https://contextkit.dev/dashboard).
 
 ---
 
