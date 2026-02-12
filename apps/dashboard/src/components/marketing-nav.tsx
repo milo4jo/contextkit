@@ -7,6 +7,7 @@ import { SignedIn, SignedOut, SignInButton, UserButton } from '@clerk/nextjs';
 
 const navLinks = [
   { href: '/docs', label: 'Docs' },
+  { href: '/blog', label: 'Blog' },
   { href: '/pricing', label: 'Pricing' },
   { href: 'https://github.com/milo4jo/contextkit', label: 'GitHub', external: true },
 ];
