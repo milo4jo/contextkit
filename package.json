@@ -59,7 +59,7 @@
   "engines": {
     "node": ">=18"
   },
-  "homepage": "https://contextkit.dev",
+  "homepage": "https://github.com/milo4jo/contextkit",
   "bugs": {
     "url": "https://github.com/milo4jo/contextkit/issues"
   },
