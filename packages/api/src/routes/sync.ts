@@ -1,6 +1,6 @@
 /**
  * Sync Routes
- * 
+ *
  * Upload and download index snapshots
  */
 
@@ -9,7 +9,7 @@ import type { Env } from '../index';
 import { getDb } from '../db/client';
 import { authMiddleware } from '../middleware/auth';
 
-export const syncRoutes = new Hono<{ 
+export const syncRoutes = new Hono<{
   Bindings: Env;
   Variables: { userId: string };
 }>();
@@ -18,7 +18,7 @@ syncRoutes.use('*', authMiddleware);
 
 /**
  * Upload index snapshot
- * 
+ *
  * 1. Client sends manifest with chunk checksums
  * 2. Server returns which chunks are missing
  * 3. Client uploads missing chunks
@@ -50,7 +50,7 @@ syncRoutes.post('/:slug/upload', async (c) => {
 
   // Check which chunks already exist in R2
   const missingChunks: string[] = [];
-  
+
   for (const chunk of chunks) {
     const key = `${projectId}/${chunk.checksum}`;
     const existing = await c.env.STORAGE.head(key);
@@ -61,7 +61,7 @@ syncRoutes.post('/:slug/upload', async (c) => {
 
   // Generate presigned URLs for missing chunks
   // (In production, use signed URLs. For now, direct upload)
-  
+
   return c.json({
     projectId,
     missingChunks,
@@ -128,7 +128,7 @@ syncRoutes.post('/:slug/finalize', async (c) => {
     sql: 'SELECT MAX(version) as version FROM snapshots WHERE project_id = ?',
     args: [projectId],
   });
-  
+
   const version = ((lastVersion.rows[0]?.version as number) || 0) + 1;
   const snapshotId = crypto.randomUUID();
 
@@ -161,9 +161,9 @@ syncRoutes.post('/:slug/finalize', async (c) => {
     args: [projectId],
   });
 
-  return c.json({ 
-    success: true, 
-    snapshot: { id: snapshotId, version } 
+  return c.json({
+    success: true,
+    snapshot: { id: snapshotId, version },
   });
 });
 
@@ -202,11 +202,11 @@ syncRoutes.get('/:slug/download', async (c) => {
   }
 
   const latest = snapshot.rows[0];
-  
+
   // Get manifest from R2
   const manifestKey = latest.storage_key as string;
   const manifestObj = await c.env.STORAGE.get(manifestKey);
-  
+
   if (!manifestObj) {
     return c.json({ error: 'Manifest not found in storage' }, 500);
   }
@@ -241,9 +241,9 @@ syncRoutes.get('/:slug/chunk/:checksum', async (c) => {
 
   const projectId = project.rows[0].id as string;
   const key = `${projectId}/${checksum}`;
-  
+
   const chunk = await c.env.STORAGE.get(key);
-  
+
   if (!chunk) {
     return c.json({ error: 'Chunk not found' }, 404);
   }

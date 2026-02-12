@@ -52,9 +52,7 @@ describe('validateConfig', () => {
       const config = { ...createValidConfig(), version: undefined as unknown as number };
       const result = validateConfig(config, TEST_DIR);
       expect(result.valid).toBe(false);
-      expect(result.errors).toContainEqual(
-        expect.objectContaining({ path: 'version' })
-      );
+      expect(result.errors).toContainEqual(expect.objectContaining({ path: 'version' }));
     });
   });
 
@@ -69,9 +67,7 @@ describe('validateConfig', () => {
       const config = { ...createValidConfig(), sources: 'invalid' as unknown as Config['sources'] };
       const result = validateConfig(config, TEST_DIR);
       expect(result.valid).toBe(false);
-      expect(result.errors).toContainEqual(
-        expect.objectContaining({ path: 'sources' })
-      );
+      expect(result.errors).toContainEqual(expect.objectContaining({ path: 'sources' }));
     });
 
     it('should reject duplicate source ids', () => {
@@ -149,9 +145,7 @@ describe('validateConfig', () => {
       const config = createValidConfig();
       delete (config as Partial<Config>).settings;
       const result = validateConfig(config, TEST_DIR);
-      expect(result.warnings).toContainEqual(
-        expect.objectContaining({ path: 'settings' })
-      );
+      expect(result.warnings).toContainEqual(expect.objectContaining({ path: 'settings' }));
     });
 
     it('should reject non-number chunk_size', () => {
@@ -202,9 +196,7 @@ describe('formatValidationResults', () => {
   it('should format errors', () => {
     const result = {
       valid: false,
-      errors: [
-        { path: 'test.path', message: 'Test error', suggestion: 'Fix it' },
-      ],
+      errors: [{ path: 'test.path', message: 'Test error', suggestion: 'Fix it' }],
       warnings: [],
     };
     const formatted = formatValidationResults(result);
@@ -218,9 +210,7 @@ describe('formatValidationResults', () => {
     const result = {
       valid: true,
       errors: [],
-      warnings: [
-        { path: 'test.path', message: 'Test warning' },
-      ],
+      warnings: [{ path: 'test.path', message: 'Test warning' }],
     };
     const formatted = formatValidationResults(result);
     expect(formatted).toContain('⚠️ Warnings');

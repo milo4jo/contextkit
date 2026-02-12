@@ -94,11 +94,11 @@ export function openDatabase(): Database.Database {
   const dbPath = getDbPath();
   const db = new Database(dbPath);
   db.pragma('foreign_keys = ON');
-  
+
   // Run schema to ensure all tables exist (CREATE TABLE IF NOT EXISTS is safe)
   // This handles migrations when new tables are added in updates
   db.exec(SCHEMA);
-  
+
   return db;
 }
 
@@ -137,16 +137,24 @@ export interface CacheKeyParams {
  * This invalidates cache when the index changes
  */
 export function computeIndexVersion(db: Database.Database): string {
-  const stats = db.prepare(`
+  const stats = db
+    .prepare(
+      `
     SELECT 
       COUNT(*) as chunkCount,
       MAX(created_at) as lastIndexed
     FROM chunks
-  `).get() as { chunkCount: number; lastIndexed: string | null };
+  `
+    )
+    .get() as { chunkCount: number; lastIndexed: string | null };
 
-  const sourceStats = db.prepare(`
+  const sourceStats = db
+    .prepare(
+      `
     SELECT COUNT(*) as sourceCount FROM sources
-  `).get() as { sourceCount: number };
+  `
+    )
+    .get() as { sourceCount: number };
 
   const versionData = `${stats.chunkCount}:${sourceStats.sourceCount}:${stats.lastIndexed || ''}`;
   return createHash('sha256').update(versionData).digest('hex').slice(0, 16);
@@ -178,11 +186,15 @@ export function getCachedResult(
   cacheKey: string,
   currentIndexVersion: string
 ): string | null {
-  const row = db.prepare(`
+  const row = db
+    .prepare(
+      `
     SELECT result, index_version, hit_count
     FROM query_cache
     WHERE cache_key = ?
-  `).get(cacheKey) as { result: string; index_version: string; hit_count: number } | undefined;
+  `
+    )
+    .get(cacheKey) as { result: string; index_version: string; hit_count: number } | undefined;
 
   if (!row) {
     return null;
@@ -195,11 +207,13 @@ export function getCachedResult(
   }
 
   // Update hit count
-  db.prepare(`
+  db.prepare(
+    `
     UPDATE query_cache 
     SET hit_count = hit_count + 1 
     WHERE cache_key = ?
-  `).run(cacheKey);
+  `
+  ).run(cacheKey);
 
   return row.result;
 }
@@ -213,10 +227,12 @@ export function setCachedResult(
   result: string,
   indexVersion: string
 ): void {
-  db.prepare(`
+  db.prepare(
+    `
     INSERT OR REPLACE INTO query_cache (cache_key, result, index_version, created_at, hit_count)
     VALUES (?, ?, ?, datetime('now'), 0)
-  `).run(cacheKey, result, indexVersion);
+  `
+  ).run(cacheKey, result, indexVersion);
 }
 
 /**
@@ -236,14 +252,18 @@ export function getCacheStats(db: Database.Database): {
   oldestEntry: string | null;
   newestEntry: string | null;
 } {
-  const stats = db.prepare(`
+  const stats = db
+    .prepare(
+      `
     SELECT 
       COUNT(*) as entryCount,
       COALESCE(SUM(hit_count), 0) as totalHits,
       MIN(created_at) as oldestEntry,
       MAX(created_at) as newestEntry
     FROM query_cache
-  `).get() as {
+  `
+    )
+    .get() as {
     entryCount: number;
     totalHits: number;
     oldestEntry: string | null;
@@ -263,11 +283,19 @@ export function getIndexStats(db: Database.Database): {
   dbSize: number;
   lastIndexed: Date | null;
 } {
-  const fileCount = (db.prepare('SELECT COUNT(*) as count FROM files').get() as { count: number }).count;
-  const chunkCount = (db.prepare('SELECT COUNT(*) as count FROM chunks').get() as { count: number }).count;
-  const embeddedCount = (db.prepare('SELECT COUNT(*) as count FROM chunks WHERE embedding IS NOT NULL').get() as { count: number }).count;
-  
-  const lastRow = db.prepare('SELECT MAX(created_at) as last FROM chunks').get() as { last: string | null };
+  const fileCount = (db.prepare('SELECT COUNT(*) as count FROM files').get() as { count: number })
+    .count;
+  const chunkCount = (db.prepare('SELECT COUNT(*) as count FROM chunks').get() as { count: number })
+    .count;
+  const embeddedCount = (
+    db.prepare('SELECT COUNT(*) as count FROM chunks WHERE embedding IS NOT NULL').get() as {
+      count: number;
+    }
+  ).count;
+
+  const lastRow = db.prepare('SELECT MAX(created_at) as last FROM chunks').get() as {
+    last: string | null;
+  };
   const lastIndexed = lastRow.last ? new Date(lastRow.last) : null;
 
   // Get database file size
@@ -321,10 +349,12 @@ export interface RecordQueryParams {
  * Record a query in history
  */
 export function recordQuery(db: Database.Database, params: RecordQueryParams): void {
-  db.prepare(`
+  db.prepare(
+    `
     INSERT INTO query_history (query, budget, format, mode, sources, tokens_used, chunks_found)
     VALUES (?, ?, ?, ?, ?, ?, ?)
-  `).run(
+  `
+  ).run(
     params.query,
     params.budget,
     params.format,
@@ -339,7 +369,9 @@ export function recordQuery(db: Database.Database, params: RecordQueryParams): v
  * Get query history
  */
 export function getQueryHistory(db: Database.Database, limit: number = 20): HistoryEntry[] {
-  const rows = db.prepare(`
+  const rows = db
+    .prepare(
+      `
     SELECT 
       id,
       query,
@@ -353,7 +385,9 @@ export function getQueryHistory(db: Database.Database, limit: number = 20): Hist
     FROM query_history
     ORDER BY created_at DESC
     LIMIT ?
-  `).all(limit) as HistoryEntry[];
+  `
+    )
+    .all(limit) as HistoryEntry[];
 
   return rows;
 }
@@ -362,7 +396,9 @@ export function getQueryHistory(db: Database.Database, limit: number = 20): Hist
  * Get a specific history entry by ID
  */
 export function getHistoryEntry(db: Database.Database, id: number): HistoryEntry | null {
-  const row = db.prepare(`
+  const row = db
+    .prepare(
+      `
     SELECT 
       id,
       query,
@@ -375,7 +411,9 @@ export function getHistoryEntry(db: Database.Database, id: number): HistoryEntry
       created_at as createdAt
     FROM query_history
     WHERE id = ?
-  `).get(id) as HistoryEntry | undefined;
+  `
+    )
+    .get(id) as HistoryEntry | undefined;
 
   return row || null;
 }

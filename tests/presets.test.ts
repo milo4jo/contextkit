@@ -1,5 +1,11 @@
 import { describe, it, expect } from 'vitest';
-import { getPreset, getPresetNames, getPresetList, presetToYaml, PRESETS } from '../src/config/presets.js';
+import {
+  getPreset,
+  getPresetNames,
+  getPresetList,
+  presetToYaml,
+  PRESETS,
+} from '../src/config/presets.js';
 
 describe('Config Presets', () => {
   describe('getPresetNames', () => {
@@ -45,7 +51,7 @@ describe('Config Presets', () => {
     it('should generate valid YAML for react preset', () => {
       const preset = getPreset('react')!;
       const yaml = presetToYaml(preset);
-      
+
       expect(yaml).toContain('version: 1');
       expect(yaml).toContain('Preset: React / Next.js');
       expect(yaml).toContain('sources:');
@@ -58,7 +64,7 @@ describe('Config Presets', () => {
     it('should generate valid YAML for monorepo preset', () => {
       const preset = getPreset('monorepo')!;
       const yaml = presetToYaml(preset);
-      
+
       expect(yaml).toContain('id: packages');
       expect(yaml).toContain('id: apps');
       expect(yaml).toContain('path: ./packages');
@@ -68,7 +74,7 @@ describe('Config Presets', () => {
     it('should include exclude patterns', () => {
       const preset = getPreset('node')!;
       const yaml = presetToYaml(preset);
-      
+
       expect(yaml).toContain('exclude:');
       expect(yaml).toContain('**/node_modules/**');
       expect(yaml).toContain('**/*.test.ts');
@@ -94,14 +100,14 @@ describe('Config Presets', () => {
     it('monorepo preset has multiple sources', () => {
       const preset = PRESETS.monorepo;
       expect(preset.sources).toHaveLength(2);
-      expect(preset.sources.map(s => s.id)).toEqual(['packages', 'apps']);
+      expect(preset.sources.map((s) => s.id)).toEqual(['packages', 'apps']);
     });
 
     it('fullstack preset has frontend and api sources', () => {
       const preset = PRESETS.fullstack;
       expect(preset.sources).toHaveLength(2);
-      expect(preset.sources.map(s => s.id)).toContain('frontend');
-      expect(preset.sources.map(s => s.id)).toContain('api');
+      expect(preset.sources.map((s) => s.id)).toContain('frontend');
+      expect(preset.sources.map((s) => s.id)).toContain('api');
     });
 
     it('all presets have valid settings', () => {

@@ -4,11 +4,11 @@
  * Validates Clerk JWTs for dashboard requests
  */
 
-import { createMiddleware } from "hono/factory";
-import { nanoid } from "nanoid";
+import { createMiddleware } from 'hono/factory';
+import { nanoid } from 'nanoid';
 
-import type { Env, Variables } from "../types";
-import { UnauthorizedError } from "../types";
+import type { Env, Variables } from '../types';
+import { UnauthorizedError } from '../types';
 
 interface ClerkJWTPayload {
   sub: string; // Clerk user ID
@@ -24,16 +24,13 @@ interface ClerkJWTPayload {
  * In production, this would verify against Clerk's JWKS endpoint
  * For now, we trust the token from Clerk's middleware
  */
-async function verifyClerkJWT(
-  token: string,
-  _env: Env
-): Promise<ClerkJWTPayload | null> {
+async function verifyClerkJWT(token: string, _env: Env): Promise<ClerkJWTPayload | null> {
   try {
     // Decode JWT (base64url)
-    const parts = token.split(".");
+    const parts = token.split('.');
     if (parts.length !== 3) return null;
 
-    const payload = JSON.parse(atob(parts[1].replace(/-/g, "+").replace(/_/g, "/")));
+    const payload = JSON.parse(atob(parts[1].replace(/-/g, '+').replace(/_/g, '/')));
 
     // Check expiration
     if (payload.exp && payload.exp < Date.now() / 1000) {
@@ -56,24 +53,24 @@ export const dashboardAuthMiddleware = createMiddleware<{
 }>(async (c, next) => {
   // Generate request ID
   const requestId = nanoid(12);
-  c.set("requestId", requestId);
+  c.set('requestId', requestId);
 
   // Extract token
-  const authHeader = c.req.header("Authorization");
-  if (!authHeader?.startsWith("Bearer ")) {
-    throw new UnauthorizedError("Missing Authorization header");
+  const authHeader = c.req.header('Authorization');
+  if (!authHeader?.startsWith('Bearer ')) {
+    throw new UnauthorizedError('Missing Authorization header');
   }
 
   const token = authHeader.slice(7);
   const payload = await verifyClerkJWT(token, c.env);
 
   if (!payload) {
-    throw new UnauthorizedError("Invalid or expired token");
+    throw new UnauthorizedError('Invalid or expired token');
   }
 
   // Set user context
-  c.set("clerkUserId", payload.sub);
-  c.set("userEmail", payload.email);
+  c.set('clerkUserId', payload.sub);
+  c.set('userEmail', payload.email);
 
   await next();
 });

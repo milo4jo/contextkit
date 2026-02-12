@@ -1,4 +1,4 @@
-import Stripe from "stripe";
+import Stripe from 'stripe';
 
 // Lazy initialization to avoid build-time errors when STRIPE_SECRET_KEY is not set
 let _stripe: Stripe | null = null;
@@ -7,10 +7,10 @@ export function getStripe(): Stripe {
   if (!_stripe) {
     const key = process.env.STRIPE_SECRET_KEY;
     if (!key) {
-      throw new Error("STRIPE_SECRET_KEY is not set");
+      throw new Error('STRIPE_SECRET_KEY is not set');
     }
     _stripe = new Stripe(key, {
-      apiVersion: "2023-10-16",
+      apiVersion: '2023-10-16',
       typescript: true,
     });
   }
@@ -26,8 +26,8 @@ export const stripe = new Proxy({} as Stripe, {
 
 // Price IDs from Stripe Dashboard
 export const PRICE_IDS = {
-  pro: process.env.STRIPE_PRO_PRICE_ID || "price_pro",
-  team: process.env.STRIPE_TEAM_PRICE_ID || "price_team",
+  pro: process.env.STRIPE_PRO_PRICE_ID || 'price_pro',
+  team: process.env.STRIPE_TEAM_PRICE_ID || 'price_team',
 } as const;
 
 // Plan limits

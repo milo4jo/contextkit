@@ -72,14 +72,17 @@ export function parseImports(content: string): ParsedImport[] {
  */
 function parseLineImports(line: string, lineNum: number, imports: ParsedImport[]): void {
   // ES6 imports with named imports
-  const namedImportMatch = line.match(
-    /^import\s+(type\s+)?{([^}]+)}\s+from\s+['"]([^'"]+)['"]/
-  );
+  const namedImportMatch = line.match(/^import\s+(type\s+)?{([^}]+)}\s+from\s+['"]([^'"]+)['"]/);
   if (namedImportMatch) {
     const isTypeOnly = !!namedImportMatch[1];
     const namedImports = namedImportMatch[2]
       .split(',')
-      .map((n) => n.trim().split(/\s+as\s+/)[0].trim())
+      .map((n) =>
+        n
+          .trim()
+          .split(/\s+as\s+/)[0]
+          .trim()
+      )
       .filter(Boolean);
     const specifier = namedImportMatch[3];
 
@@ -94,14 +97,17 @@ function parseLineImports(line: string, lineNum: number, imports: ParsedImport[]
   }
 
   // ES6 import with default + named: import Default, { named } from 'specifier'
-  const mixedImportMatch = line.match(
-    /^import\s+(\w+)\s*,\s*{([^}]+)}\s+from\s+['"]([^'"]+)['"]/
-  );
+  const mixedImportMatch = line.match(/^import\s+(\w+)\s*,\s*{([^}]+)}\s+from\s+['"]([^'"]+)['"]/);
   if (mixedImportMatch) {
     const defaultImport = mixedImportMatch[1];
     const namedImports = mixedImportMatch[2]
       .split(',')
-      .map((n) => n.trim().split(/\s+as\s+/)[0].trim())
+      .map((n) =>
+        n
+          .trim()
+          .split(/\s+as\s+/)[0]
+          .trim()
+      )
       .filter(Boolean);
     const specifier = mixedImportMatch[3];
 
@@ -155,7 +161,9 @@ function parseLineImports(line: string, lineNum: number, imports: ParsedImport[]
   }
 
   // Export from: export { foo } from 'specifier' or export * from 'specifier'
-  const exportFromMatch = line.match(/^export\s+(?:type\s+)?(?:{[^}]*}|\*(?:\s+as\s+\w+)?)\s+from\s+['"]([^'"]+)['"]/);
+  const exportFromMatch = line.match(
+    /^export\s+(?:type\s+)?(?:{[^}]*}|\*(?:\s+as\s+\w+)?)\s+from\s+['"]([^'"]+)['"]/
+  );
   if (exportFromMatch) {
     const isTypeOnly = line.includes('export type');
     imports.push({

@@ -2,11 +2,11 @@
  * Database connection and utilities
  */
 
-import { neon } from "@neondatabase/serverless";
-import { drizzle } from "drizzle-orm/neon-http";
+import { neon } from '@neondatabase/serverless';
+import { drizzle } from 'drizzle-orm/neon-http';
 
-import * as schema from "./schema";
-import type { Env } from "../types";
+import * as schema from './schema';
+import type { Env } from '../types';
 
 export type Database = ReturnType<typeof createDb>;
 
@@ -34,4 +34,4 @@ export function getDb(env: Env): Database {
 }
 
 // Re-export schema
-export * from "./schema";
+export * from './schema';

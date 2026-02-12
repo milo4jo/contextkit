@@ -26,10 +26,7 @@ export interface CreateUserInput {
  * Find a user by their ID
  */
 export async function getUserById(id: string): Promise<User | null> {
-  const result = await db.query(
-    'SELECT * FROM users WHERE id = $1',
-    [id]
-  );
+  const result = await db.query('SELECT * FROM users WHERE id = $1', [id]);
   return result.rows[0] || null;
 }
 
@@ -37,10 +34,7 @@ export async function getUserById(id: string): Promise<User | null> {
  * Find a user by their email address
  */
 export async function getUserByEmail(email: string): Promise<User | null> {
-  const result = await db.query(
-    'SELECT * FROM users WHERE email = $1',
-    [email.toLowerCase()]
-  );
+  const result = await db.query('SELECT * FROM users WHERE email = $1', [email.toLowerCase()]);
   return result.rows[0] || null;
 }
 
@@ -69,10 +63,7 @@ export async function createUser(input: CreateUserInput): Promise<User> {
  * Verify user credentials
  * Returns the user if valid, null otherwise
  */
-export async function verifyCredentials(
-  email: string,
-  password: string
-): Promise<User | null> {
+export async function verifyCredentials(email: string, password: string): Promise<User | null> {
   const user = await getUserByEmail(email);
   if (!user) return null;
 
@@ -85,25 +76,19 @@ export async function verifyCredentials(
 /**
  * Update user's password
  */
-export async function updatePassword(
-  userId: string,
-  newPassword: string
-): Promise<void> {
+export async function updatePassword(userId: string, newPassword: string): Promise<void> {
   const passwordHash = await hashPassword(newPassword);
 
-  await db.query(
-    'UPDATE users SET password_hash = $1, updated_at = NOW() WHERE id = $2',
-    [passwordHash, userId]
-  );
+  await db.query('UPDATE users SET password_hash = $1, updated_at = NOW() WHERE id = $2', [
+    passwordHash,
+    userId,
+  ]);
 }
 
 /**
  * Delete a user by ID
  */
 export async function deleteUser(id: string): Promise<boolean> {
-  const result = await db.query(
-    'DELETE FROM users WHERE id = $1',
-    [id]
-  );
+  const result = await db.query('DELETE FROM users WHERE id = $1', [id]);
   return result.rowCount > 0;
 }

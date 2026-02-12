@@ -1,6 +1,6 @@
 /**
  * Database Client
- * 
+ *
  * Turso/libSQL connection
  */
 

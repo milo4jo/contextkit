@@ -1,14 +1,14 @@
-"use client";
+'use client';
 
-import { useState } from "react";
-import Link from "next/link";
-import { Menu, X, ExternalLink } from "lucide-react";
-import { SignedIn, SignedOut, SignInButton, UserButton } from "@clerk/nextjs";
+import { useState } from 'react';
+import Link from 'next/link';
+import { Menu, X, ExternalLink } from 'lucide-react';
+import { SignedIn, SignedOut, SignInButton, UserButton } from '@clerk/nextjs';
 
 const navLinks = [
-  { href: "/docs", label: "Docs" },
-  { href: "/pricing", label: "Pricing" },
-  { href: "https://github.com/milo4jo/contextkit", label: "GitHub", external: true },
+  { href: '/docs', label: 'Docs' },
+  { href: '/pricing', label: 'Pricing' },
+  { href: 'https://github.com/milo4jo/contextkit', label: 'GitHub', external: true },
 ];
 
 export function MarketingNav() {
@@ -21,10 +21,10 @@ export function MarketingNav() {
           <span className="text-xl">🎯</span>
           <span className="hidden xs:inline">ContextKit</span>
         </Link>
-        
+
         {/* Desktop Navigation */}
         <div className="hidden md:flex items-center gap-6 text-sm">
-          {navLinks.map((link) => (
+          {navLinks.map((link) =>
             link.external ? (
               <a
                 key={link.href}
@@ -45,12 +45,9 @@ export function MarketingNav() {
                 {link.label}
               </Link>
             )
-          ))}
+          )}
           <SignedIn>
-            <Link
-              href="/dashboard"
-              className="text-neutral-400 hover:text-white transition-colors"
-            >
+            <Link href="/dashboard" className="text-neutral-400 hover:text-white transition-colors">
               Dashboard
             </Link>
             <UserButton afterSignOutUrl="/" />
@@ -63,7 +60,7 @@ export function MarketingNav() {
             </SignInButton>
           </SignedOut>
         </div>
-        
+
         {/* Mobile Navigation */}
         <div className="flex md:hidden items-center gap-3">
           <SignedIn>
@@ -90,7 +87,7 @@ export function MarketingNav() {
       {isOpen && (
         <div className="md:hidden border-t border-neutral-800 bg-black/95 backdrop-blur-sm">
           <div className="px-4 py-4 space-y-3">
-            {navLinks.map((link) => (
+            {navLinks.map((link) =>
               link.external ? (
                 <a
                   key={link.href}
@@ -112,7 +109,7 @@ export function MarketingNav() {
                   {link.label}
                 </Link>
               )
-            ))}
+            )}
             <SignedIn>
               <Link
                 href="/dashboard"

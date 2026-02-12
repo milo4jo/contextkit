@@ -2,9 +2,9 @@
  * Symbol search service
  */
 
-import { QdrantClient } from "@qdrant/js-client-rest";
+import { QdrantClient } from '@qdrant/js-client-rest';
 
-import type { Env } from "../types";
+import type { Env } from '../types';
 
 interface SearchOptions {
   orgId: string;
@@ -16,7 +16,7 @@ interface SearchOptions {
 
 interface Symbol {
   name: string;
-  kind: "function" | "class" | "interface" | "type" | "variable";
+  kind: 'function' | 'class' | 'interface' | 'type' | 'variable';
   file: string;
   line: number;
   signature: string;
@@ -25,10 +25,7 @@ interface Symbol {
 /**
  * Search for symbols by name
  */
-export async function searchSymbols(
-  env: Env,
-  options: SearchOptions
-): Promise<Symbol[]> {
+export async function searchSymbols(env: Env, options: SearchOptions): Promise<Symbol[]> {
   const { orgId, projectId, query, exact, limit } = options;
 
   const qdrant = new QdrantClient({
@@ -43,10 +40,10 @@ export async function searchSymbols(
   const results = await qdrant.scroll(collectionName, {
     filter: {
       must: [
-        { key: "project_id", match: { value: projectId } },
+        { key: 'project_id', match: { value: projectId } },
         ...(exact
-          ? [{ key: "symbols", match: { value: query } }]
-          : [{ key: "symbols", match: { text: query } }]),
+          ? [{ key: 'symbols', match: { value: query } }]
+          : [{ key: 'symbols', match: { text: query } }]),
       ],
     },
     limit,
@@ -65,14 +62,13 @@ export async function searchSymbols(
     };
 
     // Extract matching symbols
-    const matchingSymbols = payload.symbols?.filter((s) =>
-      exact
-        ? s === query
-        : s.toLowerCase().includes(query.toLowerCase())
-    ) ?? [];
+    const matchingSymbols =
+      payload.symbols?.filter((s) =>
+        exact ? s === query : s.toLowerCase().includes(query.toLowerCase())
+      ) ?? [];
 
     for (const name of matchingSymbols) {
-      const kind = (payload.symbol_kinds?.[name] as Symbol["kind"]) ?? "function";
+      const kind = (payload.symbol_kinds?.[name] as Symbol['kind']) ?? 'function';
 
       symbols.push({
         name,
@@ -91,7 +87,7 @@ export async function searchSymbols(
  * Extract signature for a specific symbol from content
  */
 function extractSymbolSignature(content: string, symbolName: string): string {
-  const lines = content.split("\n");
+  const lines = content.split('\n');
 
   for (let i = 0; i < lines.length; i++) {
     const line = lines[i];
@@ -100,14 +96,14 @@ function extractSymbolSignature(content: string, symbolName: string): string {
       const signatureLines = [line];
 
       // If line ends with { or has unbalanced parentheses, include more
-      if (line.includes("(") && !line.includes(")")) {
+      if (line.includes('(') && !line.includes(')')) {
         for (let j = i + 1; j < Math.min(i + 5, lines.length); j++) {
           signatureLines.push(lines[j]);
-          if (lines[j].includes(")")) break;
+          if (lines[j].includes(')')) break;
         }
       }
 
-      return signatureLines.join("\n").trim();
+      return signatureLines.join('\n').trim();
     }
   }
 

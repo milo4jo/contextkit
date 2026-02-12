@@ -1,68 +1,75 @@
-"use client";
+'use client';
 
-import { useState } from "react";
-import { useSearchParams } from "next/navigation";
-import { Check, Loader2 } from "lucide-react";
+import { useState } from 'react';
+import { useSearchParams } from 'next/navigation';
+import { Check, Loader2 } from 'lucide-react';
 
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
 
 const plans = [
   {
-    name: "Free",
-    price: "$0",
-    description: "For individual developers",
+    name: 'Free',
+    price: '$0',
+    description: 'For individual developers',
     features: [
-      "1 project",
-      "1,000 queries/month",
-      "100 MB storage",
-      "20 requests/minute",
-      "Community support",
+      '1 project',
+      '1,000 queries/month',
+      '100 MB storage',
+      '20 requests/minute',
+      'Community support',
     ],
     current: true,
   },
   {
-    name: "Pro",
-    price: "$19",
-    period: "/month",
-    description: "For power users",
+    name: 'Pro',
+    price: '$19',
+    period: '/month',
+    description: 'For power users',
     features: [
-      "5 projects",
-      "50,000 queries/month",
-      "1 GB storage",
-      "100 requests/minute",
-      "Email support",
-      "Priority indexing",
+      '5 projects',
+      '50,000 queries/month',
+      '1 GB storage',
+      '100 requests/minute',
+      'Email support',
+      'Priority indexing',
     ],
     highlighted: true,
   },
   {
-    name: "Team",
-    price: "$12",
-    period: "/user/month",
-    description: "For small teams",
+    name: 'Team',
+    price: '$12',
+    period: '/user/month',
+    description: 'For small teams',
     features: [
-      "Unlimited projects",
-      "Unlimited queries",
-      "10 GB storage",
-      "500 requests/minute",
-      "Shared indexes",
-      "Team analytics",
-      "Priority support",
+      'Unlimited projects',
+      'Unlimited queries',
+      '10 GB storage',
+      '500 requests/minute',
+      'Shared indexes',
+      'Team analytics',
+      'Priority support',
     ],
   },
   {
-    name: "Enterprise",
-    price: "Custom",
-    description: "For large organizations",
+    name: 'Enterprise',
+    price: 'Custom',
+    description: 'For large organizations',
     features: [
-      "Everything in Team",
-      "Self-hosted option",
-      "SSO / SAML",
-      "Audit logging",
-      "Custom SLA",
-      "Dedicated support",
-      "Custom integrations",
+      'Everything in Team',
+      'Self-hosted option',
+      'SSO / SAML',
+      'Audit logging',
+      'Custom SLA',
+      'Dedicated support',
+      'Custom integrations',
     ],
   },
 ];
@@ -71,15 +78,15 @@ export default function BillingPage() {
   const searchParams = useSearchParams();
   const [loadingPlan, setLoadingPlan] = useState<string | null>(null);
 
-  const success = searchParams.get("success");
-  const canceled = searchParams.get("canceled");
+  const success = searchParams.get('success');
+  const canceled = searchParams.get('canceled');
 
-  async function handleUpgrade(plan: "pro" | "team") {
+  async function handleUpgrade(plan: 'pro' | 'team') {
     setLoadingPlan(plan);
     try {
-      const response = await fetch("/api/checkout", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
+      const response = await fetch('/api/checkout', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ plan }),
       });
 
@@ -88,10 +95,10 @@ export default function BillingPage() {
       if (data.url) {
         window.location.href = data.url;
       } else {
-        console.error("No checkout URL returned");
+        console.error('No checkout URL returned');
       }
     } catch (error) {
-      console.error("Checkout error:", error);
+      console.error('Checkout error:', error);
     } finally {
       setLoadingPlan(null);
     }
@@ -124,15 +131,10 @@ export default function BillingPage() {
 
       <div className="grid gap-4 sm:gap-6 sm:grid-cols-2 lg:grid-cols-4">
         {plans.map((plan) => (
-          <Card
-            key={plan.name}
-            className={plan.highlighted ? "border-primary shadow-lg" : ""}
-          >
+          <Card key={plan.name} className={plan.highlighted ? 'border-primary shadow-lg' : ''}>
             <CardHeader>
               {plan.highlighted && (
-                <div className="text-xs font-semibold text-primary mb-2">
-                  MOST POPULAR
-                </div>
+                <div className="text-xs font-semibold text-primary mb-2">MOST POPULAR</div>
               )}
               <CardTitle>{plan.name}</CardTitle>
               <CardDescription>{plan.description}</CardDescription>
@@ -158,15 +160,15 @@ export default function BillingPage() {
                 <Button variant="outline" className="w-full" disabled>
                   Current Plan
                 </Button>
-              ) : plan.name === "Enterprise" ? (
+              ) : plan.name === 'Enterprise' ? (
                 <Button variant="outline" className="w-full" asChild>
                   <a href="mailto:enterprise@contextkit.dev">Contact Sales</a>
                 </Button>
               ) : (
                 <Button
                   className="w-full"
-                  variant={plan.highlighted ? "default" : "outline"}
-                  onClick={() => handleUpgrade(plan.name.toLowerCase() as "pro" | "team")}
+                  variant={plan.highlighted ? 'default' : 'outline'}
+                  onClick={() => handleUpgrade(plan.name.toLowerCase() as 'pro' | 'team')}
                   disabled={loadingPlan !== null}
                 >
                   {loadingPlan === plan.name.toLowerCase() ? (
@@ -188,17 +190,13 @@ export default function BillingPage() {
       <Card className="mt-8 sm:mt-12">
         <CardHeader>
           <CardTitle className="text-lg sm:text-xl">Current Subscription</CardTitle>
-          <CardDescription className="text-sm">
-            You are currently on the Free plan
-          </CardDescription>
+          <CardDescription className="text-sm">You are currently on the Free plan</CardDescription>
         </CardHeader>
         <CardContent>
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 sm:gap-4">
             <div>
               <p className="font-medium">Free Plan</p>
-              <p className="text-xs sm:text-sm text-muted-foreground">
-                Renews monthly (no charge)
-              </p>
+              <p className="text-xs sm:text-sm text-muted-foreground">Renews monthly (no charge)</p>
             </div>
             <div className="sm:text-right">
               <p className="text-xl sm:text-2xl font-bold">$0</p>
@@ -221,10 +219,12 @@ export default function BillingPage() {
             </p>
           </div>
           <div>
-            <h4 className="font-medium text-sm sm:text-base">What happens if I exceed my limits?</h4>
+            <h4 className="font-medium text-sm sm:text-base">
+              What happens if I exceed my limits?
+            </h4>
             <p className="text-xs sm:text-sm text-muted-foreground">
-              You&apos;ll receive a notification when approaching limits. Once exceeded, 
-              queries will be rate-limited until the next billing cycle or upgrade.
+              You&apos;ll receive a notification when approaching limits. Once exceeded, queries
+              will be rate-limited until the next billing cycle or upgrade.
             </p>
           </div>
           <div>

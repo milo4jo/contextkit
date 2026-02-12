@@ -1,6 +1,6 @@
 /**
  * ContextKit Core
- * 
+ *
  * Shared types and constants for ContextKit Cloud
  */
 

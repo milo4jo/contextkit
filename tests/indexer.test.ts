@@ -104,27 +104,27 @@ describe('computeContentHash', () => {
     const content = 'function hello() { return "world"; }';
     const hash1 = computeContentHash(content);
     const hash2 = computeContentHash(content);
-    
+
     expect(hash1).toBe(hash2);
   });
 
   it('generates different hashes for different content', () => {
     const hash1 = computeContentHash('function hello() {}');
     const hash2 = computeContentHash('function world() {}');
-    
+
     expect(hash1).not.toBe(hash2);
   });
 
   it('generates 64 character hex string (SHA-256)', () => {
     const hash = computeContentHash('test content');
-    
+
     expect(hash).toHaveLength(64);
     expect(hash).toMatch(/^[a-f0-9]{64}$/);
   });
 
   it('handles empty content', () => {
     const hash = computeContentHash('');
-    
+
     // SHA-256 of empty string is well-known
     expect(hash).toBe('e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855');
   });
@@ -133,7 +133,7 @@ describe('computeContentHash', () => {
     const hash1 = computeContentHash('hello world');
     const hash2 = computeContentHash('hello  world');
     const hash3 = computeContentHash('hello world ');
-    
+
     expect(hash1).not.toBe(hash2);
     expect(hash1).not.toBe(hash3);
   });
@@ -141,10 +141,10 @@ describe('computeContentHash', () => {
   it('detects single character changes', () => {
     const original = 'const x = 1;';
     const modified = 'const x = 2;';
-    
+
     const hash1 = computeContentHash(original);
     const hash2 = computeContentHash(modified);
-    
+
     expect(hash1).not.toBe(hash2);
   });
 });

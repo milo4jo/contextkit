@@ -128,10 +128,16 @@ function stripTypeScript(code: string): string {
 
   // Remove type annotations from parameters: (x: Type) => (x)
   // This is tricky - we need to be careful not to break the code
-  stripped = stripped.replace(/:\s*\w+(?:<[^>]*>)?(?:\[\])?(?:\s*\|\s*\w+(?:<[^>]*>)?(?:\[\])?)*(?=\s*[,)=])/g, '');
+  stripped = stripped.replace(
+    /:\s*\w+(?:<[^>]*>)?(?:\[\])?(?:\s*\|\s*\w+(?:<[^>]*>)?(?:\[\])?)*(?=\s*[,)=])/g,
+    ''
+  );
 
   // Remove return type annotations: ): Type {
-  stripped = stripped.replace(/\):\s*\w+(?:<[^>]*>)?(?:\[\])?(?:\s*\|\s*\w+(?:<[^>]*>)?(?:\[\])?)*\s*(?=\{|=>)/g, ') ');
+  stripped = stripped.replace(
+    /\):\s*\w+(?:<[^>]*>)?(?:\[\])?(?:\s*\|\s*\w+(?:<[^>]*>)?(?:\[\])?)*\s*(?=\{|=>)/g,
+    ') '
+  );
 
   // Remove non-null assertions: foo!.bar -> foo.bar
   stripped = stripped.replace(/!(?=\.|\[)/g, '');
@@ -286,8 +292,7 @@ export function parseTypeScript(content: string, _filePath?: string): ParseResul
             // Check if it's an arrow function or function expression
             const init = (declarator as { init?: BaseNode }).init;
             const isFunction =
-              init?.type === 'ArrowFunctionExpression' ||
-              init?.type === 'FunctionExpression';
+              init?.type === 'ArrowFunctionExpression' || init?.type === 'FunctionExpression';
 
             boundaries.push({
               type: isFunction ? 'function' : 'constant',
@@ -354,8 +359,7 @@ export function parseTypeScript(content: string, _filePath?: string): ParseResul
                 const name = (declarator.id as IdentifierNode).name;
                 const init = (declarator as { init?: BaseNode }).init;
                 const isFunction =
-                  init?.type === 'ArrowFunctionExpression' ||
-                  init?.type === 'FunctionExpression';
+                  init?.type === 'ArrowFunctionExpression' || init?.type === 'FunctionExpression';
 
                 boundaries.push({
                   type: isFunction ? 'function' : 'constant',

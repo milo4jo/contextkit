@@ -2,24 +2,17 @@
  * API key database operations
  */
 
-import { eq } from "drizzle-orm";
-import { getDb, apiKeys } from "./index";
-import type { Env, ApiKey } from "../types";
+import { eq } from 'drizzle-orm';
+import { getDb, apiKeys } from './index';
+import type { Env, ApiKey } from '../types';
 
 /**
  * Get API key by prefix (for auth lookup)
  */
-export async function getApiKeyByPrefix(
-  env: Env,
-  prefix: string
-): Promise<ApiKey | null> {
+export async function getApiKeyByPrefix(env: Env, prefix: string): Promise<ApiKey | null> {
   const db = getDb(env);
 
-  const results = await db
-    .select()
-    .from(apiKeys)
-    .where(eq(apiKeys.keyPrefix, prefix))
-    .limit(1);
+  const results = await db.select().from(apiKeys).where(eq(apiKeys.keyPrefix, prefix)).limit(1);
 
   if (results.length === 0) return null;
 
@@ -40,17 +33,10 @@ export async function getApiKeyByPrefix(
 /**
  * Get API key by ID
  */
-export async function getApiKey(
-  env: Env,
-  id: string
-): Promise<ApiKey | null> {
+export async function getApiKey(env: Env, id: string): Promise<ApiKey | null> {
   const db = getDb(env);
 
-  const results = await db
-    .select()
-    .from(apiKeys)
-    .where(eq(apiKeys.id, id))
-    .limit(1);
+  const results = await db.select().from(apiKeys).where(eq(apiKeys.id, id)).limit(1);
 
   if (results.length === 0) return null;
 
@@ -71,10 +57,7 @@ export async function getApiKey(
 /**
  * List API keys for an organization
  */
-export async function listApiKeys(
-  env: Env,
-  orgId: string
-): Promise<Omit<ApiKey, "keyHash">[]> {
+export async function listApiKeys(env: Env, orgId: string): Promise<Omit<ApiKey, 'keyHash'>[]> {
   const db = getDb(env);
 
   const results = await db
@@ -157,30 +140,20 @@ export async function createApiKey(
 /**
  * Update API key last used timestamp
  */
-export async function updateApiKeyLastUsed(
-  env: Env,
-  id: string
-): Promise<void> {
+export async function updateApiKeyLastUsed(env: Env, id: string): Promise<void> {
   const db = getDb(env);
 
-  await db
-    .update(apiKeys)
-    .set({ lastUsedAt: new Date() })
-    .where(eq(apiKeys.id, id));
+  await db.update(apiKeys).set({ lastUsedAt: new Date() }).where(eq(apiKeys.id, id));
 }
 
 /**
  * Delete API key (with org validation)
  */
-export async function deleteApiKey(
-  env: Env,
-  id: string,
-  orgId?: string
-): Promise<boolean> {
+export async function deleteApiKey(env: Env, id: string, orgId?: string): Promise<boolean> {
   const db = getDb(env);
 
   if (orgId) {
-    const { and } = await import("drizzle-orm");
+    const { and } = await import('drizzle-orm');
     const result = await db
       .delete(apiKeys)
       .where(and(eq(apiKeys.id, id), eq(apiKeys.orgId, orgId)))
@@ -188,10 +161,7 @@ export async function deleteApiKey(
     return result.length > 0;
   }
 
-  const result = await db
-    .delete(apiKeys)
-    .where(eq(apiKeys.id, id))
-    .returning({ id: apiKeys.id });
+  const result = await db.delete(apiKeys).where(eq(apiKeys.id, id)).returning({ id: apiKeys.id });
 
   return result.length > 0;
 }

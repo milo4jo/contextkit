@@ -125,8 +125,12 @@ function getChunkCount(db: Database.Database): number {
  */
 function showStatusInfo(db: Database.Database, projectDir: string): void {
   const chunkCount = getChunkCount(db);
-  const sourcesResult = db.prepare('SELECT COUNT(DISTINCT source_id) as count FROM chunks').get() as { count: number };
-  const filesResult = db.prepare('SELECT COUNT(DISTINCT file_path) as count FROM chunks').get() as { count: number };
+  const sourcesResult = db
+    .prepare('SELECT COUNT(DISTINCT source_id) as count FROM chunks')
+    .get() as { count: number };
+  const filesResult = db.prepare('SELECT COUNT(DISTINCT file_path) as count FROM chunks').get() as {
+    count: number;
+  };
 
   console.log(`
 ${chalk.bold('📊 Project Status')}
@@ -156,9 +160,13 @@ async function showDiffInfo(db: Database.Database, projectDir: string): Promise<
 
   for (const source of config.sources) {
     // Get stored files
-    const storedRows = db.prepare(`
+    const storedRows = db
+      .prepare(
+        `
       SELECT file_path, content_hash FROM files WHERE source_id = ?
-    `).all(source.id) as Array<{ file_path: string; content_hash: string }>;
+    `
+      )
+      .all(source.id) as Array<{ file_path: string; content_hash: string }>;
 
     const storedFiles = new Map<string, string>();
     for (const row of storedRows) {
@@ -166,9 +174,13 @@ async function showDiffInfo(db: Database.Database, projectDir: string): Promise<
     }
 
     // Get chunk counts per file
-    const chunkRows = db.prepare(`
+    const chunkRows = db
+      .prepare(
+        `
       SELECT file_path, COUNT(*) as count FROM chunks WHERE source_id = ? GROUP BY file_path
-    `).all(source.id) as Array<{ file_path: string; count: number }>;
+    `
+      )
+      .all(source.id) as Array<{ file_path: string; count: number }>;
 
     const chunkCounts = new Map<string, number>();
     for (const row of chunkRows) {

@@ -4,10 +4,10 @@
  * Core logic for selecting relevant code context
  */
 
-import { QdrantClient } from "@qdrant/js-client-rest";
-import OpenAI from "openai";
+import { QdrantClient } from '@qdrant/js-client-rest';
+import OpenAI from 'openai';
 
-import type { Env, Chunk } from "../types";
+import type { Env, Chunk } from '../types';
 
 interface SelectOptions {
   orgId: string;
@@ -15,8 +15,8 @@ interface SelectOptions {
   query: string;
   budget: number;
   includeImports: boolean;
-  mode: "full" | "map";
-  format: "markdown" | "xml" | "json" | "plain";
+  mode: 'full' | 'map';
+  format: 'markdown' | 'xml' | 'json' | 'plain';
   sources?: string[];
 }
 
@@ -31,10 +31,7 @@ interface SelectResult {
 /**
  * Select relevant context for a query
  */
-export async function selectContext(
-  env: Env,
-  options: SelectOptions
-): Promise<SelectResult> {
+export async function selectContext(env: Env, options: SelectOptions): Promise<SelectResult> {
   const { orgId, projectId, query, budget, mode, format } = options;
 
   // Check cache first
@@ -50,7 +47,7 @@ export async function selectContext(
   // Generate query embedding
   const openai = new OpenAI({ apiKey: env.OPENAI_API_KEY });
   const embeddingResponse = await openai.embeddings.create({
-    model: "text-embedding-3-small",
+    model: 'text-embedding-3-small',
     input: query,
   });
   const queryEmbedding = embeddingResponse.data[0].embedding;
@@ -65,7 +62,7 @@ export async function selectContext(
 
   // Build filter
   const filter: Record<string, unknown> = {
-    must: [{ key: "project_id", match: { value: projectId } }],
+    must: [{ key: 'project_id', match: { value: projectId } }],
   };
 
   if (options.sources && options.sources.length > 0) {
@@ -104,7 +101,7 @@ export async function selectContext(
       file: payload.file_path,
       start_line: payload.start_line,
       end_line: payload.end_line,
-      content: mode === "map" ? extractSignature(payload.content) : payload.content,
+      content: mode === 'map' ? extractSignature(payload.content) : payload.content,
       score: point.score ?? 0,
       symbols: payload.symbols,
     });
@@ -150,7 +147,7 @@ function hashQuery(query: string, options: SelectOptions): string {
  */
 function extractSignature(content: string): string {
   // Simple signature extraction - in production, use AST
-  const lines = content.split("\n");
+  const lines = content.split('\n');
   const signatures: string[] = [];
 
   for (const line of lines) {
@@ -166,40 +163,37 @@ function extractSignature(content: string): string {
     }
   }
 
-  return signatures.join("\n");
+  return signatures.join('\n');
 }
 
 /**
  * Format chunks into output string
  */
-function formatContext(
-  chunks: Chunk[],
-  format: "markdown" | "xml" | "json" | "plain"
-): string {
+function formatContext(chunks: Chunk[], format: 'markdown' | 'xml' | 'json' | 'plain'): string {
   switch (format) {
-    case "markdown":
+    case 'markdown':
       return chunks
         .map(
           (c) =>
             `## ${c.file} (lines ${c.start_line}-${c.end_line})\n\n\`\`\`\n${c.content}\n\`\`\``
         )
-        .join("\n\n");
+        .join('\n\n');
 
-    case "xml":
+    case 'xml':
       return chunks
         .map(
           (c) =>
             `<file path="${c.file}" lines="${c.start_line}-${c.end_line}">\n${c.content}\n</file>`
         )
-        .join("\n\n");
+        .join('\n\n');
 
-    case "json":
+    case 'json':
       return JSON.stringify(chunks, null, 2);
 
-    case "plain":
+    case 'plain':
     default:
       return chunks
         .map((c) => `// ${c.file}:${c.start_line}-${c.end_line}\n${c.content}`)
-        .join("\n\n");
+        .join('\n\n');
   }
 }

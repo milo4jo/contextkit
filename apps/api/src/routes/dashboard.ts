@@ -4,29 +4,20 @@
  * Routes for the ContextKit dashboard (authenticated via Clerk)
  */
 
-import { Hono } from "hono";
-import { z } from "zod";
-import { zValidator } from "@hono/zod-validator";
+import { Hono } from 'hono';
+import { z } from 'zod';
+import { zValidator } from '@hono/zod-validator';
 
-import type { Env, Variables } from "../types";
+import type { Env, Variables } from '../types';
 import {
   getOrCreateUserByClerkId,
   getOrganizationByUserId,
   createOrganization,
-} from "../db/organizations";
-import {
-  getProjectsByOrgId,
-  createProject,
-  getProjectBySlug,
-  deleteProject,
-} from "../db/projects";
-import {
-  getApiKeysByOrgId,
-  createApiKey,
-  deleteApiKey,
-} from "../db/api-keys";
-import { getUsageByOrgId } from "../services/usage-service";
-import { generateApiKey, hashApiKey } from "../middleware/auth";
+} from '../db/organizations';
+import { getProjectsByOrgId, createProject, getProjectBySlug, deleteProject } from '../db/projects';
+import { getApiKeysByOrgId, createApiKey, deleteApiKey } from '../db/api-keys';
+import { getUsageByOrgId } from '../services/usage-service';
+import { generateApiKey, hashApiKey } from '../middleware/auth';
 
 const app = new Hono<{ Bindings: Env; Variables: Variables }>();
 
@@ -36,9 +27,9 @@ const app = new Hono<{ Bindings: Env; Variables: Variables }>();
  * GET /me - Get current user and organization
  * Auto-creates user and org on first login
  */
-app.get("/me", async (c) => {
-  const clerkUserId = c.get("clerkUserId")!!;
-  const email = c.get("userEmail") || undefined || undefined;
+app.get('/me', async (c) => {
+  const clerkUserId = c.get('clerkUserId')!!;
+  const email = c.get('userEmail') || undefined || undefined;
 
   // Get or create user
   const user = await getOrCreateUserByClerkId(c.env, clerkUserId, email);
@@ -51,7 +42,7 @@ app.get("/me", async (c) => {
     // Use more of clerkUserId + timestamp for uniqueness
     const uniqueSuffix = `${clerkUserId.slice(-8)}-${Date.now().toString(36)}`;
     org = await createOrganization(c.env, {
-      name: user.name || email?.split("@")[0] || "My Organization",
+      name: user.name || email?.split('@')[0] || 'My Organization',
       slug: `org-${uniqueSuffix}`,
       ownerId: user.id,
     });
@@ -83,8 +74,8 @@ const createProjectSchema = z.object({
 /**
  * GET /projects - List all projects
  */
-app.get("/projects", async (c) => {
-  const clerkUserId = c.get("clerkUserId")!;
+app.get('/projects', async (c) => {
+  const clerkUserId = c.get('clerkUserId')!;
   const user = await getOrCreateUserByClerkId(c.env, clerkUserId);
   const org = await getOrganizationByUserId(c.env, user.id);
 
@@ -106,7 +97,7 @@ app.get("/projects", async (c) => {
         files: 0,
         chunks: 0,
         lastIndexed: null,
-        status: "pending",
+        status: 'pending',
       },
     })),
   });
@@ -115,10 +106,10 @@ app.get("/projects", async (c) => {
 /**
  * POST /projects - Create a project
  */
-app.post("/projects", zValidator("json", createProjectSchema), async (c) => {
-  const { name, description } = c.req.valid("json");
-  const clerkUserId = c.get("clerkUserId")!;
-  const email = c.get("userEmail") || undefined;
+app.post('/projects', zValidator('json', createProjectSchema), async (c) => {
+  const { name, description } = c.req.valid('json');
+  const clerkUserId = c.get('clerkUserId')!;
+  const email = c.get('userEmail') || undefined;
 
   const user = await getOrCreateUserByClerkId(c.env, clerkUserId, email);
   let org = await getOrganizationByUserId(c.env, user.id);
@@ -126,7 +117,7 @@ app.post("/projects", zValidator("json", createProjectSchema), async (c) => {
   if (!org) {
     const uniqueSuffix = `${clerkUserId.slice(-8)}-${Date.now().toString(36)}`;
     org = await createOrganization(c.env, {
-      name: user.name || email?.split("@")[0] || "My Organization",
+      name: user.name || email?.split('@')[0] || 'My Organization',
       slug: `org-${uniqueSuffix}`,
       ownerId: user.id,
     });
@@ -138,17 +129,14 @@ app.post("/projects", zValidator("json", createProjectSchema), async (c) => {
   const limit = limits[org.plan as keyof typeof limits] || 1;
 
   if (existingProjects.length >= limit) {
-    return c.json(
-      { error: `Project limit reached (${limit} on ${org.plan} plan)` },
-      403
-    );
+    return c.json({ error: `Project limit reached (${limit} on ${org.plan} plan)` }, 403);
   }
 
   // Generate slug from name
   const slug = name
     .toLowerCase()
-    .replace(/[^a-z0-9]+/g, "-")
-    .replace(/^-|-$/g, "");
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-|-$/g, '');
 
   const project = await createProject(c.env, {
     orgId: org.id,
@@ -163,21 +151,21 @@ app.post("/projects", zValidator("json", createProjectSchema), async (c) => {
 /**
  * GET /projects/:slug - Get project details
  */
-app.get("/projects/:slug", async (c) => {
+app.get('/projects/:slug', async (c) => {
   const { slug } = c.req.param();
-  const clerkUserId = c.get("clerkUserId")!;
+  const clerkUserId = c.get('clerkUserId')!;
 
   const user = await getOrCreateUserByClerkId(c.env, clerkUserId);
   const org = await getOrganizationByUserId(c.env, user.id);
 
   if (!org) {
-    return c.json({ error: "Organization not found" }, 404);
+    return c.json({ error: 'Organization not found' }, 404);
   }
 
   const project = await getProjectBySlug(c.env, org.id, slug);
 
   if (!project) {
-    return c.json({ error: "Project not found" }, 404);
+    return c.json({ error: 'Project not found' }, 404);
   }
 
   return c.json({ project });
@@ -186,21 +174,21 @@ app.get("/projects/:slug", async (c) => {
 /**
  * DELETE /projects/:slug - Delete a project
  */
-app.delete("/projects/:slug", async (c) => {
+app.delete('/projects/:slug', async (c) => {
   const { slug } = c.req.param();
-  const clerkUserId = c.get("clerkUserId")!;
+  const clerkUserId = c.get('clerkUserId')!;
 
   const user = await getOrCreateUserByClerkId(c.env, clerkUserId);
   const org = await getOrganizationByUserId(c.env, user.id);
 
   if (!org) {
-    return c.json({ error: "Organization not found" }, 404);
+    return c.json({ error: 'Organization not found' }, 404);
   }
 
   const project = await getProjectBySlug(c.env, org.id, slug);
 
   if (!project) {
-    return c.json({ error: "Project not found" }, 404);
+    return c.json({ error: 'Project not found' }, 404);
   }
 
   await deleteProject(c.env, project.id);
@@ -217,8 +205,8 @@ const createApiKeySchema = z.object({
 /**
  * GET /api-keys - List API keys (only prefixes, not full keys)
  */
-app.get("/api-keys", async (c) => {
-  const clerkUserId = c.get("clerkUserId")!;
+app.get('/api-keys', async (c) => {
+  const clerkUserId = c.get('clerkUserId')!;
 
   const user = await getOrCreateUserByClerkId(c.env, clerkUserId);
   const org = await getOrganizationByUserId(c.env, user.id);
@@ -244,10 +232,10 @@ app.get("/api-keys", async (c) => {
  * POST /api-keys - Create a new API key
  * Returns the full key ONLY on creation
  */
-app.post("/api-keys", zValidator("json", createApiKeySchema), async (c) => {
-  const { name } = c.req.valid("json");
-  const clerkUserId = c.get("clerkUserId")!;
-  const email = c.get("userEmail") || undefined;
+app.post('/api-keys', zValidator('json', createApiKeySchema), async (c) => {
+  const { name } = c.req.valid('json');
+  const clerkUserId = c.get('clerkUserId')!;
+  const email = c.get('userEmail') || undefined;
 
   const user = await getOrCreateUserByClerkId(c.env, clerkUserId, email);
   let org = await getOrganizationByUserId(c.env, user.id);
@@ -255,14 +243,14 @@ app.post("/api-keys", zValidator("json", createApiKeySchema), async (c) => {
   if (!org) {
     const uniqueSuffix = `${clerkUserId.slice(-8)}-${Date.now().toString(36)}`;
     org = await createOrganization(c.env, {
-      name: user.name || email?.split("@")[0] || "My Organization",
+      name: user.name || email?.split('@')[0] || 'My Organization',
       slug: `org-${uniqueSuffix}`,
       ownerId: user.id,
     });
   }
 
   // Generate key
-  const { key, prefix } = generateApiKey("live");
+  const { key, prefix } = generateApiKey('live');
   const keyHash = await hashApiKey(key);
 
   const apiKey = await createApiKey(c.env, {
@@ -290,15 +278,15 @@ app.post("/api-keys", zValidator("json", createApiKeySchema), async (c) => {
 /**
  * DELETE /api-keys/:id - Revoke an API key
  */
-app.delete("/api-keys/:id", async (c) => {
+app.delete('/api-keys/:id', async (c) => {
   const { id } = c.req.param();
-  const clerkUserId = c.get("clerkUserId")!;
+  const clerkUserId = c.get('clerkUserId')!;
 
   const user = await getOrCreateUserByClerkId(c.env, clerkUserId);
   const org = await getOrganizationByUserId(c.env, user.id);
 
   if (!org) {
-    return c.json({ error: "Organization not found" }, 404);
+    return c.json({ error: 'Organization not found' }, 404);
   }
 
   await deleteApiKey(c.env, id, org.id);
@@ -311,8 +299,8 @@ app.delete("/api-keys/:id", async (c) => {
 /**
  * GET /usage - Get usage statistics
  */
-app.get("/usage", async (c) => {
-  const clerkUserId = c.get("clerkUserId")!;
+app.get('/usage', async (c) => {
+  const clerkUserId = c.get('clerkUserId')!;
 
   const user = await getOrCreateUserByClerkId(c.env, clerkUserId);
   const org = await getOrganizationByUserId(c.env, user.id);
@@ -324,7 +312,7 @@ app.get("/usage", async (c) => {
         storage: { used: 0, limit: 100 * 1024 * 1024 },
         tokens: { used: 0 },
       },
-      plan: "free",
+      plan: 'free',
     });
   }
 

@@ -32,15 +32,18 @@ interface CallGraphResult {
 }
 
 /** Extract function definitions from content */
-function extractFunctionDefs(content: string, filePath: string): Map<string, { startLine: number; endLine: number }> {
+function extractFunctionDefs(
+  content: string,
+  filePath: string
+): Map<string, { startLine: number; endLine: number }> {
   const functions = new Map<string, { startLine: number; endLine: number }>();
   const lines = content.split('\n');
   const ext = filePath.split('.').pop()?.toLowerCase();
-  
+
   for (let i = 0; i < lines.length; i++) {
     const line = lines[i];
     const trimmed = line.trim();
-    
+
     // TypeScript/JavaScript
     if (ext === 'ts' || ext === 'tsx' || ext === 'js' || ext === 'jsx') {
       // function name()
@@ -51,7 +54,7 @@ function extractFunctionDefs(content: string, filePath: string): Map<string, { s
         functions.set(name, { startLine: i + 1, endLine });
         continue;
       }
-      
+
       // const name = () =>
       const arrowMatch = trimmed.match(/^(export\s+)?(const|let|var)\s+(\w+)\s*=\s*(async\s+)?\(/);
       if (arrowMatch) {
@@ -60,9 +63,11 @@ function extractFunctionDefs(content: string, filePath: string): Map<string, { s
         functions.set(name, { startLine: i + 1, endLine });
         continue;
       }
-      
+
       // Method in class: name() or async name() (trimmed already removes leading whitespace)
-      const methodMatch = trimmed.match(/^(public|private|protected|static|async\s+)*(async\s+)?(\w+)\s*\([^)]*\)\s*[:{]/);
+      const methodMatch = trimmed.match(
+        /^(public|private|protected|static|async\s+)*(async\s+)?(\w+)\s*\([^)]*\)\s*[:{]/
+      );
       if (methodMatch && !['if', 'while', 'for', 'switch', 'catch'].includes(methodMatch[3])) {
         const name = methodMatch[3];
         const endLine = findBlockEnd(lines, i);
@@ -70,7 +75,7 @@ function extractFunctionDefs(content: string, filePath: string): Map<string, { s
         continue;
       }
     }
-    
+
     // Python
     if (ext === 'py') {
       const defMatch = trimmed.match(/^(async\s+)?def\s+(\w+)/);
@@ -81,7 +86,7 @@ function extractFunctionDefs(content: string, filePath: string): Map<string, { s
         continue;
       }
     }
-    
+
     // Go
     if (ext === 'go') {
       const funcMatch = trimmed.match(/^func\s+(?:\([^)]+\)\s+)?(\w+)/);
@@ -92,7 +97,7 @@ function extractFunctionDefs(content: string, filePath: string): Map<string, { s
         continue;
       }
     }
-    
+
     // Rust
     if (ext === 'rs') {
       const fnMatch = trimmed.match(/^(pub\s+)?(async\s+)?fn\s+(\w+)/);
@@ -104,7 +109,7 @@ function extractFunctionDefs(content: string, filePath: string): Map<string, { s
       }
     }
   }
-  
+
   return functions;
 }
 
@@ -117,27 +122,51 @@ function findFunctionCalls(
 ): Array<{ name: string; line: number; context: string }> {
   const calls: Array<{ name: string; line: number; context: string }> = [];
   const lines = content.split('\n');
-  
+
   // Simple regex to find function calls: name(
   const callPattern = /\b(\w+)\s*\(/g;
-  
+
   for (let i = startLine - 1; i < Math.min(endLine, lines.length); i++) {
     const line = lines[i];
     const trimmed = line.trim();
-    
+
     // Skip comments
     if (trimmed.startsWith('//') || trimmed.startsWith('#') || trimmed.startsWith('*')) {
       continue;
     }
-    
+
     let match;
     while ((match = callPattern.exec(line)) !== null) {
       const name = match[1];
-      
+
       // Skip keywords and common non-function patterns
-      const keywords = ['if', 'else', 'while', 'for', 'switch', 'catch', 'return', 'throw', 'new', 'typeof', 'import', 'export', 'const', 'let', 'var', 'function', 'class', 'interface', 'type', 'async', 'await', 'try', 'finally'];
+      const keywords = [
+        'if',
+        'else',
+        'while',
+        'for',
+        'switch',
+        'catch',
+        'return',
+        'throw',
+        'new',
+        'typeof',
+        'import',
+        'export',
+        'const',
+        'let',
+        'var',
+        'function',
+        'class',
+        'interface',
+        'type',
+        'async',
+        'await',
+        'try',
+        'finally',
+      ];
       if (keywords.includes(name)) continue;
-      
+
       // Only include if it's a known function or looks like a function call
       if (knownFunctions.has(name) || name[0] === name[0].toLowerCase()) {
         calls.push({
@@ -148,7 +177,7 @@ function findFunctionCalls(
       }
     }
   }
-  
+
   return calls;
 }
 
@@ -156,7 +185,7 @@ function findFunctionCalls(
 function findBlockEnd(lines: string[], startIdx: number): number {
   let braceCount = 0;
   let started = false;
-  
+
   for (let i = startIdx; i < lines.length; i++) {
     const line = lines[i];
     for (const char of line) {
@@ -178,12 +207,12 @@ function findBlockEnd(lines: string[], startIdx: number): number {
 function findPythonBlockEnd(lines: string[], startIdx: number): number {
   const startLine = lines[startIdx];
   const startIndent = startLine.length - startLine.trimStart().length;
-  
+
   for (let i = startIdx + 1; i < lines.length; i++) {
     const line = lines[i];
     const trimmed = line.trim();
     if (!trimmed) continue;
-    
+
     const indent = line.length - line.trimStart().length;
     if (indent <= startIndent) {
       return i;
@@ -199,23 +228,26 @@ function buildCallGraph(
   options: { sources?: string[] }
 ): CallGraphResult {
   const { sources } = options;
-  
+
   // Get all chunks
   let sql = 'SELECT file_path, content FROM chunks';
   const params: string[] = [];
-  
+
   if (sources && sources.length > 0) {
     sql += ' WHERE source_id IN (' + sources.map(() => '?').join(',') + ')';
     params.push(...sources);
   }
-  
+
   const rows = db.prepare(sql).all(...params) as Array<{ file_path: string; content: string }>;
-  
+
   // Build function index (file -> functions)
   // Note: Multiple chunks may exist for the same file, so we need to merge
-  const functionsByFile = new Map<string, Map<string, { startLine: number; endLine: number; chunkContent: string }>>();
+  const functionsByFile = new Map<
+    string,
+    Map<string, { startLine: number; endLine: number; chunkContent: string }>
+  >();
   const allFunctions = new Set<string>();
-  
+
   for (const row of rows) {
     const funcs = extractFunctionDefs(row.content, row.file_path);
     if (funcs.size > 0) {
@@ -231,17 +263,17 @@ function buildCallGraph(
       functionsByFile.set(row.file_path, existing);
     }
   }
-  
+
   // Find callers (who calls targetName)
   const callers: CallGraphResult['callers'] = [];
-  
+
   for (const [filePath, fileFuncs] of functionsByFile) {
     for (const [funcName, { startLine, endLine, chunkContent }] of fileFuncs) {
       // Skip the target function itself
       if (funcName === targetName) continue;
-      
+
       const calls = findFunctionCalls(chunkContent, startLine, endLine, allFunctions);
-      
+
       for (const call of calls) {
         if (call.name === targetName) {
           callers.push({
@@ -254,16 +286,21 @@ function buildCallGraph(
       }
     }
   }
-  
+
   // Find callees (what targetName calls)
   const callees: CallGraphResult['callees'] = [];
-  
+
   for (const [, fileFuncs] of functionsByFile) {
     const targetFunc = fileFuncs.get(targetName);
     if (!targetFunc) continue;
-    
-    const calls = findFunctionCalls(targetFunc.chunkContent, targetFunc.startLine, targetFunc.endLine, allFunctions);
-    
+
+    const calls = findFunctionCalls(
+      targetFunc.chunkContent,
+      targetFunc.startLine,
+      targetFunc.endLine,
+      allFunctions
+    );
+
     for (const call of calls) {
       if (call.name !== targetName) {
         // Find where this function is defined
@@ -274,7 +311,7 @@ function buildCallGraph(
             break;
           }
         }
-        
+
         callees.push({
           file: definedIn || '(external)',
           function: call.name,
@@ -284,15 +321,15 @@ function buildCallGraph(
       }
     }
   }
-  
+
   // Deduplicate
   const uniqueCallers = Array.from(
-    new Map(callers.map(c => [`${c.file}:${c.function}`, c])).values()
+    new Map(callers.map((c) => [`${c.file}:${c.function}`, c])).values()
   );
   const uniqueCallees = Array.from(
-    new Map(callees.map(c => [`${c.file}:${c.function}`, c])).values()
+    new Map(callees.map((c) => [`${c.file}:${c.function}`, c])).values()
   );
-  
+
   return {
     target: targetName,
     callers: uniqueCallers,
@@ -305,12 +342,12 @@ function formatCallGraph(result: CallGraphResult, json: boolean): string {
   if (json) {
     return JSON.stringify(result, null, 2);
   }
-  
+
   const lines: string[] = [];
-  
+
   lines.push(`🎯 Call graph for: ${result.target}`);
   lines.push('');
-  
+
   // Callers
   lines.push(`📥 Callers (${result.callers.length}):`);
   if (result.callers.length === 0) {
@@ -321,7 +358,7 @@ function formatCallGraph(result: CallGraphResult, json: boolean): string {
     }
   }
   lines.push('');
-  
+
   // Callees
   lines.push(`📤 Calls (${result.callees.length}):`);
   if (result.callees.length === 0) {
@@ -332,7 +369,7 @@ function formatCallGraph(result: CallGraphResult, json: boolean): string {
       lines.push(`   → ${callee.function} (${location})`);
     }
   }
-  
+
   return lines.join('\n');
 }
 
@@ -345,23 +382,23 @@ export const graphCommand = new Command('graph')
   .option('-s, --sources <sources>', 'Filter sources (comma-separated)')
   .action(async (functionName: string, options) => {
     ensureInitialized();
-    
+
     const opts = getGlobalOpts(graphCommand);
     const sources = options.sources
       ? options.sources.split(',').map((s: string) => s.trim())
       : undefined;
-    
+
     const db = openDatabase();
-    
+
     try {
       const result = buildCallGraph(db, functionName, { sources });
-      
+
       if (result.callers.length === 0 && result.callees.length === 0) {
         writeWarning(`No call relationships found for "${functionName}"`);
         writeMessage(formatDim('Make sure the function exists and the codebase is indexed.'));
         return;
       }
-      
+
       const output = formatCallGraph(result, opts.json ?? false);
       writeData(output);
     } finally {

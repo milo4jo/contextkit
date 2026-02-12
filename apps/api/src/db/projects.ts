@@ -2,9 +2,9 @@
  * Project database operations
  */
 
-import { eq, and, sql } from "drizzle-orm";
-import { getDb, projects, indexedFiles } from "./index";
-import type { Env, Project, ProjectSettings } from "../types";
+import { eq, and, sql } from 'drizzle-orm';
+import { getDb, projects, indexedFiles } from './index';
+import type { Env, Project, ProjectSettings } from '../types';
 
 /**
  * Get project by ID
@@ -13,7 +13,9 @@ export async function getProject(
   env: Env,
   orgId: string,
   projectId: string
-): Promise<(Project & { indexStatus?: { files: number; chunks: number; lastIndexed: Date | null } }) | null> {
+): Promise<
+  (Project & { indexStatus?: { files: number; chunks: number; lastIndexed: Date | null } }) | null
+> {
   const db = getDb(env);
 
   const results = await db
@@ -124,10 +126,7 @@ export async function listProjects(
 /**
  * Get all projects for an organization (simple list)
  */
-export async function getProjectsByOrgId(
-  env: Env,
-  orgId: string
-): Promise<Project[]> {
+export async function getProjectsByOrgId(env: Env, orgId: string): Promise<Project[]> {
   const db = getDb(env);
 
   const results = await db
@@ -227,10 +226,7 @@ export async function updateProject(
 /**
  * Delete project by ID
  */
-export async function deleteProject(
-  env: Env,
-  projectId: string
-): Promise<boolean> {
+export async function deleteProject(env: Env, projectId: string): Promise<boolean> {
   const db = getDb(env);
 
   const result = await db
@@ -247,19 +243,15 @@ export async function deleteProject(
 export function generateSlug(name: string): string {
   return name
     .toLowerCase()
-    .replace(/[^a-z0-9]+/g, "-")
-    .replace(/^-|-$/g, "")
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-|-$/g, '')
     .slice(0, 50);
 }
 
 /**
  * Check if a project slug is unique within an organization
  */
-export async function isSlugUnique(
-  env: Env,
-  orgId: string,
-  slug: string
-): Promise<boolean> {
+export async function isSlugUnique(env: Env, orgId: string, slug: string): Promise<boolean> {
   const existing = await getProjectBySlug(env, orgId, slug);
   return existing === null;
 }

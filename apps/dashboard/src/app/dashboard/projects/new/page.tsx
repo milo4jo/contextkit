@@ -1,30 +1,30 @@
-"use client";
+'use client';
 
-import { useState } from "react";
-import { useRouter } from "next/navigation";
-import { useAuth } from "@clerk/nextjs";
-import Link from "next/link";
-import { ArrowLeft, AlertTriangle } from "lucide-react";
+import { useState } from 'react';
+import { useRouter } from 'next/navigation';
+import { useAuth } from '@clerk/nextjs';
+import Link from 'next/link';
+import { ArrowLeft, AlertTriangle } from 'lucide-react';
 
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
-import { createProject } from "@/lib/api";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
+import { createProject } from '@/lib/api';
 
 export default function NewProjectPage() {
   const router = useRouter();
   const { getToken } = useAuth();
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [name, setName] = useState("");
-  const [description, setDescription] = useState("");
+  const [name, setName] = useState('');
+  const [description, setDescription] = useState('');
 
   const slug = name
     .toLowerCase()
-    .replace(/[^a-z0-9]+/g, "-")
-    .replace(/^-|-$/g, "")
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-|-$/g, '')
     .slice(0, 50);
 
   async function handleSubmit(e: React.FormEvent) {
@@ -35,14 +35,14 @@ export default function NewProjectPage() {
     try {
       const token = await getToken();
       if (!token) {
-        throw new Error("Not authenticated");
+        throw new Error('Not authenticated');
       }
 
       await createProject(token, { name, description });
-      router.push("/dashboard/projects");
+      router.push('/dashboard/projects');
     } catch (err) {
-      console.error("Error creating project:", err);
-      setError(err instanceof Error ? err.message : "Failed to create project");
+      console.error('Error creating project:', err);
+      setError(err instanceof Error ? err.message : 'Failed to create project');
     } finally {
       setIsLoading(false);
     }
@@ -68,9 +68,7 @@ export default function NewProjectPage() {
       <Card>
         <CardHeader>
           <CardTitle>Create New Project</CardTitle>
-          <CardDescription>
-            Set up a new project to index your codebase
-          </CardDescription>
+          <CardDescription>Set up a new project to index your codebase</CardDescription>
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-6">
@@ -87,12 +85,7 @@ export default function NewProjectPage() {
 
             <div className="space-y-2">
               <Label htmlFor="slug">Slug</Label>
-              <Input
-                id="slug"
-                value={slug}
-                disabled
-                className="bg-muted"
-              />
+              <Input id="slug" value={slug} disabled className="bg-muted" />
               <p className="text-xs text-muted-foreground">
                 Auto-generated from project name. Used in API calls.
               </p>
@@ -111,7 +104,7 @@ export default function NewProjectPage() {
 
             <div className="flex gap-4">
               <Button type="submit" disabled={isLoading || !name}>
-                {isLoading ? "Creating..." : "Create Project"}
+                {isLoading ? 'Creating...' : 'Create Project'}
               </Button>
               <Link href="/dashboard/projects">
                 <Button type="button" variant="outline">

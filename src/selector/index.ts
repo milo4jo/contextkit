@@ -142,13 +142,13 @@ export async function selectContext(
 
   // Step 5: Include related imports if requested
   if (options.includeImports && importGraph) {
-    const selectedFiles = [...new Set(budgetResult.chunks.map(c => c.filePath))];
+    const selectedFiles = [...new Set(budgetResult.chunks.map((c) => c.filePath))];
     const relatedFiles = getRelatedImports(selectedFiles, importGraph);
 
     // Find chunks from related files that aren't already included
-    const includedFiles = new Set(budgetResult.chunks.map(c => c.filePath));
+    const includedFiles = new Set(budgetResult.chunks.map((c) => c.filePath));
     const relatedChunks = similarChunks.filter(
-      c => relatedFiles.includes(c.filePath) && !includedFiles.has(c.filePath)
+      (c) => relatedFiles.includes(c.filePath) && !includedFiles.has(c.filePath)
     );
 
     if (relatedChunks.length > 0) {
@@ -201,16 +201,17 @@ export async function selectContext(
 /**
  * Build import graph from all indexed chunks
  */
-function buildImportGraphFromChunks(
-  db: Database.Database,
-  basePath: string
-): ImportGraph {
+function buildImportGraphFromChunks(db: Database.Database, basePath: string): ImportGraph {
   // Get all unique files and their content
-  const rows = db.prepare(`
+  const rows = db
+    .prepare(
+      `
     SELECT DISTINCT file_path, content
     FROM chunks
     ORDER BY file_path, start_line
-  `).all() as Array<{ file_path: string; content: string }>;
+  `
+    )
+    .all() as Array<{ file_path: string; content: string }>;
 
   // Group content by file (combine chunks)
   const fileContents = new Map<string, string>();
@@ -236,7 +237,13 @@ function buildImportGraphFromChunks(
 }
 
 // Re-export types
-export type { FormattedOutput, SelectionData, SelectionStats, ChunkInfo, OutputFormat } from './formatter.js';
+export type {
+  FormattedOutput,
+  SelectionData,
+  SelectionStats,
+  ChunkInfo,
+  OutputFormat,
+} from './formatter.js';
 export type { ScoredChunk } from './search.js';
 export type { RankedChunk, ImportGraph, ScoringOptions } from './scoring.js';
 export { buildImportGraph, getRelatedImports } from './scoring.js';

@@ -1,6 +1,6 @@
 /**
  * Projects Routes
- * 
+ *
  * CRUD for user projects (indexed codebases)
  */
 
@@ -10,7 +10,7 @@ import type { Env } from '../index';
 import { getDb } from '../db/client';
 import { authMiddleware } from '../middleware/auth';
 
-export const projectRoutes = new Hono<{ 
+export const projectRoutes = new Hono<{
   Bindings: Env;
   Variables: { userId: string };
 }>();
@@ -20,7 +20,11 @@ projectRoutes.use('*', authMiddleware);
 
 const createProjectSchema = z.object({
   name: z.string().min(1).max(100),
-  slug: z.string().min(1).max(50).regex(/^[a-z0-9-]+$/),
+  slug: z
+    .string()
+    .min(1)
+    .max(50)
+    .regex(/^[a-z0-9-]+$/),
   description: z.string().max(500).optional(),
 });
 
@@ -52,7 +56,7 @@ projectRoutes.get('/', async (c) => {
 projectRoutes.post('/', async (c) => {
   const userId = c.get('userId');
   const body = await c.req.json();
-  
+
   const parsed = createProjectSchema.safeParse(body);
   if (!parsed.success) {
     return c.json({ error: 'Invalid input', details: parsed.error.issues }, 400);
@@ -76,9 +80,9 @@ projectRoutes.post('/', async (c) => {
     sql: 'SELECT COUNT(*) as count FROM projects WHERE user_id = ?',
     args: [userId],
   });
-  
-  const count = projectCount.rows[0]?.count as number || 0;
-  
+
+  const count = (projectCount.rows[0]?.count as number) || 0;
+
   // TODO: Get actual plan limit from user
   const limit = 5; // Default Pro limit
   if (count >= limit) {
@@ -86,7 +90,7 @@ projectRoutes.post('/', async (c) => {
   }
 
   const id = crypto.randomUUID();
-  
+
   await db.execute({
     sql: `
       INSERT INTO projects (id, user_id, name, slug, description)
@@ -95,9 +99,12 @@ projectRoutes.post('/', async (c) => {
     args: [id, userId, name, slug, description || null],
   });
 
-  return c.json({ 
-    project: { id, user_id: userId, name, slug, description } 
-  }, 201);
+  return c.json(
+    {
+      project: { id, user_id: userId, name, slug, description },
+    },
+    201
+  );
 });
 
 /**

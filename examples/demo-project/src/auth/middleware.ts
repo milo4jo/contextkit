@@ -64,11 +64,7 @@ export async function requireAuth(
  * Middleware that requires admin role.
  * Must be used after requireAuth.
  */
-export function requireAdmin(
-  req: AuthenticatedRequest,
-  res: Response,
-  next: NextFunction
-): void {
+export function requireAdmin(req: AuthenticatedRequest, res: Response, next: NextFunction): void {
   if (!req.user) {
     res.status(401).json({ error: 'Not authenticated' });
     return;

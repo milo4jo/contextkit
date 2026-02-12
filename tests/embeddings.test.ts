@@ -37,8 +37,8 @@ describe('cosineSimilarity', () => {
   it('is scale-invariant', () => {
     const a = [1, 2, 3];
     const b = [4, 5, 6];
-    const aScaled = a.map(x => x * 10);
-    const bScaled = b.map(x => x * 0.1);
+    const aScaled = a.map((x) => x * 10);
+    const bScaled = b.map((x) => x * 0.1);
 
     const sim1 = cosineSimilarity(a, b);
     const sim2 = cosineSimilarity(aScaled, bScaled);

@@ -32,7 +32,7 @@ export const watchCommand = new Command('watch')
     }
 
     const cwd = process.cwd();
-    
+
     // Build watch patterns from sources
     const watchPaths: string[] = [];
     for (const source of config.sources) {
@@ -41,14 +41,16 @@ export const watchCommand = new Command('watch')
     }
 
     writeMessage('');
-    writeMessage(`${formatHighlight('👁️  Watching')} ${config.sources.length} source(s) for changes...`);
+    writeMessage(
+      `${formatHighlight('👁️  Watching')} ${config.sources.length} source(s) for changes...`
+    );
     writeMessage(formatDim(`   Debounce: ${debounceMs}ms`));
     writeMessage('');
-    
+
     for (const source of config.sources) {
       writeMessage(`   • ${source.id}: ${source.path}`);
     }
-    
+
     writeMessage('');
     writeMessage(formatDim('Press Ctrl+C to stop watching.'));
     writeMessage('');
@@ -70,20 +72,17 @@ export const watchCommand = new Command('watch')
       pendingChanges.clear();
 
       const timestamp = new Date().toLocaleTimeString();
-      writeMessage(`${formatDim(`[${timestamp}]`)} Detected ${changedFiles.length} change(s), reindexing...`);
+      writeMessage(
+        `${formatDim(`[${timestamp}]`)} Detected ${changedFiles.length} change(s), reindexing...`
+      );
 
       const db = openDatabase();
 
       try {
-        const stats = await indexSources(
-          config.sources,
-          cwd,
-          db,
-          {
-            chunkSize: config.settings.chunk_size,
-            chunkOverlap: config.settings.chunk_overlap,
-          }
-        );
+        const stats = await indexSources(config.sources, cwd, db, {
+          chunkSize: config.settings.chunk_size,
+          chunkOverlap: config.settings.chunk_overlap,
+        });
 
         if (stats.filesChanged > 0) {
           writeSuccess(`Indexed ${stats.filesChanged} changed file(s) → ${stats.chunks} chunks`);
@@ -95,7 +94,7 @@ export const watchCommand = new Command('watch')
       } finally {
         db.close();
         isIndexing = false;
-        
+
         // If more changes accumulated while indexing, run again
         if (pendingChanges.size > 0) {
           scheduleIndex();
@@ -119,7 +118,7 @@ export const watchCommand = new Command('watch')
     function handleChange(filePath: string, eventType: string) {
       // Get relative path for display
       const relPath = relative(cwd, filePath);
-      
+
       // Check if file matches any source patterns
       let matchesSource = false;
       for (const source of config.sources) {
@@ -134,7 +133,7 @@ export const watchCommand = new Command('watch')
               break;
             }
           }
-          
+
           // Check exclude patterns
           if (matchesSource) {
             for (const pattern of source.patterns.exclude) {

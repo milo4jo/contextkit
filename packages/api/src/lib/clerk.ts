@@ -1,22 +1,22 @@
 /**
  * Clerk Integration
- * 
+ *
  * JWT verification for Clerk tokens
  */
 
 interface ClerkJWTPayload {
-  sub: string;        // User ID
-  iss: string;        // Issuer
-  aud: string;        // Audience
-  iat: number;        // Issued at
-  exp: number;        // Expiration
-  azp?: string;       // Authorized party
-  sid?: string;       // Session ID
+  sub: string; // User ID
+  iss: string; // Issuer
+  aud: string; // Audience
+  iat: number; // Issued at
+  exp: number; // Expiration
+  azp?: string; // Authorized party
+  sid?: string; // Session ID
 }
 
 /**
  * Verify a Clerk JWT token
- * 
+ *
  * In production, this should use Clerk's JWKS endpoint
  * For MVP, we trust tokens from our frontend
  */
@@ -26,7 +26,7 @@ export async function verifyClerkToken(
 ): Promise<ClerkJWTPayload> {
   // Decode JWT (without verification for MVP)
   // TODO: Implement proper JWKS verification
-  
+
   const parts = token.split('.');
   if (parts.length !== 3) {
     throw new Error('Invalid token format');

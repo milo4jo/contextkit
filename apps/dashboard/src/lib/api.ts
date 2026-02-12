@@ -4,23 +4,23 @@
  * Handles all API calls from the dashboard to the backend
  */
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || "https://contextkit-api.milo4jo.workers.dev";
+const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://contextkit-api.milo4jo.workers.dev';
 
 interface ApiOptions {
   token?: string;
-  method?: "GET" | "POST" | "PATCH" | "DELETE";
+  method?: 'GET' | 'POST' | 'PATCH' | 'DELETE';
   body?: unknown;
 }
 
 async function apiCall<T>(endpoint: string, options: ApiOptions = {}): Promise<T> {
-  const { token, method = "GET", body } = options;
+  const { token, method = 'GET', body } = options;
 
   const headers: Record<string, string> = {
-    "Content-Type": "application/json",
+    'Content-Type': 'application/json',
   };
 
   if (token) {
-    headers["Authorization"] = `Bearer ${token}`;
+    headers['Authorization'] = `Bearer ${token}`;
   }
 
   const response = await fetch(`${API_URL}/dashboard${endpoint}`, {
@@ -50,7 +50,7 @@ export interface Organization {
   id: string;
   name: string;
   slug: string;
-  plan: "free" | "pro" | "team" | "enterprise";
+  plan: 'free' | 'pro' | 'team' | 'enterprise';
 }
 
 export interface MeResponse {
@@ -59,7 +59,7 @@ export interface MeResponse {
 }
 
 export async function getMe(token: string): Promise<MeResponse> {
-  return apiCall("/me", { token });
+  return apiCall('/me', { token });
 }
 
 // === Projects ===
@@ -75,7 +75,7 @@ export interface Project {
     files: number;
     chunks: number;
     lastIndexed: string | null;
-    status: "pending" | "indexing" | "indexed" | "failed";
+    status: 'pending' | 'indexing' | 'indexed' | 'failed';
   };
 }
 
@@ -84,7 +84,7 @@ export interface ProjectsResponse {
 }
 
 export async function getProjects(token: string): Promise<ProjectsResponse> {
-  return apiCall("/projects", { token });
+  return apiCall('/projects', { token });
 }
 
 export interface CreateProjectInput {
@@ -96,21 +96,15 @@ export async function createProject(
   token: string,
   data: CreateProjectInput
 ): Promise<{ project: Project }> {
-  return apiCall("/projects", { token, method: "POST", body: data });
+  return apiCall('/projects', { token, method: 'POST', body: data });
 }
 
-export async function getProject(
-  token: string,
-  slug: string
-): Promise<{ project: Project }> {
+export async function getProject(token: string, slug: string): Promise<{ project: Project }> {
   return apiCall(`/projects/${slug}`, { token });
 }
 
-export async function deleteProject(
-  token: string,
-  slug: string
-): Promise<{ success: boolean }> {
-  return apiCall(`/projects/${slug}`, { token, method: "DELETE" });
+export async function deleteProject(token: string, slug: string): Promise<{ success: boolean }> {
+  return apiCall(`/projects/${slug}`, { token, method: 'DELETE' });
 }
 
 // === API Keys ===
@@ -128,7 +122,7 @@ export interface ApiKeysResponse {
 }
 
 export async function getApiKeys(token: string): Promise<ApiKeysResponse> {
-  return apiCall("/api-keys", { token });
+  return apiCall('/api-keys', { token });
 }
 
 export interface CreateApiKeyInput {
@@ -143,14 +137,11 @@ export async function createApiKey(
   token: string,
   data: CreateApiKeyInput
 ): Promise<CreateApiKeyResponse> {
-  return apiCall("/api-keys", { token, method: "POST", body: data });
+  return apiCall('/api-keys', { token, method: 'POST', body: data });
 }
 
-export async function deleteApiKey(
-  token: string,
-  id: string
-): Promise<{ success: boolean }> {
-  return apiCall(`/api-keys/${id}`, { token, method: "DELETE" });
+export async function deleteApiKey(token: string, id: string): Promise<{ success: boolean }> {
+  return apiCall(`/api-keys/${id}`, { token, method: 'DELETE' });
 }
 
 // === Usage ===
@@ -165,5 +156,5 @@ export interface UsageResponse {
 }
 
 export async function getUsage(token: string): Promise<UsageResponse> {
-  return apiCall("/usage", { token });
+  return apiCall('/usage', { token });
 }

@@ -9,20 +9,17 @@
  *   contextkit-mcp          # Standalone MCP server
  */
 
-import { Server } from "@modelcontextprotocol/sdk/server/index.js";
-import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
-import {
-  CallToolRequestSchema,
-  ListToolsRequestSchema,
-} from "@modelcontextprotocol/sdk/types.js";
-import { readFileSync } from "fs";
-import { fileURLToPath } from "url";
-import { dirname, join } from "path";
-import { isInitialized, loadConfig } from "../config/index.js";
-import { openDatabase } from "../db/index.js";
-import { selectContext, type SelectOptions } from "../selector/index.js";
-import { indexSources } from "../indexer/index.js";
-import type Database from "better-sqlite3";
+import { Server } from '@modelcontextprotocol/sdk/server/index.js';
+import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js';
+import { CallToolRequestSchema, ListToolsRequestSchema } from '@modelcontextprotocol/sdk/types.js';
+import { readFileSync } from 'fs';
+import { fileURLToPath } from 'url';
+import { dirname, join } from 'path';
+import { isInitialized, loadConfig } from '../config/index.js';
+import { openDatabase } from '../db/index.js';
+import { selectContext, type SelectOptions } from '../selector/index.js';
+import { indexSources } from '../indexer/index.js';
+import type Database from 'better-sqlite3';
 
 // Get version from package.json
 const __dirname = dirname(fileURLToPath(import.meta.url));
@@ -36,12 +33,10 @@ function getIndexStats(db: Database.Database): {
   totalChunks: number;
   totalSources: number;
 } {
-  const chunkCount = db
-    .prepare("SELECT COUNT(*) as count FROM chunks")
-    .get() as { count: number };
-  const sourceCount = db
-    .prepare("SELECT COUNT(DISTINCT source_id) as count FROM chunks")
-    .get() as { count: number };
+  const chunkCount = db.prepare('SELECT COUNT(*) as count FROM chunks').get() as { count: number };
+  const sourceCount = db.prepare('SELECT COUNT(DISTINCT source_id) as count FROM chunks').get() as {
+    count: number;
+  };
 
   return {
     totalChunks: chunkCount.count,
@@ -222,7 +217,7 @@ function extractSymbols(content: string, filePath: string): SymbolMatch[] {
 function findBlockEnd(lines: string[], startIdx: number): number {
   let braceCount = 0;
   let started = false;
-  
+
   for (let i = startIdx; i < lines.length; i++) {
     const line = lines[i];
     for (const char of line) {
@@ -243,12 +238,12 @@ function findBlockEnd(lines: string[], startIdx: number): number {
 function findPythonBlockEnd(lines: string[], startIdx: number): number {
   const startLine = lines[startIdx];
   const startIndent = startLine.length - startLine.trimStart().length;
-  
+
   for (let i = startIdx + 1; i < lines.length; i++) {
     const line = lines[i];
     const trimmed = line.trim();
     if (!trimmed) continue;
-    
+
     const indent = line.length - line.trimStart().length;
     if (indent <= startIndent) {
       return i;
@@ -271,11 +266,11 @@ function findStatementEnd(lines: string[], startIdx: number): number {
   if (startLine.trim().endsWith(';')) {
     return startIdx + 1;
   }
-  
+
   if (startLine.includes('=>') || startLine.includes('{')) {
     return findBlockEnd(lines, startIdx);
   }
-  
+
   for (let i = startIdx; i < Math.min(startIdx + 20, lines.length); i++) {
     if (lines[i].trim().endsWith(';')) {
       return i + 1;
@@ -298,26 +293,26 @@ function searchSymbols(
   options: { exact?: boolean; limit?: number; sources?: string[] }
 ): SymbolMatch[] {
   const { exact = false, limit = 20, sources } = options;
-  
+
   let sql = 'SELECT DISTINCT file_path, content FROM chunks';
   const params: string[] = [];
-  
+
   if (sources && sources.length > 0) {
     sql += ' WHERE source_id IN (' + sources.map(() => '?').join(',') + ')';
     params.push(...sources);
   }
-  
+
   const rows = db.prepare(sql).all(...params) as Array<{ file_path: string; content: string }>;
-  
+
   const allSymbols: SymbolMatch[] = [];
   const queryLower = query.toLowerCase();
-  
+
   for (const row of rows) {
     const symbols = extractSymbols(row.content, row.file_path);
-    
+
     for (const sym of symbols) {
       const nameLower = sym.symbolName.toLowerCase();
-      
+
       if (exact) {
         if (nameLower === queryLower) {
           allSymbols.push(sym);
@@ -326,14 +321,14 @@ function searchSymbols(
         const isExactMatch = nameLower === queryLower;
         const containsQuery = nameLower.includes(queryLower);
         const isSignificantName = sym.symbolName.length >= 3;
-        
+
         if (isExactMatch || (containsQuery && isSignificantName)) {
           allSymbols.push(sym);
         }
       }
     }
   }
-  
+
   allSymbols.sort((a, b) => {
     const aExact = a.symbolName.toLowerCase() === queryLower;
     const bExact = b.symbolName.toLowerCase() === queryLower;
@@ -341,20 +336,28 @@ function searchSymbols(
     if (!aExact && bExact) return 1;
     return a.symbolName.length - b.symbolName.length;
   });
-  
+
   return allSymbols.slice(0, limit);
 }
 
 function getTypeIcon(type: SymbolMatch['symbolType']): string {
   switch (type) {
-    case 'function': return '𝑓';
-    case 'class': return '◆';
-    case 'method': return '◇';
-    case 'interface': return '◈';
-    case 'type': return '⊤';
-    case 'constant': return '●';
-    case 'variable': return '○';
-    default: return '•';
+    case 'function':
+      return '𝑓';
+    case 'class':
+      return '◆';
+    case 'method':
+      return '◇';
+    case 'interface':
+      return '◈';
+    case 'type':
+      return '⊤';
+    case 'constant':
+      return '●';
+    case 'variable':
+      return '○';
+    default:
+      return '•';
   }
 }
 
@@ -362,16 +365,16 @@ function formatSymbolsForMcp(symbols: SymbolMatch[]): string {
   if (symbols.length === 0) {
     return 'No symbols found.';
   }
-  
+
   const lines: string[] = [];
   const byFile = new Map<string, SymbolMatch[]>();
-  
+
   for (const sym of symbols) {
     const existing = byFile.get(sym.filePath) || [];
     existing.push(sym);
     byFile.set(sym.filePath, existing);
   }
-  
+
   for (const [filePath, fileSymbols] of byFile) {
     lines.push(`📄 ${filePath}`);
     for (const sym of fileSymbols) {
@@ -381,7 +384,7 @@ function formatSymbolsForMcp(symbols: SymbolMatch[]): string {
     }
     lines.push('');
   }
-  
+
   lines.push(`Found ${symbols.length} symbol(s)`);
   return lines.join('\n');
 }
@@ -396,29 +399,32 @@ interface CallGraphResult {
   callees: Array<{ file: string; function: string }>;
 }
 
-function extractFunctionDefs(content: string, filePath: string): Map<string, { startLine: number; endLine: number }> {
+function extractFunctionDefs(
+  content: string,
+  filePath: string
+): Map<string, { startLine: number; endLine: number }> {
   const functions = new Map<string, { startLine: number; endLine: number }>();
   const lines = content.split('\n');
   const ext = filePath.split('.').pop()?.toLowerCase();
-  
+
   for (let i = 0; i < lines.length; i++) {
     const line = lines[i];
     const trimmed = line.trim();
-    
+
     if (ext === 'ts' || ext === 'tsx' || ext === 'js' || ext === 'jsx') {
       const funcMatch = trimmed.match(/^(export\s+)?(async\s+)?function\s+(\w+)/);
       if (funcMatch) {
         functions.set(funcMatch[3], { startLine: i + 1, endLine: findBlockEnd(lines, i) });
         continue;
       }
-      
+
       const arrowMatch = trimmed.match(/^(export\s+)?(const|let|var)\s+(\w+)\s*=\s*(async\s+)?\(/);
       if (arrowMatch) {
         functions.set(arrowMatch[3], { startLine: i + 1, endLine: findBlockEnd(lines, i) });
         continue;
       }
     }
-    
+
     if (ext === 'py') {
       const defMatch = trimmed.match(/^(async\s+)?def\s+(\w+)/);
       if (defMatch) {
@@ -426,7 +432,7 @@ function extractFunctionDefs(content: string, filePath: string): Map<string, { s
         continue;
       }
     }
-    
+
     if (ext === 'go') {
       const funcMatch = trimmed.match(/^func\s+(?:\([^)]+\)\s+)?(\w+)/);
       if (funcMatch) {
@@ -434,7 +440,7 @@ function extractFunctionDefs(content: string, filePath: string): Map<string, { s
         continue;
       }
     }
-    
+
     if (ext === 'rs') {
       const fnMatch = trimmed.match(/^(pub\s+)?(async\s+)?fn\s+(\w+)/);
       if (fnMatch) {
@@ -443,7 +449,7 @@ function extractFunctionDefs(content: string, filePath: string): Map<string, { s
       }
     }
   }
-  
+
   return functions;
 }
 
@@ -456,16 +462,40 @@ function findFunctionCalls(
   const calls: Array<{ name: string; line: number }> = [];
   const lines = content.split('\n');
   const callPattern = /\b(\w+)\s*\(/g;
-  const keywords = new Set(['if', 'else', 'while', 'for', 'switch', 'catch', 'return', 'throw', 'new', 'typeof', 'import', 'export', 'const', 'let', 'var', 'function', 'class', 'interface', 'type', 'async', 'await', 'try', 'finally']);
-  
+  const keywords = new Set([
+    'if',
+    'else',
+    'while',
+    'for',
+    'switch',
+    'catch',
+    'return',
+    'throw',
+    'new',
+    'typeof',
+    'import',
+    'export',
+    'const',
+    'let',
+    'var',
+    'function',
+    'class',
+    'interface',
+    'type',
+    'async',
+    'await',
+    'try',
+    'finally',
+  ]);
+
   for (let i = startLine - 1; i < Math.min(endLine, lines.length); i++) {
     const line = lines[i];
     const trimmed = line.trim();
-    
+
     if (trimmed.startsWith('//') || trimmed.startsWith('#') || trimmed.startsWith('*')) {
       continue;
     }
-    
+
     let match;
     while ((match = callPattern.exec(line)) !== null) {
       const name = match[1];
@@ -474,24 +504,28 @@ function findFunctionCalls(
       }
     }
   }
-  
+
   return calls;
 }
 
-function buildCallGraph(db: Database.Database, targetName: string, sources?: string[]): CallGraphResult {
+function buildCallGraph(
+  db: Database.Database,
+  targetName: string,
+  sources?: string[]
+): CallGraphResult {
   let sql = 'SELECT file_path, content FROM chunks';
   const params: string[] = [];
-  
+
   if (sources && sources.length > 0) {
     sql += ' WHERE source_id IN (' + sources.map(() => '?').join(',') + ')';
     params.push(...sources);
   }
-  
+
   const rows = db.prepare(sql).all(...params) as Array<{ file_path: string; content: string }>;
-  
+
   const functionsByFile = new Map<string, Map<string, { startLine: number; endLine: number }>>();
   const allFunctions = new Set<string>();
-  
+
   for (const row of rows) {
     const funcs = extractFunctionDefs(row.content, row.file_path);
     if (funcs.size > 0) {
@@ -501,27 +535,32 @@ function buildCallGraph(db: Database.Database, targetName: string, sources?: str
       }
     }
   }
-  
+
   const callers: CallGraphResult['callers'] = [];
   const callees: CallGraphResult['callees'] = [];
-  
+
   for (const row of rows) {
     const fileFuncs = functionsByFile.get(row.file_path);
     if (!fileFuncs) continue;
-    
+
     for (const [funcName, { startLine, endLine }] of fileFuncs) {
       const calls = findFunctionCalls(row.content, startLine, endLine, allFunctions);
-      
+
       for (const call of calls) {
         if (call.name === targetName && funcName !== targetName) {
           callers.push({ file: row.file_path, function: funcName, line: call.line });
         }
       }
     }
-    
+
     const targetFunc = fileFuncs.get(targetName);
     if (targetFunc) {
-      const calls = findFunctionCalls(row.content, targetFunc.startLine, targetFunc.endLine, allFunctions);
+      const calls = findFunctionCalls(
+        row.content,
+        targetFunc.startLine,
+        targetFunc.endLine,
+        allFunctions
+      );
       for (const call of calls) {
         if (call.name !== targetName) {
           let definedIn = '(external)';
@@ -536,19 +575,23 @@ function buildCallGraph(db: Database.Database, targetName: string, sources?: str
       }
     }
   }
-  
-  const uniqueCallers = Array.from(new Map(callers.map(c => [`${c.file}:${c.function}`, c])).values());
-  const uniqueCallees = Array.from(new Map(callees.map(c => [`${c.file}:${c.function}`, c])).values());
-  
+
+  const uniqueCallers = Array.from(
+    new Map(callers.map((c) => [`${c.file}:${c.function}`, c])).values()
+  );
+  const uniqueCallees = Array.from(
+    new Map(callees.map((c) => [`${c.file}:${c.function}`, c])).values()
+  );
+
   return { target: targetName, callers: uniqueCallers, callees: uniqueCallees };
 }
 
 function formatCallGraphForMcp(result: CallGraphResult): string {
   const lines: string[] = [];
-  
+
   lines.push(`🎯 Call graph for: ${result.target}`);
   lines.push('');
-  
+
   lines.push(`📥 Callers (${result.callers.length}):`);
   if (result.callers.length === 0) {
     lines.push('   (none found)');
@@ -558,7 +601,7 @@ function formatCallGraphForMcp(result: CallGraphResult): string {
     }
   }
   lines.push('');
-  
+
   lines.push(`📤 Calls (${result.callees.length}):`);
   if (result.callees.length === 0) {
     lines.push('   (none found)');
@@ -567,7 +610,7 @@ function formatCallGraphForMcp(result: CallGraphResult): string {
       lines.push(`   → ${callee.function} (${callee.file})`);
     }
   }
-  
+
   return lines.join('\n');
 }
 
@@ -581,7 +624,7 @@ function formatCallGraphForMcp(result: CallGraphResult): string {
 export function createMcpServer(): Server {
   const server = new Server(
     {
-      name: "contextkit",
+      name: 'contextkit',
       version: VERSION,
     },
     {
@@ -596,88 +639,87 @@ export function createMcpServer(): Server {
     return {
       tools: [
         {
-          name: "contextkit_select",
+          name: 'contextkit_select',
           description:
-            "Select optimal context chunks for a query from indexed codebase. Returns the most relevant code and documentation for your task.",
+            'Select optimal context chunks for a query from indexed codebase. Returns the most relevant code and documentation for your task.',
           inputSchema: {
-            type: "object",
+            type: 'object',
             properties: {
               query: {
-                type: "string",
-                description:
-                  "What you need context for (e.g., 'How does authentication work?')",
+                type: 'string',
+                description: "What you need context for (e.g., 'How does authentication work?')",
               },
               budget: {
-                type: "number",
-                description: "Maximum tokens to return (default: 8000)",
+                type: 'number',
+                description: 'Maximum tokens to return (default: 8000)',
               },
               mode: {
-                type: "string",
-                enum: ["full", "map"],
-                description: "Selection mode: 'full' for complete code (default), 'map' for signatures only (uses fewer tokens)",
+                type: 'string',
+                enum: ['full', 'map'],
+                description:
+                  "Selection mode: 'full' for complete code (default), 'map' for signatures only (uses fewer tokens)",
               },
               sources: {
-                type: "string",
-                description:
-                  "Comma-separated list of sources to filter (optional)",
+                type: 'string',
+                description: 'Comma-separated list of sources to filter (optional)',
               },
             },
-            required: ["query"],
+            required: ['query'],
           },
         },
         {
-          name: "contextkit_symbol",
+          name: 'contextkit_symbol',
           description:
-            "Search for code symbols (functions, classes, interfaces, types) by name. Faster than semantic search when you know the symbol name.",
+            'Search for code symbols (functions, classes, interfaces, types) by name. Faster than semantic search when you know the symbol name.',
           inputSchema: {
-            type: "object",
+            type: 'object',
             properties: {
               name: {
-                type: "string",
+                type: 'string',
                 description: "Symbol name to search for (e.g., 'handleAuth', 'UserService')",
               },
               exact: {
-                type: "boolean",
-                description: "Require exact match (default: false, uses fuzzy matching)",
+                type: 'boolean',
+                description: 'Require exact match (default: false, uses fuzzy matching)',
               },
               limit: {
-                type: "number",
-                description: "Maximum number of results (default: 20)",
+                type: 'number',
+                description: 'Maximum number of results (default: 20)',
               },
             },
-            required: ["name"],
+            required: ['name'],
           },
         },
         {
-          name: "contextkit_graph",
+          name: 'contextkit_graph',
           description:
-            "Show call graph for a function: what functions call it (callers) and what it calls (callees). Useful for understanding code flow and dependencies.",
+            'Show call graph for a function: what functions call it (callers) and what it calls (callees). Useful for understanding code flow and dependencies.',
           inputSchema: {
-            type: "object",
+            type: 'object',
             properties: {
               function: {
-                type: "string",
-                description: "Function name to analyze",
+                type: 'string',
+                description: 'Function name to analyze',
               },
             },
-            required: ["function"],
+            required: ['function'],
           },
         },
         {
-          name: "contextkit_index",
+          name: 'contextkit_index',
           description:
-            "Index or re-index the codebase. Run this after making changes to ensure context is up to date.",
+            'Index or re-index the codebase. Run this after making changes to ensure context is up to date.',
           inputSchema: {
-            type: "object",
+            type: 'object',
             properties: {},
           },
         },
         {
-          name: "contextkit_status",
+          name: 'contextkit_status',
           description:
-            "Get the current status of the ContextKit index, including chunk counts and source information.",
+            'Get the current status of the ContextKit index, including chunk counts and source information.',
           inputSchema: {
-            type: "object",
+            type: 'object',
             properties: {},
           },
         },
@@ -691,30 +733,28 @@ export function createMcpServer(): Server {
 
     try {
       switch (name) {
-        case "contextkit_select": {
+        case 'contextkit_select': {
           if (!isInitialized()) {
             return {
               content: [
                 {
-                  type: "text",
-                  text: "ContextKit not initialized. Run `contextkit init` first.",
+                  type: 'text',
+                  text: 'ContextKit not initialized. Run `contextkit init` first.',
                 },
               ],
               isError: true,
             };
           }
 
-          const query = (args?.query as string) || "";
+          const query = (args?.query as string) || '';
           const budget = (args?.budget as number) || 8000;
           const mode = (args?.mode as 'full' | 'map') || 'full';
           const sourcesStr = args?.sources as string | undefined;
-          const sources = sourcesStr
-            ? sourcesStr.split(",").map((s) => s.trim())
-            : undefined;
+          const sources = sourcesStr ? sourcesStr.split(',').map((s) => s.trim()) : undefined;
 
           if (!query) {
             return {
-              content: [{ type: "text", text: "Error: query is required" }],
+              content: [{ type: 'text', text: 'Error: query is required' }],
               isError: true,
             };
           }
@@ -735,8 +775,8 @@ export function createMcpServer(): Server {
               return {
                 content: [
                   {
-                    type: "text",
-                    text: "No indexed content. Run `contextkit index` first.",
+                    type: 'text',
+                    text: 'No indexed content. Run `contextkit index` first.',
                   },
                 ],
               };
@@ -746,7 +786,7 @@ export function createMcpServer(): Server {
               return {
                 content: [
                   {
-                    type: "text",
+                    type: 'text',
                     text: `No relevant context found for query: "${query}"`,
                   },
                 ],
@@ -754,33 +794,33 @@ export function createMcpServer(): Server {
             }
 
             return {
-              content: [{ type: "text", text: result.output.text }],
+              content: [{ type: 'text', text: result.output.text }],
             };
           } finally {
             db.close();
           }
         }
 
-        case "contextkit_symbol": {
+        case 'contextkit_symbol': {
           if (!isInitialized()) {
             return {
               content: [
                 {
-                  type: "text",
-                  text: "ContextKit not initialized. Run `contextkit init` first.",
+                  type: 'text',
+                  text: 'ContextKit not initialized. Run `contextkit init` first.',
                 },
               ],
               isError: true,
             };
           }
 
-          const symbolName = (args?.name as string) || "";
+          const symbolName = (args?.name as string) || '';
           const exact = (args?.exact as boolean) || false;
           const limit = (args?.limit as number) || 20;
 
           if (!symbolName) {
             return {
-              content: [{ type: "text", text: "Error: name is required" }],
+              content: [{ type: 'text', text: 'Error: name is required' }],
               isError: true,
             };
           }
@@ -791,31 +831,31 @@ export function createMcpServer(): Server {
             const symbols = searchSymbols(db, symbolName, { exact, limit });
             const output = formatSymbolsForMcp(symbols);
             return {
-              content: [{ type: "text", text: output }],
+              content: [{ type: 'text', text: output }],
             };
           } finally {
             db.close();
           }
         }
 
-        case "contextkit_graph": {
+        case 'contextkit_graph': {
           if (!isInitialized()) {
             return {
               content: [
                 {
-                  type: "text",
-                  text: "ContextKit not initialized. Run `contextkit init` first.",
+                  type: 'text',
+                  text: 'ContextKit not initialized. Run `contextkit init` first.',
                 },
               ],
               isError: true,
             };
           }
 
-          const functionName = (args?.function as string) || "";
+          const functionName = (args?.function as string) || '';
 
           if (!functionName) {
             return {
-              content: [{ type: "text", text: "Error: function name is required" }],
+              content: [{ type: 'text', text: 'Error: function name is required' }],
               isError: true,
             };
           }
@@ -824,34 +864,34 @@ export function createMcpServer(): Server {
 
           try {
             const result = buildCallGraph(db, functionName);
-            
+
             if (result.callers.length === 0 && result.callees.length === 0) {
               return {
                 content: [
                   {
-                    type: "text",
+                    type: 'text',
                     text: `No call relationships found for "${functionName}". Make sure the function exists and the codebase is indexed.`,
                   },
                 ],
               };
             }
-            
+
             const output = formatCallGraphForMcp(result);
             return {
-              content: [{ type: "text", text: output }],
+              content: [{ type: 'text', text: output }],
             };
           } finally {
             db.close();
           }
         }
 
-        case "contextkit_index": {
+        case 'contextkit_index': {
           if (!isInitialized()) {
             return {
               content: [
                 {
-                  type: "text",
-                  text: "ContextKit not initialized. Run `contextkit init` first.",
+                  type: 'text',
+                  text: 'ContextKit not initialized. Run `contextkit init` first.',
                 },
               ],
               isError: true,
@@ -862,20 +902,15 @@ export function createMcpServer(): Server {
           const db = openDatabase();
 
           try {
-            const stats = await indexSources(
-              config.sources,
-              process.cwd(),
-              db,
-              {
-                chunkSize: config.settings.chunk_size,
-                chunkOverlap: config.settings.chunk_overlap,
-              }
-            );
+            const stats = await indexSources(config.sources, process.cwd(), db, {
+              chunkSize: config.settings.chunk_size,
+              chunkOverlap: config.settings.chunk_overlap,
+            });
 
             return {
               content: [
                 {
-                  type: "text",
+                  type: 'text',
                   text: `Indexed ${stats.chunks} chunks from ${stats.files} files.`,
                 },
               ],
@@ -885,13 +920,13 @@ export function createMcpServer(): Server {
           }
         }
 
-        case "contextkit_status": {
+        case 'contextkit_status': {
           if (!isInitialized()) {
             return {
               content: [
                 {
-                  type: "text",
-                  text: "ContextKit not initialized in current directory.",
+                  type: 'text',
+                  text: 'ContextKit not initialized in current directory.',
                 },
               ],
             };
@@ -904,24 +939,24 @@ export function createMcpServer(): Server {
             const stats = getIndexStats(db);
 
             const statusText = [
-              "ContextKit Status",
-              "=================",
+              'ContextKit Status',
+              '=================',
               `Version: ${VERSION}`,
               `Sources configured: ${config.sources.length}`,
               `Chunks indexed: ${stats.totalChunks}`,
-              "",
-              "Available tools:",
-              "  • contextkit_select - Semantic context search",
-              "  • contextkit_symbol - Symbol name search",
-              "  • contextkit_graph  - Function call graph",
-              "  • contextkit_index  - Re-index codebase",
-              "",
-              "Sources:",
+              '',
+              'Available tools:',
+              '  • contextkit_select - Semantic context search',
+              '  • contextkit_symbol - Symbol name search',
+              '  • contextkit_graph  - Function call graph',
+              '  • contextkit_index  - Re-index codebase',
+              '',
+              'Sources:',
               ...config.sources.map((s) => `  - ${s.id}: ${s.path}`),
-            ].join("\n");
+            ].join('\n');
 
             return {
-              content: [{ type: "text", text: statusText }],
+              content: [{ type: 'text', text: statusText }],
             };
           } finally {
             db.close();
@@ -930,14 +965,14 @@ export function createMcpServer(): Server {
 
         default:
           return {
-            content: [{ type: "text", text: `Unknown tool: ${name}` }],
+            content: [{ type: 'text', text: `Unknown tool: ${name}` }],
             isError: true,
           };
       }
     } catch (error) {
       const message = error instanceof Error ? error.message : String(error);
       return {
-        content: [{ type: "text", text: `Error: ${message}` }],
+        content: [{ type: 'text', text: `Error: ${message}` }],
         isError: true,
       };
     }

@@ -5,10 +5,7 @@
  */
 
 import { describe, it, expect } from 'vitest';
-import {
-  parseTypeScript,
-  isTypeScriptOrJavaScript,
-} from '../src/parsers/typescript.js';
+import { parseTypeScript, isTypeScriptOrJavaScript } from '../src/parsers/typescript.js';
 import { parseFile, canParse, getSupportedExtensions } from '../src/parsers/index.js';
 
 describe('TypeScript Parser', () => {

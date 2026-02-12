@@ -31,10 +31,10 @@ export interface IndexStats {
  * Get all stored file hashes for a source
  */
 function getStoredFiles(db: Database.Database, sourceId: string): Map<string, string> {
-  const rows = db.prepare(
-    'SELECT file_path, content_hash FROM files WHERE source_id = ?'
-  ).all(sourceId) as Array<{ file_path: string; content_hash: string }>;
-  
+  const rows = db
+    .prepare('SELECT file_path, content_hash FROM files WHERE source_id = ?')
+    .all(sourceId) as Array<{ file_path: string; content_hash: string }>;
+
   const map = new Map<string, string>();
   for (const row of rows) {
     map.set(row.file_path, row.content_hash);
@@ -58,11 +58,11 @@ function categorizeFiles(
   const changedFiles: DiscoveredFile[] = [];
   const unchangedFiles: DiscoveredFile[] = [];
   const currentPaths = new Set<string>();
-  
+
   for (const file of discovered) {
     currentPaths.add(file.relativePath);
     const storedHash = stored.get(file.relativePath);
-    
+
     if (!storedHash) {
       // New file
       newFiles.push(file);
@@ -74,7 +74,7 @@ function categorizeFiles(
       unchangedFiles.push(file);
     }
   }
-  
+
   // Find removed files
   const removedFiles: string[] = [];
   for (const [path] of stored) {
@@ -82,7 +82,7 @@ function categorizeFiles(
       removedFiles.push(path);
     }
   }
-  
+
   return {
     new: newFiles,
     changed: changedFiles,
@@ -126,7 +126,7 @@ export async function indexSources(
   let totalFilesChanged = 0;
   let totalFilesUnchanged = 0;
   let totalFilesRemoved = 0;
-  
+
   const forceReindex = options?.force ?? false;
 
   for (const source of sources) {
@@ -151,9 +151,13 @@ export async function indexSources(
 
     // Get stored file hashes for incremental indexing
     const storedFiles = forceReindex ? new Map() : getStoredFiles(db, source.id);
-    const { new: newFiles, changed: changedFiles, unchanged: unchangedFiles, removed: removedFiles } = 
-      categorizeFiles(discovered.files, storedFiles);
-    
+    const {
+      new: newFiles,
+      changed: changedFiles,
+      unchanged: unchangedFiles,
+      removed: removedFiles,
+    } = categorizeFiles(discovered.files, storedFiles);
+
     // Files to process = new + changed
     const filesToProcess = [...newFiles, ...changedFiles];
     totalFilesChanged += filesToProcess.length;
@@ -200,10 +204,10 @@ export async function indexSources(
     });
 
     storeChunksIncremental(
-      db, 
-      source.id, 
-      source.path, 
-      embeddedChunks, 
+      db,
+      source.id,
+      source.path,
+      embeddedChunks,
       filesToProcess,
       removedFiles,
       discovered.files.length
@@ -265,7 +269,7 @@ function storeChunksIncremental(
     if (removedFiles.length > 0) {
       const deleteChunks = db.prepare('DELETE FROM chunks WHERE source_id = ? AND file_path = ?');
       const deleteFile = db.prepare('DELETE FROM files WHERE source_id = ? AND file_path = ?');
-      
+
       for (const filePath of removedFiles) {
         deleteChunks.run(sourceId, filePath);
         deleteFile.run(sourceId, filePath);
@@ -275,7 +279,7 @@ function storeChunksIncremental(
     // Delete chunks for processed (changed) files - they'll be replaced
     if (processedFiles.length > 0) {
       const deleteChunks = db.prepare('DELETE FROM chunks WHERE source_id = ? AND file_path = ?');
-      
+
       for (const file of processedFiles) {
         deleteChunks.run(sourceId, file.relativePath);
       }
@@ -289,16 +293,16 @@ function storeChunksIncremental(
         content_hash = excluded.content_hash,
         indexed_at = excluded.indexed_at
     `);
-    
+
     for (const file of processedFiles) {
       const fileId = generateFileId(sourceId, file.relativePath);
       upsertFile.run(fileId, sourceId, file.relativePath, file.contentHash);
     }
 
     // Get current total chunk count for this source
-    const currentChunkCount = db.prepare(
-      'SELECT COUNT(*) as count FROM chunks WHERE source_id = ?'
-    ).get(sourceId) as { count: number };
+    const currentChunkCount = db
+      .prepare('SELECT COUNT(*) as count FROM chunks WHERE source_id = ?')
+      .get(sourceId) as { count: number };
 
     // Update source record
     const newChunkCount = currentChunkCount.count + chunks.length;
@@ -349,7 +353,12 @@ export function readEmbedding(blob: Buffer): number[] {
 }
 
 // Re-export types and functions
-export { discoverFiles, computeContentHash, type DiscoveredFile, type DiscoveryResult } from './discovery.js';
+export {
+  discoverFiles,
+  computeContentHash,
+  type DiscoveredFile,
+  type DiscoveryResult,
+} from './discovery.js';
 export { chunkFiles, chunkFile, countTokens, type Chunk, type ChunkOptions } from './chunker.js';
 export {
   embed,

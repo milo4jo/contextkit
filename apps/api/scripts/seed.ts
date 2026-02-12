@@ -4,28 +4,28 @@
  * Run with: npx tsx scripts/seed.ts
  */
 
-import { neon } from "@neondatabase/serverless";
-import { drizzle } from "drizzle-orm/neon-http";
-import * as schema from "../src/db/schema";
+import { neon } from '@neondatabase/serverless';
+import { drizzle } from 'drizzle-orm/neon-http';
+import * as schema from '../src/db/schema';
 
 async function seed() {
   if (!process.env.DATABASE_URL) {
-    console.error("DATABASE_URL is not set");
+    console.error('DATABASE_URL is not set');
     process.exit(1);
   }
 
   const sql = neon(process.env.DATABASE_URL);
   const db = drizzle(sql, { schema });
 
-  console.log("🌱 Seeding database...");
+  console.log('🌱 Seeding database...');
 
   // Create demo organization
   const [demoOrg] = await db
     .insert(schema.organizations)
     .values({
-      name: "Demo Organization",
-      slug: "demo",
-      plan: "free",
+      name: 'Demo Organization',
+      slug: 'demo',
+      plan: 'free',
     })
     .returning();
 
@@ -35,8 +35,8 @@ async function seed() {
   const [demoUser] = await db
     .insert(schema.users)
     .values({
-      email: "demo@example.com",
-      name: "Demo User",
+      email: 'demo@example.com',
+      name: 'Demo User',
     })
     .returning();
 
@@ -46,7 +46,7 @@ async function seed() {
   await db.insert(schema.orgMembers).values({
     orgId: demoOrg.id,
     userId: demoUser.id,
-    role: "owner",
+    role: 'owner',
   });
 
   console.log(`✅ Added ${demoUser.email} as owner of ${demoOrg.name}`);
@@ -56,9 +56,9 @@ async function seed() {
     .insert(schema.projects)
     .values({
       orgId: demoOrg.id,
-      name: "Demo Project",
-      slug: "demo-project",
-      description: "A demo project for testing",
+      name: 'Demo Project',
+      slug: 'demo-project',
+      description: 'A demo project for testing',
     })
     .returning();
 
@@ -71,18 +71,18 @@ async function seed() {
     .insert(schema.apiKeys)
     .values({
       orgId: demoOrg.id,
-      name: "Demo Key",
+      name: 'Demo Key',
       keyHash: demoKeyPlain, // In production: hash this
-      keyPrefix: "test_demo",
-      scopes: ["project:read", "project:write"],
+      keyPrefix: 'test_demo',
+      scopes: ['project:read', 'project:write'],
     })
     .returning();
 
   console.log(`✅ Created API key: ${demoKey.name}`);
   console.log(`   Key (save this!): ${demoKeyPlain}`);
 
-  console.log("\n🎉 Seed complete!");
-  console.log("\nDemo credentials:");
+  console.log('\n🎉 Seed complete!');
+  console.log('\nDemo credentials:');
   console.log(`  Organization ID: ${demoOrg.id}`);
   console.log(`  Project ID: ${demoProject.id}`);
   console.log(`  API Key: ${demoKeyPlain}`);

@@ -1,11 +1,11 @@
-"use client";
+'use client';
 
-import { useState } from "react";
-import Link from "next/link";
-import { usePathname } from "next/navigation";
-import { Menu, X, ExternalLink } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { cn } from "@/lib/utils";
+import { useState } from 'react';
+import Link from 'next/link';
+import { usePathname } from 'next/navigation';
+import { Menu, X, ExternalLink } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { cn } from '@/lib/utils';
 
 interface MobileNavProps {
   items: { href: string; label: string }[];
@@ -30,11 +30,11 @@ export function MobileNav({ items }: MobileNavProps) {
       {isOpen && (
         <>
           {/* Backdrop */}
-          <div 
+          <div
             className="fixed inset-0 top-14 bg-background/80 backdrop-blur-sm z-40"
             onClick={() => setIsOpen(false)}
           />
-          
+
           {/* Menu */}
           <div className="fixed inset-x-0 top-14 border-b bg-background z-50 animate-in slide-in-from-top-2">
             <nav className="container py-4 px-4">
@@ -45,10 +45,10 @@ export function MobileNav({ items }: MobileNavProps) {
                     href={item.href}
                     onClick={() => setIsOpen(false)}
                     className={cn(
-                      "flex items-center rounded-md px-3 py-2 text-sm font-medium transition-colors",
+                      'flex items-center rounded-md px-3 py-2 text-sm font-medium transition-colors',
                       pathname === item.href
-                        ? "bg-primary text-primary-foreground"
-                        : "text-muted-foreground hover:bg-accent hover:text-accent-foreground"
+                        ? 'bg-primary text-primary-foreground'
+                        : 'text-muted-foreground hover:bg-accent hover:text-accent-foreground'
                     )}
                   >
                     {item.label}

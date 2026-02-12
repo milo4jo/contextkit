@@ -16,10 +16,10 @@ export const statusCommand = new Command('status')
     const cwd = process.cwd();
     const configPath = resolve(cwd, '.contextkit', 'config.yaml');
     const dbPath = resolve(cwd, '.contextkit', 'index.db');
-    
+
     // Check if initialized
     const initialized = existsSync(configPath);
-    
+
     if (opts.json) {
       const status = {
         initialized,
@@ -35,7 +35,7 @@ export const statusCommand = new Command('status')
     writeMessage('');
     writeMessage(`   Project:      ${formatDim(cwd)}`);
     writeMessage(`   Initialized:  ${initialized ? '✓ Yes' : '✗ No'}`);
-    
+
     if (!initialized) {
       writeMessage('');
       writeMessage(formatDim('   Run `contextkit init` to get started.'));
@@ -46,7 +46,9 @@ export const statusCommand = new Command('status')
     // Load config
     const config = loadConfig();
     const sources = config.sources || [];
-    writeMessage(`   Sources:      ${sources.length} (${sources.map(s => s.id).join(', ') || 'none'})`);
+    writeMessage(
+      `   Sources:      ${sources.length} (${sources.map((s) => s.id).join(', ') || 'none'})`
+    );
 
     // Get index stats
     if (existsSync(dbPath)) {
@@ -57,7 +59,9 @@ export const statusCommand = new Command('status')
         writeMessage('   Index:');
         writeMessage(`     Files:      ${stats.fileCount}`);
         writeMessage(`     Chunks:     ${stats.chunkCount}`);
-        writeMessage(`     Embedded:   ${stats.embeddedCount}/${stats.chunkCount} (${Math.round(stats.embeddedCount/stats.chunkCount*100) || 0}%)`);
+        writeMessage(
+          `     Embedded:   ${stats.embeddedCount}/${stats.chunkCount} (${Math.round((stats.embeddedCount / stats.chunkCount) * 100) || 0}%)`
+        );
         writeMessage(`     Size:       ${formatBytes(stats.dbSize)}`);
         if (stats.lastIndexed) {
           writeMessage(`     Updated:    ${formatRelativeTime(stats.lastIndexed)}`);
@@ -90,12 +94,12 @@ function getDetailedStatus(dbPath: string): Record<string, unknown> {
   if (!existsSync(dbPath)) {
     return { indexed: false };
   }
-  
+
   const db = openDatabase();
   try {
     const stats = getIndexStats(db);
     const creds = loadCredentials();
-    
+
     return {
       indexed: true,
       files: stats.fileCount,
@@ -113,15 +117,15 @@ function getDetailedStatus(dbPath: string): Record<string, unknown> {
 function formatRelativeTime(date: Date): string {
   const now = new Date();
   const diff = now.getTime() - date.getTime();
-  
+
   const minutes = Math.floor(diff / (1000 * 60));
   const hours = Math.floor(diff / (1000 * 60 * 60));
   const days = Math.floor(diff / (1000 * 60 * 60 * 24));
-  
+
   if (minutes < 1) return 'just now';
   if (minutes < 60) return `${minutes} minute${minutes === 1 ? '' : 's'} ago`;
   if (hours < 24) return `${hours} hour${hours === 1 ? '' : 's'} ago`;
   if (days < 7) return `${days} day${days === 1 ? '' : 's'} ago`;
-  
+
   return date.toLocaleDateString();
 }

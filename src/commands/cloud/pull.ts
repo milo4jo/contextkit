@@ -94,7 +94,9 @@ export const pullCommand = new Command('pull')
       writeMessage(`  Project:  ${formatBold(project.name)}`);
       writeMessage(`  Version:  ${downloadResponse.index.version}`);
       writeMessage(`  Size:     ${formatBytes(downloadResponse.index.size || 0)}`);
-      writeMessage(`  Synced:   ${downloadResponse.index.lastSynced ? new Date(downloadResponse.index.lastSynced).toLocaleString() : 'Unknown'}`);
+      writeMessage(
+        `  Synced:   ${downloadResponse.index.lastSynced ? new Date(downloadResponse.index.lastSynced).toLocaleString() : 'Unknown'}`
+      );
       writeMessage('');
       writeMessage('Now you can run:');
       writeMessage(`  ${formatCommand('contextkit select "your query"')}`);

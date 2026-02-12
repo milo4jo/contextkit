@@ -2,3 +2,9 @@ dist
 node_modules
 .contextkit
 *.md
+pnpm-lock.yaml
+package-lock.json
+.next
+.vercel
+*.nft.json
+drizzle/meta

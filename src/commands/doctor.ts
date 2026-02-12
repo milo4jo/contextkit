@@ -126,7 +126,9 @@ async function checkEmbeddings(): Promise<CheckResult> {
     }
 
     const db = openDatabase();
-    const result = db.prepare('SELECT COUNT(*) as count FROM chunks WHERE embedding IS NOT NULL').get() as { count: number };
+    const result = db
+      .prepare('SELECT COUNT(*) as count FROM chunks WHERE embedding IS NOT NULL')
+      .get() as { count: number };
     const total = db.prepare('SELECT COUNT(*) as count FROM chunks').get() as { count: number };
     db.close();
 
@@ -225,7 +227,9 @@ async function checkQueryCache(): Promise<CheckResult> {
       };
     }
 
-    const result = db.prepare('SELECT COUNT(*) as count FROM query_cache').get() as { count: number };
+    const result = db.prepare('SELECT COUNT(*) as count FROM query_cache').get() as {
+      count: number;
+    };
     db.close();
 
     return {
@@ -276,7 +280,9 @@ async function runDoctor(options: { json?: boolean }): Promise<void> {
     writeMessage(chalk.red(`\n${errors} error(s) found. Fix these issues to use ContextKit.`));
     process.exit(1);
   } else if (warnings > 0) {
-    writeMessage(chalk.yellow(`\n${warnings} warning(s). ContextKit will work but may be limited.`));
+    writeMessage(
+      chalk.yellow(`\n${warnings} warning(s). ContextKit will work but may be limited.`)
+    );
   } else {
     writeMessage(chalk.green('\n✓ All checks passed! ContextKit is ready to use.'));
   }

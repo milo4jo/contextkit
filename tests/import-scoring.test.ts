@@ -161,15 +161,13 @@ describe('getRelatedImports', () => {
         ['src/b.ts', ['src/shared.ts']],
         ['src/shared.ts', []],
       ]),
-      importedBy: new Map([
-        ['src/shared.ts', ['src/a.ts', 'src/b.ts']],
-      ]),
+      importedBy: new Map([['src/shared.ts', ['src/a.ts', 'src/b.ts']]]),
     };
 
     const related = getRelatedImports(['src/a.ts', 'src/b.ts'], graphWithShared);
 
     // shared.ts should only appear once
-    const sharedCount = related.filter(f => f === 'src/shared.ts').length;
+    const sharedCount = related.filter((f) => f === 'src/shared.ts').length;
     expect(sharedCount).toBe(1);
   });
 });
@@ -192,25 +190,25 @@ describe('rankChunks with import boost', () => {
 
   it('should boost files imported by high-scoring files', () => {
     const chunks: ScoredChunk[] = [
-      createScoredChunk('src/main.ts', 0.9),      // High score, imports utils & helpers
-      createScoredChunk('src/utils.ts', 0.5),     // Imported by main, should get boost
+      createScoredChunk('src/main.ts', 0.9), // High score, imports utils & helpers
+      createScoredChunk('src/utils.ts', 0.5), // Imported by main, should get boost
       createScoredChunk('src/unrelated.ts', 0.5), // Same base similarity, no import relationship
     ];
 
     const ranked = rankChunks(chunks, 'test query', { importGraph });
 
     // utils.ts should rank higher than unrelated.ts due to import boost
-    const utilsRank = ranked.findIndex(c => c.filePath === 'src/utils.ts');
-    const unrelatedRank = ranked.findIndex(c => c.filePath === 'src/unrelated.ts');
+    const utilsRank = ranked.findIndex((c) => c.filePath === 'src/utils.ts');
+    const unrelatedRank = ranked.findIndex((c) => c.filePath === 'src/unrelated.ts');
 
     expect(utilsRank).toBeLessThan(unrelatedRank);
 
     // Check that utils has import boost
-    const utilsChunk = ranked.find(c => c.filePath === 'src/utils.ts');
+    const utilsChunk = ranked.find((c) => c.filePath === 'src/utils.ts');
     expect(utilsChunk?.scoreBreakdown.importBoost).toBeGreaterThan(0);
 
     // Unrelated should have no import boost
-    const unrelatedChunk = ranked.find(c => c.filePath === 'src/unrelated.ts');
+    const unrelatedChunk = ranked.find((c) => c.filePath === 'src/unrelated.ts');
     expect(unrelatedChunk?.scoreBreakdown.importBoost).toBe(0);
   });
 
@@ -249,9 +247,7 @@ describe('rankChunks with import boost', () => {
         ['src/b.ts', ['src/shared.ts']],
         ['src/shared.ts', []],
       ]),
-      importedBy: new Map([
-        ['src/shared.ts', ['src/a.ts', 'src/b.ts']],
-      ]),
+      importedBy: new Map([['src/shared.ts', ['src/a.ts', 'src/b.ts']]]),
     };
 
     const chunks: ScoredChunk[] = [
@@ -262,7 +258,7 @@ describe('rankChunks with import boost', () => {
 
     const ranked = rankChunks(chunks, 'query', { importGraph: multiGraph });
 
-    const sharedChunk = ranked.find(c => c.filePath === 'src/shared.ts');
+    const sharedChunk = ranked.find((c) => c.filePath === 'src/shared.ts');
     expect(sharedChunk?.scoreBreakdown.importBoost).toBeGreaterThan(0);
   });
 
@@ -274,7 +270,7 @@ describe('rankChunks with import boost', () => {
 
     const ranked = rankChunks(chunks, 'query', { importGraph });
 
-    const isolatedChunk = ranked.find(c => c.filePath === 'src/isolated.ts');
+    const isolatedChunk = ranked.find((c) => c.filePath === 'src/isolated.ts');
     expect(isolatedChunk?.scoreBreakdown.importBoost).toBe(0);
   });
 });
@@ -299,17 +295,11 @@ describe('import scoring edge cases', () => {
 
   it('should handle graph with self-imports', () => {
     const selfGraph: ImportGraph = {
-      imports: new Map([
-        ['src/circular.ts', ['src/circular.ts']],
-      ]),
-      importedBy: new Map([
-        ['src/circular.ts', ['src/circular.ts']],
-      ]),
+      imports: new Map([['src/circular.ts', ['src/circular.ts']]]),
+      importedBy: new Map([['src/circular.ts', ['src/circular.ts']]]),
     };
 
-    const chunks: ScoredChunk[] = [
-      createScoredChunk('src/circular.ts', 0.8),
-    ];
+    const chunks: ScoredChunk[] = [createScoredChunk('src/circular.ts', 0.8)];
 
     // Should not throw
     const ranked = rankChunks(chunks, 'query', { importGraph: selfGraph });
@@ -324,8 +314,8 @@ describe('import scoring edge cases', () => {
     }
 
     const graph: ImportGraph = {
-      imports: new Map(chunks.map(c => [c.filePath, ['src/shared.ts']])),
-      importedBy: new Map([['src/shared.ts', chunks.map(c => c.filePath)]]),
+      imports: new Map(chunks.map((c) => [c.filePath, ['src/shared.ts']])),
+      importedBy: new Map([['src/shared.ts', chunks.map((c) => c.filePath)]]),
     };
 
     chunks.push(createScoredChunk('src/shared.ts', 0.3));

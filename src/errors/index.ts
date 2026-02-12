@@ -99,11 +99,7 @@ export class EmbeddingError extends ContextKitError {
 
 export class QueryError extends ContextKitError {
   constructor(message: string) {
-    super(
-      `Query failed: ${message}. Run \`contextkit doctor\` to diagnose.`,
-      'QUERY_ERROR',
-      true
-    );
+    super(`Query failed: ${message}. Run \`contextkit doctor\` to diagnose.`, 'QUERY_ERROR', true);
   }
 }
 

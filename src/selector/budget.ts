@@ -100,7 +100,12 @@ export function mergeAdjacentChunks(chunks: RankedChunk[]): RankedChunk[] {
         content: mergedContent,
         endLine: next.endLine,
         // Recalculate tokens (approximate)
-        tokens: current.tokens + next.tokens - (overlapLines > 0 ? Math.floor(next.tokens * (overlapLines / (next.endLine - next.startLine + 1))) : 0),
+        tokens:
+          current.tokens +
+          next.tokens -
+          (overlapLines > 0
+            ? Math.floor(next.tokens * (overlapLines / (next.endLine - next.startLine + 1)))
+            : 0),
         score: Math.max(current.score, next.score),
         similarity: Math.max(current.similarity, next.similarity),
       };

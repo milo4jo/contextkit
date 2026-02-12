@@ -10,11 +10,7 @@ import { join, basename } from 'path';
 import { createHash } from 'crypto';
 import { readFileSync } from 'fs';
 import { isLoggedIn, getApiUrl } from '../../auth/credentials.js';
-import {
-  apiRequest,
-  UnauthorizedError,
-  type ProjectListResponse,
-} from '../../auth/api-client.js';
+import { apiRequest, UnauthorizedError, type ProjectListResponse } from '../../auth/api-client.js';
 import { writeSuccess, writeError, writeMessage } from '../../utils/streams.js';
 import { formatBold, formatBytes, formatCommand } from '../../utils/format.js';
 import { INDEX_DB } from '../../config/index.js';
@@ -58,8 +54,7 @@ export const statusCommand = new Command('status')
       // Find matching project
       const project = projectsResponse.projects.find(
         (p) =>
-          p.name === projectName ||
-          p.slug === projectName.toLowerCase().replace(/[^a-z0-9]+/g, '-')
+          p.name === projectName || p.slug === projectName.toLowerCase().replace(/[^a-z0-9]+/g, '-')
       );
 
       writeMessage(`  Account: Logged in`);
@@ -68,7 +63,9 @@ export const statusCommand = new Command('status')
 
       // Projects summary
       writeMessage(formatBold('Projects'));
-      writeMessage(`  Count:   ${projectsResponse.limits.projectCount}/${projectsResponse.limits.maxProjects}`);
+      writeMessage(
+        `  Count:   ${projectsResponse.limits.projectCount}/${projectsResponse.limits.maxProjects}`
+      );
       writeMessage('');
 
       if (projectsResponse.projects.length === 0) {
@@ -76,7 +73,9 @@ export const statusCommand = new Command('status')
         writeMessage(`  Run ${formatCommand('contextkit cloud sync')} to create one.`);
       } else {
         for (const p of projectsResponse.projects) {
-          const isCurrent = p.name === projectName || p.slug === projectName.toLowerCase().replace(/[^a-z0-9]+/g, '-');
+          const isCurrent =
+            p.name === projectName ||
+            p.slug === projectName.toLowerCase().replace(/[^a-z0-9]+/g, '-');
           const marker = isCurrent ? '→' : ' ';
           const syncStatus = p.lastSyncedAt
             ? new Date(p.lastSyncedAt).toLocaleDateString()

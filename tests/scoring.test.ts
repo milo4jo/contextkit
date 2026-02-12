@@ -104,7 +104,7 @@ describe('rankChunks', () => {
 
     const ranked = rankChunks(chunks, 'unrelated query');
 
-    expect(ranked[0].score).toBeCloseTo(0.50, 1);
+    expect(ranked[0].score).toBeCloseTo(0.5, 1);
   });
 
   it('should boost multiple keyword matches', () => {
@@ -117,9 +117,7 @@ describe('rankChunks', () => {
 
     // jwt.ts should rank higher with more keyword matches
     expect(ranked[0].filePath).toBe('src/auth/jwt.ts');
-    expect(ranked[0].scoreBreakdown.pathMatch).toBeGreaterThan(
-      ranked[1].scoreBreakdown.pathMatch
-    );
+    expect(ranked[0].scoreBreakdown.pathMatch).toBeGreaterThan(ranked[1].scoreBreakdown.pathMatch);
   });
 
   it('should handle chunks with same similarity differently based on path', () => {
@@ -154,7 +152,11 @@ describe('rankChunks', () => {
 describe('content matching', () => {
   it('should boost chunks containing query keywords', () => {
     const chunks: ScoredChunk[] = [
-      createScoredChunk('src/a.ts', 0.8, 'This is the authentication module. It handles user authentication.'),
+      createScoredChunk(
+        'src/a.ts',
+        0.8,
+        'This is the authentication module. It handles user authentication.'
+      ),
       createScoredChunk('src/b.ts', 0.8, 'This module does something else entirely.'),
     ];
 

@@ -15,9 +15,9 @@
  * }
  */
 
-import { startMcpServer } from "./mcp/server.js";
+import { startMcpServer } from './mcp/server.js';
 
 startMcpServer().catch((error) => {
-  console.error("Failed to start MCP server:", error);
+  console.error('Failed to start MCP server:', error);
   process.exit(1);
 });

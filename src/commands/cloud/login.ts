@@ -5,7 +5,12 @@
  */
 
 import { Command } from 'commander';
-import { saveCredentials, getCredentialsPath, isLoggedIn, getApiUrl } from '../../auth/credentials.js';
+import {
+  saveCredentials,
+  getCredentialsPath,
+  isLoggedIn,
+  getApiUrl,
+} from '../../auth/credentials.js';
 import { apiRequest } from '../../auth/api-client.js';
 import { writeSuccess, writeError, writeMessage } from '../../utils/streams.js';
 import { formatPath, formatBold, formatCommand } from '../../utils/format.js';
@@ -16,7 +21,9 @@ export const loginCommand = new Command('login')
   .action(async (options) => {
     // Check if already logged in
     if (isLoggedIn() && !options.apiKey) {
-      writeMessage(`Already logged in. Run ${formatCommand('contextkit cloud logout')} to sign out.`);
+      writeMessage(
+        `Already logged in. Run ${formatCommand('contextkit cloud logout')} to sign out.`
+      );
       writeMessage(`Or provide a new key with ${formatCommand('--api-key')}`);
       return;
     }

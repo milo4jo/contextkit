@@ -33,7 +33,7 @@ describe('Credentials Storage', () => {
   describe('saveCredentials', () => {
     it('should create credentials file with correct structure', async () => {
       const { writeFileSync, chmodSync } = await import('fs');
-      
+
       const credentials = {
         apiKey: 'ck_live_test123',
         apiUrl: 'https://contextkit-site.vercel.app',
@@ -46,7 +46,7 @@ describe('Credentials Storage', () => {
       });
 
       expect(existsSync(TEST_CREDENTIALS_FILE)).toBe(true);
-      
+
       const content = JSON.parse(readFileSync(TEST_CREDENTIALS_FILE, 'utf-8'));
       expect(content.apiKey).toBe('ck_live_test123');
       expect(content.apiUrl).toBe('https://contextkit-site.vercel.app');
@@ -62,7 +62,7 @@ describe('Credentials Storage', () => {
 
     it('should parse credentials from file', async () => {
       const { writeFileSync } = await import('fs');
-      
+
       const credentials = {
         apiKey: 'ck_live_abc123',
         apiUrl: 'https://example.com',
@@ -82,9 +82,9 @@ describe('API Client', () => {
   describe('ApiError', () => {
     it('should create error with status code', async () => {
       const { ApiError } = await import('../src/auth/api-client.js');
-      
+
       const error = new ApiError('Test error', 404, { detail: 'not found' });
-      
+
       expect(error.message).toBe('Test error');
       expect(error.statusCode).toBe(404);
       expect(error.body).toEqual({ detail: 'not found' });
@@ -95,9 +95,9 @@ describe('API Client', () => {
   describe('UnauthorizedError', () => {
     it('should create 401 error with default message', async () => {
       const { UnauthorizedError } = await import('../src/auth/api-client.js');
-      
+
       const error = new UnauthorizedError();
-      
+
       expect(error.message).toBe('Not logged in. Run `contextkit login` first.');
       expect(error.statusCode).toBe(401);
       expect(error.name).toBe('UnauthorizedError');
@@ -105,9 +105,9 @@ describe('API Client', () => {
 
     it('should accept custom message', async () => {
       const { UnauthorizedError } = await import('../src/auth/api-client.js');
-      
+
       const error = new UnauthorizedError('Custom message');
-      
+
       expect(error.message).toBe('Custom message');
     });
   });
@@ -117,7 +117,7 @@ describe('Format Utilities', () => {
   describe('formatBytes', () => {
     it('should format bytes correctly', async () => {
       const { formatBytes } = await import('../src/utils/format.js');
-      
+
       expect(formatBytes(0)).toBe('0 B');
       expect(formatBytes(512)).toBe('512 B');
       expect(formatBytes(1024)).toBe('1.0 KB');

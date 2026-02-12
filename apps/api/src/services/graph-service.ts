@@ -2,9 +2,9 @@
  * Call graph service
  */
 
-import { QdrantClient } from "@qdrant/js-client-rest";
+import { QdrantClient } from '@qdrant/js-client-rest';
 
-import type { Env } from "../types";
+import type { Env } from '../types';
 
 interface GraphOptions {
   orgId: string;
@@ -29,10 +29,7 @@ interface CallGraph {
 /**
  * Get call graph for a symbol
  */
-export async function getCallGraph(
-  env: Env,
-  options: GraphOptions
-): Promise<CallGraph> {
+export async function getCallGraph(env: Env, options: GraphOptions): Promise<CallGraph> {
   const { orgId, projectId, symbol } = options;
 
   const qdrant = new QdrantClient({
@@ -46,8 +43,8 @@ export async function getCallGraph(
   const definitionResults = await qdrant.scroll(collectionName, {
     filter: {
       must: [
-        { key: "project_id", match: { value: projectId } },
-        { key: "symbols", match: { value: symbol } },
+        { key: 'project_id', match: { value: projectId } },
+        { key: 'symbols', match: { value: symbol } },
       ],
     },
     limit: 1,
@@ -70,8 +67,8 @@ export async function getCallGraph(
   const callerResults = await qdrant.scroll(collectionName, {
     filter: {
       must: [
-        { key: "project_id", match: { value: projectId } },
-        { key: "calls", match: { value: symbol } },
+        { key: 'project_id', match: { value: projectId } },
+        { key: 'calls', match: { value: symbol } },
       ],
     },
     limit: 50,
@@ -87,7 +84,7 @@ export async function getCallGraph(
       };
 
       // Get the first symbol in this chunk as the caller name
-      const callerName = payload.symbols?.[0] ?? "anonymous";
+      const callerName = payload.symbols?.[0] ?? 'anonymous';
 
       return {
         name: callerName,
@@ -101,8 +98,8 @@ export async function getCallGraph(
   const calleeResults = await qdrant.scroll(collectionName, {
     filter: {
       must: [
-        { key: "project_id", match: { value: projectId } },
-        { key: "symbols", match: { value: symbol } },
+        { key: 'project_id', match: { value: projectId } },
+        { key: 'symbols', match: { value: symbol } },
       ],
     },
     limit: 10,
@@ -132,9 +129,7 @@ export async function getCallGraph(
   }
 
   // Deduplicate callees
-  const uniqueCallees = Array.from(
-    new Map(callees.map((c) => [c.name, c])).values()
-  );
+  const uniqueCallees = Array.from(new Map(callees.map((c) => [c.name, c])).values());
 
   return {
     symbol,

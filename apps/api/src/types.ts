@@ -13,7 +13,7 @@ export interface Env {
   UPSTASH_REDIS_TOKEN: string;
 
   // Variables
-  ENVIRONMENT: "development" | "staging" | "production";
+  ENVIRONMENT: 'development' | 'staging' | 'production';
 
   // Bindings
   STORAGE: R2Bucket;
@@ -33,7 +33,7 @@ export interface Variables {
 }
 
 // Plans
-export type Plan = "free" | "pro" | "team" | "enterprise";
+export type Plan = 'free' | 'pro' | 'team' | 'enterprise';
 
 // Plan limits
 export const PLAN_LIMITS: Record<
@@ -136,8 +136,8 @@ export interface SelectRequest {
   project_id: string;
   budget?: number;
   include_imports?: boolean;
-  mode?: "full" | "map";
-  format?: "markdown" | "xml" | "json" | "plain";
+  mode?: 'full' | 'map';
+  format?: 'markdown' | 'xml' | 'json' | 'plain';
   sources?: string[];
 }
 
@@ -172,7 +172,7 @@ export interface SyncRequest {
 
 export interface SyncJob {
   job_id: string;
-  status: "pending" | "processing" | "completed" | "failed";
+  status: 'pending' | 'processing' | 'completed' | 'failed';
   progress: {
     files_total: number;
     files_processed: number;
@@ -192,7 +192,7 @@ export class ApiError extends Error {
     public detail: string
   ) {
     super(detail);
-    this.name = "ApiError";
+    this.name = 'ApiError';
   }
 
   toJSON() {
@@ -207,25 +207,25 @@ export class ApiError extends Error {
 
 export class BadRequestError extends ApiError {
   constructor(detail: string) {
-    super(400, "bad-request", "Bad Request", detail);
+    super(400, 'bad-request', 'Bad Request', detail);
   }
 }
 
 export class UnauthorizedError extends ApiError {
-  constructor(detail = "Invalid or missing API key") {
-    super(401, "unauthorized", "Unauthorized", detail);
+  constructor(detail = 'Invalid or missing API key') {
+    super(401, 'unauthorized', 'Unauthorized', detail);
   }
 }
 
 export class ForbiddenError extends ApiError {
-  constructor(detail = "Access denied") {
-    super(403, "forbidden", "Forbidden", detail);
+  constructor(detail = 'Access denied') {
+    super(403, 'forbidden', 'Forbidden', detail);
   }
 }
 
 export class NotFoundError extends ApiError {
   constructor(resource: string) {
-    super(404, "not-found", "Not Found", `${resource} not found`);
+    super(404, 'not-found', 'Not Found', `${resource} not found`);
   }
 }
 
@@ -233,8 +233,8 @@ export class RateLimitError extends ApiError {
   constructor(retryAfter: number) {
     super(
       429,
-      "rate-limited",
-      "Too Many Requests",
+      'rate-limited',
+      'Too Many Requests',
       `Rate limit exceeded. Try again in ${retryAfter} seconds.`
     );
   }
@@ -242,6 +242,6 @@ export class RateLimitError extends ApiError {
 
 export class ConflictError extends ApiError {
   constructor(detail: string) {
-    super(409, "conflict", "Conflict", detail);
+    super(409, 'conflict', 'Conflict', detail);
   }
 }

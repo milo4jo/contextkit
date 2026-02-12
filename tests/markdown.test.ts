@@ -57,7 +57,7 @@ More content`;
 
       expect(result.success).toBe(true);
       // Should have: Main section, Sub Section, Another Sub
-      const sectionNames = result.boundaries.map(b => b.name);
+      const sectionNames = result.boundaries.map((b) => b.name);
       expect(sectionNames).toContain('Main');
       expect(sectionNames).toContain('Sub Section');
       expect(sectionNames).toContain('Another Sub');
@@ -72,9 +72,9 @@ More content`;
 
       const result = parseMarkdown(content);
 
-      const h1 = result.boundaries.find(b => b.name === 'Top Level');
-      const h2 = result.boundaries.find(b => b.name === 'Second Level');
-      const h3 = result.boundaries.find(b => b.name === 'Third Level');
+      const h1 = result.boundaries.find((b) => b.name === 'Top Level');
+      const h2 = result.boundaries.find((b) => b.name === 'Second Level');
+      const h3 = result.boundaries.find((b) => b.name === 'Third Level');
 
       expect(h1?.exported).toBe(true);
       expect(h2?.exported).toBe(false);
@@ -92,7 +92,7 @@ const x = 1;
 
       const result = parseMarkdown(content);
 
-      const codeBlock = result.boundaries.find(b => b.name.startsWith('codeblock'));
+      const codeBlock = result.boundaries.find((b) => b.name.startsWith('codeblock'));
       expect(codeBlock).toBeDefined();
       expect(codeBlock?.type).toBe('function');
     });
@@ -106,7 +106,7 @@ const x: number = 1;
 
       const result = parseMarkdown(content);
 
-      const codeBlock = result.boundaries.find(b => b.name === 'codeblock:typescript');
+      const codeBlock = result.boundaries.find((b) => b.name === 'codeblock:typescript');
       expect(codeBlock).toBeDefined();
       expect(codeBlock?.startLine).toBe(3);
       expect(codeBlock?.endLine).toBe(5);
@@ -125,7 +125,7 @@ x = 1
 
       const result = parseMarkdown(content);
 
-      const codeBlocks = result.boundaries.filter(b => b.name.startsWith('codeblock'));
+      const codeBlocks = result.boundaries.filter((b) => b.name.startsWith('codeblock'));
       expect(codeBlocks).toHaveLength(2);
       expect(codeBlocks[0].name).toBe('codeblock:javascript');
       expect(codeBlocks[1].name).toBe('codeblock:python');
@@ -143,7 +143,7 @@ author: Milo
 
       const result = parseMarkdown(content);
 
-      const frontMatter = result.boundaries.find(b => b.name === 'frontmatter');
+      const frontMatter = result.boundaries.find((b) => b.name === 'frontmatter');
       expect(frontMatter).toBeDefined();
       expect(frontMatter?.type).toBe('constant');
       expect(frontMatter?.startLine).toBe(1);
@@ -161,7 +161,7 @@ More content after divider`;
 
       const result = parseMarkdown(content);
 
-      const frontMatter = result.boundaries.find(b => b.name === 'frontmatter');
+      const frontMatter = result.boundaries.find((b) => b.name === 'frontmatter');
       expect(frontMatter).toBeUndefined();
     });
   });
@@ -200,17 +200,17 @@ Main function for context selection.`;
       expect(result.success).toBe(true);
 
       // Should have front matter
-      expect(result.boundaries.find(b => b.name === 'frontmatter')).toBeDefined();
+      expect(result.boundaries.find((b) => b.name === 'frontmatter')).toBeDefined();
 
       // Should have main sections
-      const sectionNames = result.boundaries.filter(b => b.type === 'class').map(b => b.name);
+      const sectionNames = result.boundaries.filter((b) => b.type === 'class').map((b) => b.name);
       expect(sectionNames).toContain('ContextKit');
       expect(sectionNames).toContain('Installation');
       expect(sectionNames).toContain('Usage');
       expect(sectionNames).toContain('API Reference');
 
       // Should have code blocks
-      const codeBlocks = result.boundaries.filter(b => b.name.startsWith('codeblock'));
+      const codeBlocks = result.boundaries.filter((b) => b.name.startsWith('codeblock'));
       expect(codeBlocks.length).toBeGreaterThanOrEqual(2);
     });
 
@@ -232,14 +232,14 @@ Use it like this.`;
       const result = parseMarkdown(content);
 
       // Code block should have correct line numbers
-      const codeBlock = result.boundaries.find(b => b.name === 'codeblock:bash');
+      const codeBlock = result.boundaries.find((b) => b.name === 'codeblock:bash');
       expect(codeBlock?.startLine).toBe(5);
       expect(codeBlock?.endLine).toBe(7);
 
       // Sections should exist
-      const sections = result.boundaries.filter(b => b.type === 'class');
-      expect(sections.some(s => s.name === 'Setup')).toBe(true);
-      expect(sections.some(s => s.name === 'Usage')).toBe(true);
+      const sections = result.boundaries.filter((b) => b.type === 'class');
+      expect(sections.some((s) => s.name === 'Setup')).toBe(true);
+      expect(sections.some((s) => s.name === 'Usage')).toBe(true);
     });
   });
 
@@ -272,7 +272,7 @@ const x = 1;
       const result = parseMarkdown(content);
 
       expect(result.success).toBe(true);
-      const codeBlock = result.boundaries.find(b => b.name === 'codeblock:typescript');
+      const codeBlock = result.boundaries.find((b) => b.name === 'codeblock:typescript');
       expect(codeBlock).toBeDefined();
       expect(codeBlock?.endLine).toBe(5);
     });
@@ -287,7 +287,7 @@ It's inside a code block
 
       const result = parseMarkdown(content);
 
-      const sections = result.boundaries.filter(b => b.type === 'class');
+      const sections = result.boundaries.filter((b) => b.type === 'class');
       expect(sections).toHaveLength(1);
       expect(sections[0].name).toBe('Real Header');
     });

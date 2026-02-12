@@ -30,12 +30,12 @@ export interface RankedChunk extends ScoredChunk {
 
 /** Scoring weights - tuned for code search */
 const WEIGHTS = {
-  similarity: 0.45,    // Semantic similarity is primary signal
-  pathMatch: 0.15,     // Path contains query keywords
-  contentMatch: 0.15,  // Content contains exact keywords
-  symbolMatch: 0.15,   // Contains relevant function/class names
+  similarity: 0.45, // Semantic similarity is primary signal
+  pathMatch: 0.15, // Path contains query keywords
+  contentMatch: 0.15, // Content contains exact keywords
+  symbolMatch: 0.15, // Contains relevant function/class names
   fileTypeBoost: 0.05, // File type priority
-  importBoost: 0.05,   // File is imported by selected chunks
+  importBoost: 0.05, // File is imported by selected chunks
 };
 
 /** Import relationship data for scoring */
@@ -58,7 +58,7 @@ export interface ScoringOptions {
  * Calculate scores and rank chunks
  */
 export function rankChunks(
-  chunks: ScoredChunk[], 
+  chunks: ScoredChunk[],
   query: string,
   options: ScoringOptions = {}
 ): RankedChunk[] {
@@ -99,31 +99,33 @@ export function rankChunks(
   const importBoosts = calculateImportBoosts(initialScores, options.importGraph);
 
   // Second pass: apply import boosts and create final ranked chunks
-  const ranked = initialScores.map(({
-    chunk,
-    baseScore,
-    similarityScore,
-    pathMatchScore,
-    contentMatchScore,
-    symbolMatchScore,
-    fileTypeBoost,
-  }) => {
-    const importBoost = importBoosts.get(chunk.filePath) || 0;
-    const score = baseScore + WEIGHTS.importBoost * importBoost;
+  const ranked = initialScores.map(
+    ({
+      chunk,
+      baseScore,
+      similarityScore,
+      pathMatchScore,
+      contentMatchScore,
+      symbolMatchScore,
+      fileTypeBoost,
+    }) => {
+      const importBoost = importBoosts.get(chunk.filePath) || 0;
+      const score = baseScore + WEIGHTS.importBoost * importBoost;
 
-    return {
-      ...chunk,
-      score,
-      scoreBreakdown: {
-        similarity: similarityScore,
-        pathMatch: pathMatchScore,
-        contentMatch: contentMatchScore,
-        symbolMatch: symbolMatchScore,
-        fileTypeBoost: fileTypeBoost,
-        importBoost: importBoost,
-      },
-    };
-  });
+      return {
+        ...chunk,
+        score,
+        scoreBreakdown: {
+          similarity: similarityScore,
+          pathMatch: pathMatchScore,
+          contentMatch: contentMatchScore,
+          symbolMatch: symbolMatchScore,
+          fileTypeBoost: fileTypeBoost,
+          importBoost: importBoost,
+        },
+      };
+    }
+  );
 
   // Sort by final score descending
   ranked.sort((a, b) => b.score - a.score);
@@ -189,20 +191,22 @@ function applyDiversityPenalty(chunks: RankedChunk[]): RankedChunk[] {
   const PENALTY_PER_DUPLICATE = 0.1;
   const MAX_PENALTY = 0.3;
 
-  return chunks.map((chunk) => {
-    const count = fileChunkCount.get(chunk.filePath) || 0;
-    fileChunkCount.set(chunk.filePath, count + 1);
+  return chunks
+    .map((chunk) => {
+      const count = fileChunkCount.get(chunk.filePath) || 0;
+      fileChunkCount.set(chunk.filePath, count + 1);
 
-    if (count > 0) {
-      const penalty = Math.min(count * PENALTY_PER_DUPLICATE, MAX_PENALTY);
-      return {
-        ...chunk,
-        score: chunk.score * (1 - penalty),
-      };
-    }
+      if (count > 0) {
+        const penalty = Math.min(count * PENALTY_PER_DUPLICATE, MAX_PENALTY);
+        return {
+          ...chunk,
+          score: chunk.score * (1 - penalty),
+        };
+      }
 
-    return chunk;
-  }).sort((a, b) => b.score - a.score);
+      return chunk;
+    })
+    .sort((a, b) => b.score - a.score);
 }
 
 /**
@@ -221,12 +225,12 @@ function extractKeywords(query: string): string[] {
  */
 function extractSymbols(query: string): string[] {
   const symbols: string[] = [];
-  
+
   // Match camelCase, PascalCase, snake_case patterns
   const symbolPattern = /[a-zA-Z_][a-zA-Z0-9_]*(?:[A-Z][a-z0-9]*)+|[a-z]+(?:_[a-z0-9]+)+/g;
   const matches = query.match(symbolPattern) || [];
-  symbols.push(...matches.map(s => s.toLowerCase()));
-  
+  symbols.push(...matches.map((s) => s.toLowerCase()));
+
   // Also include any word that looks like a function/variable name (>4 chars, no spaces)
   const words = query.split(/\s+/);
   for (const word of words) {
@@ -234,7 +238,7 @@ function extractSymbols(query: string): string[] {
       symbols.push(word.toLowerCase());
     }
   }
-  
+
   return [...new Set(symbols)];
 }
 
@@ -270,7 +274,7 @@ function calculateContentMatch(content: string, keywords: string[]): number {
     // Count occurrences (capped at 5 for normalization)
     const regex = new RegExp(`\\b${escapeRegex(keyword)}\\b`, 'gi');
     const occurrences = (content.match(regex) || []).length;
-    
+
     if (occurrences > 0) {
       matches++;
       // Bonus for multiple occurrences (diminishing returns)
@@ -281,7 +285,7 @@ function calculateContentMatch(content: string, keywords: string[]): number {
   // Combine match ratio and occurrence weight
   const matchRatio = matches / keywords.length;
   const avgWeight = matches > 0 ? totalWeight / matches : 0;
-  
+
   return matchRatio * 0.7 + avgWeight * 0.3;
 }
 
@@ -296,12 +300,12 @@ function calculateSymbolMatch(content: string, symbols: string[]): number {
 
   // Common code patterns to look for
   const patterns = [
-    /function\s+(\w+)/gi,           // function declarations
-    /const\s+(\w+)\s*=/gi,          // const assignments
-    /class\s+(\w+)/gi,              // class declarations
-    /export\s+(?:async\s+)?function\s+(\w+)/gi,  // exported functions
-    /export\s+const\s+(\w+)/gi,     // exported consts
-    /(\w+)\s*[:=]\s*(?:async\s+)?\(/gi,  // method/property functions
+    /function\s+(\w+)/gi, // function declarations
+    /const\s+(\w+)\s*=/gi, // const assignments
+    /class\s+(\w+)/gi, // class declarations
+    /export\s+(?:async\s+)?function\s+(\w+)/gi, // exported functions
+    /export\s+const\s+(\w+)/gi, // exported consts
+    /(\w+)\s*[:=]\s*(?:async\s+)?\(/gi, // method/property functions
   ];
 
   // Extract all symbols from content
@@ -339,7 +343,11 @@ function calculateFileTypeBoost(filePath: string): number {
   const pathLower = filePath.toLowerCase();
 
   // Test files - lower priority
-  if (pathLower.includes('.test.') || pathLower.includes('.spec.') || pathLower.includes('__tests__')) {
+  if (
+    pathLower.includes('.test.') ||
+    pathLower.includes('.spec.') ||
+    pathLower.includes('__tests__')
+  ) {
     return 0.3;
   }
 
@@ -434,9 +442,7 @@ const STOP_WORDS = new Set([
 /**
  * Build an import graph from a dependency map
  */
-export function buildImportGraph(
-  dependencyMap: Map<string, string[]>
-): ImportGraph {
+export function buildImportGraph(dependencyMap: Map<string, string[]>): ImportGraph {
   const imports = new Map<string, string[]>();
   const importedBy = new Map<string, string[]>();
 

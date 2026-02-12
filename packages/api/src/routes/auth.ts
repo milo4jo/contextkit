@@ -1,6 +1,6 @@
 /**
  * Auth Routes
- * 
+ *
  * Handles authentication via Clerk
  */
 
@@ -21,11 +21,11 @@ authRoutes.get('/me', async (c) => {
   }
 
   const token = authHeader.slice(7);
-  
+
   try {
     const payload = await verifyClerkToken(token, c.env.CLERK_SECRET_KEY);
     const db = getDb(c.env.TURSO_URL, c.env.TURSO_AUTH_TOKEN);
-    
+
     const user = await db.execute({
       sql: 'SELECT * FROM users WHERE id = ?',
       args: [payload.sub],
@@ -48,16 +48,16 @@ authRoutes.get('/me', async (c) => {
  */
 authRoutes.post('/cli/exchange', async (c) => {
   const { code } = await c.req.json();
-  
+
   if (!code) {
     return c.json({ error: 'Code required' }, 400);
   }
 
   // TODO: Implement code exchange with Clerk
   // For now, return placeholder
-  return c.json({ 
+  return c.json({
     message: 'Token exchange not yet implemented',
-    code 
+    code,
   });
 });
 
@@ -66,10 +66,10 @@ authRoutes.post('/cli/exchange', async (c) => {
  */
 authRoutes.get('/cli/authorize', (c) => {
   const state = crypto.randomUUID();
-  
+
   // TODO: Store state for verification
   // TODO: Return actual Clerk OAuth URL
-  
+
   return c.json({
     url: `https://app.contextkit.dev/cli-auth?state=${state}`,
     state,

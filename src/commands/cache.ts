@@ -4,8 +4,7 @@ import { openDatabase, clearCache, getCacheStats } from '../db/index.js';
 import { writeData, writeMessage, writeSuccess } from '../utils/streams.js';
 import { getGlobalOpts } from '../utils/cli.js';
 
-export const cacheCommand = new Command('cache')
-  .description('Manage query cache');
+export const cacheCommand = new Command('cache').description('Manage query cache');
 
 cacheCommand
   .command('clear')

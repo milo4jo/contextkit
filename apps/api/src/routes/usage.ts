@@ -2,11 +2,11 @@
  * Usage and billing routes
  */
 
-import { Hono } from "hono";
+import { Hono } from 'hono';
 
-import { getUsageStats } from "../services/usage-service";
-import { PLAN_LIMITS } from "../types";
-import type { Env, Variables } from "../types";
+import { getUsageStats } from '../services/usage-service';
+import { PLAN_LIMITS } from '../types';
+import type { Env, Variables } from '../types';
 
 export const usageRoutes = new Hono<{
   Bindings: Env;
@@ -17,9 +17,9 @@ export const usageRoutes = new Hono<{
  * GET /usage
  * Get current usage statistics
  */
-usageRoutes.get("/", async (c) => {
-  const orgId = c.get("orgId");
-  const plan = c.get("plan");
+usageRoutes.get('/', async (c) => {
+  const orgId = c.get('orgId');
+  const plan = c.get('plan');
 
   const usage = await getUsageStats(c.env, orgId);
   const limits = PLAN_LIMITS[plan];
@@ -31,8 +31,8 @@ usageRoutes.get("/", async (c) => {
 
   return c.json({
     period: {
-      start: startOfMonth.toISOString().split("T")[0],
-      end: endOfMonth.toISOString().split("T")[0],
+      start: startOfMonth.toISOString().split('T')[0],
+      end: endOfMonth.toISOString().split('T')[0],
     },
     queries: {
       used: usage.queries,

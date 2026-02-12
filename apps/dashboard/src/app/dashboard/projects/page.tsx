@@ -1,28 +1,28 @@
-import { auth } from "@clerk/nextjs/server";
-import { redirect } from "next/navigation";
-import Link from "next/link";
-import { Plus, Folder, Clock, Hash } from "lucide-react";
+import { auth } from '@clerk/nextjs/server';
+import { redirect } from 'next/navigation';
+import Link from 'next/link';
+import { Plus, Folder, Clock, Hash } from 'lucide-react';
 
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { getProjects } from "@/lib/api";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { getProjects } from '@/lib/api';
 
 export default async function ProjectsPage() {
   const { userId, getToken } = await auth();
 
   if (!userId) {
-    redirect("/sign-in");
+    redirect('/sign-in');
   }
 
   const token = await getToken();
-  let projects: Awaited<ReturnType<typeof getProjects>>["projects"] = [];
+  let projects: Awaited<ReturnType<typeof getProjects>>['projects'] = [];
 
   if (token) {
     try {
       const response = await getProjects(token);
       projects = response.projects;
     } catch (error) {
-      console.error("Failed to fetch projects:", error);
+      console.error('Failed to fetch projects:', error);
     }
   }
 
@@ -31,9 +31,7 @@ export default async function ProjectsPage() {
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6 sm:mb-8">
         <div>
           <h1 className="text-3xl font-bold">Projects</h1>
-          <p className="text-muted-foreground mt-2">
-            Manage your indexed codebases
-          </p>
+          <p className="text-muted-foreground mt-2">Manage your indexed codebases</p>
         </div>
         <Link href="/dashboard/projects/new">
           <Button>
@@ -69,7 +67,7 @@ export default async function ProjectsPage() {
                     <Folder className="mr-2 h-5 w-5" />
                     {project.name}
                   </CardTitle>
-                  <CardDescription>{project.description || "No description"}</CardDescription>
+                  <CardDescription>{project.description || 'No description'}</CardDescription>
                 </CardHeader>
                 <CardContent>
                   <div className="flex items-center gap-4 text-sm text-muted-foreground">
@@ -79,9 +77,9 @@ export default async function ProjectsPage() {
                     </span>
                     <span className="flex items-center">
                       <Clock className="mr-1 h-3 w-3" />
-                      {project.indexStatus.lastIndexed 
+                      {project.indexStatus.lastIndexed
                         ? new Date(project.indexStatus.lastIndexed).toLocaleDateString()
-                        : "Not indexed"}
+                        : 'Not indexed'}
                     </span>
                   </div>
                   <div className="mt-2">

@@ -1,6 +1,6 @@
 /**
  * Webhook Routes
- * 
+ *
  * Handles webhooks from Clerk (user events) and Lemon Squeezy (payments)
  */
 
@@ -80,17 +80,17 @@ webhookRoutes.post('/lemonsqueezy', async (c) => {
   // Verify webhook signature
   const signature = c.req.header('X-Signature');
   const body = await c.req.text();
-  
+
   // TODO: Implement signature verification
   // const isValid = await verifyLemonSqueezySignature(
-  //   body, 
-  //   signature, 
+  //   body,
+  //   signature,
   //   c.env.LEMONSQUEEZY_WEBHOOK_SECRET
   // );
-  
+
   const payload = JSON.parse(body);
   const db = getDb(c.env.TURSO_URL, c.env.TURSO_AUTH_TOKEN);
-  
+
   const { meta, data } = payload;
   const eventType = meta.event_name;
   const customData = meta.custom_data || {};

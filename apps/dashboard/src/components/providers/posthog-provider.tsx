@@ -1,13 +1,13 @@
-"use client";
+'use client';
 
-import posthog from "posthog-js";
-import { PostHogProvider as PHProvider } from "posthog-js/react";
-import { useEffect } from "react";
-import { useUser } from "@clerk/nextjs";
+import posthog from 'posthog-js';
+import { PostHogProvider as PHProvider } from 'posthog-js/react';
+import { useEffect } from 'react';
+import { useUser } from '@clerk/nextjs';
 
-if (typeof window !== "undefined" && process.env.NEXT_PUBLIC_POSTHOG_KEY) {
+if (typeof window !== 'undefined' && process.env.NEXT_PUBLIC_POSTHOG_KEY) {
   posthog.init(process.env.NEXT_PUBLIC_POSTHOG_KEY, {
-    api_host: process.env.NEXT_PUBLIC_POSTHOG_HOST || "https://app.posthog.com",
+    api_host: process.env.NEXT_PUBLIC_POSTHOG_HOST || 'https://app.posthog.com',
     capture_pageview: false, // We capture manually
     capture_pageleave: true,
   });
@@ -35,29 +35,29 @@ export function PostHogIdentify() {
 // Analytics events
 export const analytics = {
   trackPageView: (path: string) => {
-    posthog.capture("$pageview", { path });
+    posthog.capture('$pageview', { path });
   },
 
   trackProjectCreated: (projectId: string) => {
-    posthog.capture("project_created", { project_id: projectId });
+    posthog.capture('project_created', { project_id: projectId });
   },
 
   trackApiKeyCreated: () => {
-    posthog.capture("api_key_created");
+    posthog.capture('api_key_created');
   },
 
   trackQuery: (projectId: string, tokensUsed: number) => {
-    posthog.capture("context_query", {
+    posthog.capture('context_query', {
       project_id: projectId,
       tokens_used: tokensUsed,
     });
   },
 
   trackUpgradeStarted: (plan: string) => {
-    posthog.capture("upgrade_started", { plan });
+    posthog.capture('upgrade_started', { plan });
   },
 
   trackUpgradeCompleted: (plan: string) => {
-    posthog.capture("upgrade_completed", { plan });
+    posthog.capture('upgrade_completed', { plan });
   },
 };

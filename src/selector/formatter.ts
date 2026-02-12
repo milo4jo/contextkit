@@ -164,7 +164,8 @@ export function formatWithExplanation(
 
   // Add explanation section
   const explanations = result.chunks.map((chunk) => {
-    const { similarity, pathMatch, contentMatch, symbolMatch, fileTypeBoost } = chunk.scoreBreakdown;
+    const { similarity, pathMatch, contentMatch, symbolMatch, fileTypeBoost } =
+      chunk.scoreBreakdown;
     return `  ${chunk.filePath}:${chunk.startLine}
     similarity:     ${(similarity * 100).toFixed(1)}%
     path_match:     ${(pathMatch * 100).toFixed(1)}%
@@ -211,18 +212,22 @@ export function formatAsXml(
     fileChunks.sort((a, b) => a.startLine - b.startLine);
 
     xmlParts.push(`    <file path="${escapeXml(filePath)}">`);
-    
+
     for (const chunk of fileChunks) {
-      xmlParts.push(`      <chunk lines="${chunk.startLine}-${chunk.endLine}" tokens="${chunk.tokens}">`);
+      xmlParts.push(
+        `      <chunk lines="${chunk.startLine}-${chunk.endLine}" tokens="${chunk.tokens}">`
+      );
       xmlParts.push(`<![CDATA[${chunk.content}]]>`);
       xmlParts.push('      </chunk>');
     }
-    
+
     xmlParts.push('    </file>');
   }
 
   xmlParts.push('  </files>');
-  xmlParts.push(`  <stats tokens="${totalTokens}" chunks="${chunks.length}" files="${fileGroups.size}" time_ms="${timeMs}" />`);
+  xmlParts.push(
+    `  <stats tokens="${totalTokens}" chunks="${chunks.length}" files="${fileGroups.size}" time_ms="${timeMs}" />`
+  );
   xmlParts.push('</context>');
 
   const text = xmlParts.join('\n');
@@ -355,7 +360,7 @@ export function formatInFormat(
  * Transform chunks to show only signatures/structure
  */
 function transformToSignatures(result: BudgetResult): BudgetResult {
-  const transformedChunks = result.chunks.map(chunk => {
+  const transformedChunks = result.chunks.map((chunk) => {
     const signature = extractSignatureFromContent(chunk.content, chunk.filePath);
     return {
       ...chunk,
@@ -384,12 +389,12 @@ function extractSignatureFromContent(content: string, filePath: string): string 
 
   // For markdown, return headers
   if (isMarkdown) {
-    const headers = lines.filter(l => l.trim().startsWith('#'));
+    const headers = lines.filter((l) => l.trim().startsWith('#'));
     if (headers.length > 0) {
       return headers.join('\n');
     }
     // Return first non-empty line for markdown without headers
-    const firstLine = lines.find(l => l.trim());
+    const firstLine = lines.find((l) => l.trim());
     return firstLine ? firstLine.substring(0, 100) : '(markdown content)';
   }
 
@@ -404,7 +409,13 @@ function extractSignatureFromContent(content: string, filePath: string): string 
     const indent = line.length - line.trimStart().length;
 
     // Skip empty lines and comments
-    if (!trimmed || trimmed.startsWith('//') || trimmed.startsWith('#') && !isMarkdown || trimmed.startsWith('/*') || trimmed.startsWith('*')) {
+    if (
+      !trimmed ||
+      trimmed.startsWith('//') ||
+      (trimmed.startsWith('#') && !isMarkdown) ||
+      trimmed.startsWith('/*') ||
+      trimmed.startsWith('*')
+    ) {
       continue;
     }
 
@@ -468,7 +479,11 @@ function extractSignatureFromContent(content: string, filePath: string): string 
     }
 
     // Method in class (TypeScript)
-    if (inClass && indent > classIndent && trimmed.match(/^(public|private|protected|static|async|get|set)?\s*(async\s+)?\w+\s*\(/)) {
+    if (
+      inClass &&
+      indent > classIndent &&
+      trimmed.match(/^(public|private|protected|static|async|get|set)?\s*(async\s+)?\w+\s*\(/)
+    ) {
       signatures.push('  ' + extractFunctionSignature(trimmed));
       continue;
     }
@@ -481,7 +496,12 @@ function extractSignatureFromContent(content: string, filePath: string): string 
   // Fallback: return first meaningful line
   for (const line of lines) {
     const trimmed = line.trim();
-    if (trimmed && !trimmed.startsWith('//') && !trimmed.startsWith('/*') && !trimmed.startsWith('*')) {
+    if (
+      trimmed &&
+      !trimmed.startsWith('//') &&
+      !trimmed.startsWith('/*') &&
+      !trimmed.startsWith('*')
+    ) {
       return trimmed.length > 100 ? trimmed.substring(0, 100) + '...' : trimmed;
     }
   }

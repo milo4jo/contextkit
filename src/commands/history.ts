@@ -1,6 +1,12 @@
 import { Command } from 'commander';
 import { ensureInitialized } from '../config/index.js';
-import { openDatabase, closeDatabase, getQueryHistory, getHistoryEntry, clearHistory } from '../db/index.js';
+import {
+  openDatabase,
+  closeDatabase,
+  getQueryHistory,
+  getHistoryEntry,
+  clearHistory,
+} from '../db/index.js';
 import { writeData, writeMessage, writeSuccess, writeWarning } from '../utils/streams.js';
 import { formatDim } from '../utils/format.js';
 
@@ -19,7 +25,7 @@ function formatDate(dateStr: string): string {
   if (diffMins < 60) return `${diffMins}m ago`;
   if (diffHours < 24) return `${diffHours}h ago`;
   if (diffDays < 7) return `${diffDays}d ago`;
-  
+
   return date.toLocaleDateString();
 }
 
@@ -75,7 +81,7 @@ export const historyCommand = new Command('history')
         }
         writeMessage('');
         writeMessage(formatDim('To re-run this query:'));
-        
+
         // Build command
         let cmd = `contextkit select "${entry.query}" -b ${entry.budget} -f ${entry.format} -m ${entry.mode}`;
         if (entry.sources) {
@@ -102,14 +108,14 @@ export const historyCommand = new Command('history')
       }
 
       writeMessage('\n📜 Query History\n');
-      
+
       for (const entry of history) {
         const timeStr = formatDate(entry.createdAt);
         const queryStr = truncate(entry.query, 50);
-        const statsStr = entry.tokensUsed 
+        const statsStr = entry.tokensUsed
           ? `${entry.chunksFound} chunks, ${entry.tokensUsed} tokens`
           : '';
-        
+
         writeMessage(`  ${formatDim('#' + entry.id.toString().padStart(3))}  ${queryStr}`);
         writeMessage(`       ${formatDim(timeStr)} ${formatDim(statsStr)}`);
         writeMessage('');

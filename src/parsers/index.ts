@@ -25,11 +25,7 @@ import {
   generateRepoMap,
 } from './tree-sitter.js';
 
-import {
-  parseMarkdown,
-  isMarkdown,
-  getMarkdownExtensions,
-} from './markdown.js';
+import { parseMarkdown, isMarkdown, getMarkdownExtensions } from './markdown.js';
 
 export { type ParseResult, type CodeBoundary, type CodeUnitType };
 export { generateRepoMap, getSupportedTreeSitterLanguages };

@@ -25,7 +25,11 @@ interface SymbolMatch {
 }
 
 /** Extract symbols from chunk content */
-function extractSymbols(content: string, filePath: string, chunkStartLine: number = 1): SymbolMatch[] {
+function extractSymbols(
+  content: string,
+  filePath: string,
+  chunkStartLine: number = 1
+): SymbolMatch[] {
   const symbols: SymbolMatch[] = [];
   const lines = content.split('\n');
   const ext = filePath.split('.').pop()?.toLowerCase();
@@ -255,7 +259,7 @@ function extractSymbols(content: string, filePath: string, chunkStartLine: numbe
 function findBlockEnd(lines: string[], startIdx: number): number {
   let braceCount = 0;
   let started = false;
-  
+
   for (let i = startIdx; i < lines.length; i++) {
     const line = lines[i];
     for (const char of line) {
@@ -277,12 +281,12 @@ function findBlockEnd(lines: string[], startIdx: number): number {
 function findPythonBlockEnd(lines: string[], startIdx: number): number {
   const startLine = lines[startIdx];
   const startIndent = startLine.length - startLine.trimStart().length;
-  
+
   for (let i = startIdx + 1; i < lines.length; i++) {
     const line = lines[i];
     const trimmed = line.trim();
     if (!trimmed) continue; // Skip empty lines
-    
+
     const indent = line.length - line.trimStart().length;
     if (indent <= startIndent) {
       return i;
@@ -309,12 +313,12 @@ function findStatementEnd(lines: string[], startIdx: number): number {
   if (startLine.trim().endsWith(';')) {
     return startIdx + 1;
   }
-  
+
   // Check for arrow function or object literal
   if (startLine.includes('=>') || startLine.includes('{')) {
     return findBlockEnd(lines, startIdx);
   }
-  
+
   // Multi-line statement ending with semicolon
   for (let i = startIdx; i < Math.min(startIdx + 20, lines.length); i++) {
     if (lines[i].trim().endsWith(';')) {
@@ -340,30 +344,34 @@ function searchSymbols(
   options: { exact?: boolean; limit?: number; sources?: string[] }
 ): SymbolMatch[] {
   const { exact = false, limit = 20, sources } = options;
-  
+
   // Build SQL query - include start_line for correct line number calculation
   let sql = 'SELECT DISTINCT file_path, content, start_line FROM chunks';
   const params: string[] = [];
-  
+
   if (sources && sources.length > 0) {
     sql += ' WHERE source_id IN (' + sources.map(() => '?').join(',') + ')';
     params.push(...sources);
   }
-  
-  const rows = db.prepare(sql).all(...params) as Array<{ file_path: string; content: string; start_line: number }>;
-  
+
+  const rows = db.prepare(sql).all(...params) as Array<{
+    file_path: string;
+    content: string;
+    start_line: number;
+  }>;
+
   // Extract and filter symbols
   const allSymbols: SymbolMatch[] = [];
   const queryLower = query.toLowerCase();
-  
+
   for (const row of rows) {
     // Pass chunk's start_line so symbol line numbers are absolute, not relative
     const chunkStartLine = row.start_line || 1;
     const symbols = extractSymbols(row.content, row.file_path, chunkStartLine);
-    
+
     for (const sym of symbols) {
       const nameLower = sym.symbolName.toLowerCase();
-      
+
       if (exact) {
         if (nameLower === queryLower) {
           allSymbols.push(sym);
@@ -374,14 +382,14 @@ function searchSymbols(
         const isExactMatch = nameLower === queryLower;
         const containsQuery = nameLower.includes(queryLower);
         const isSignificantName = sym.symbolName.length >= 3;
-        
+
         if (isExactMatch || (containsQuery && isSignificantName)) {
           allSymbols.push(sym);
         }
       }
     }
   }
-  
+
   // Sort by relevance (exact matches first, then by name length)
   allSymbols.sort((a, b) => {
     const aExact = a.symbolName.toLowerCase() === queryLower;
@@ -390,7 +398,7 @@ function searchSymbols(
     if (!aExact && bExact) return 1;
     return a.symbolName.length - b.symbolName.length;
   });
-  
+
   return allSymbols.slice(0, limit);
 }
 
@@ -399,13 +407,13 @@ function formatSymbolOutput(symbols: SymbolMatch[], json: boolean): string {
   if (json) {
     return JSON.stringify(symbols, null, 2);
   }
-  
+
   if (symbols.length === 0) {
     return '';
   }
-  
+
   const lines: string[] = [];
-  
+
   // Group by file
   const byFile = new Map<string, SymbolMatch[]>();
   for (const sym of symbols) {
@@ -413,7 +421,7 @@ function formatSymbolOutput(symbols: SymbolMatch[], json: boolean): string {
     existing.push(sym);
     byFile.set(sym.filePath, existing);
   }
-  
+
   for (const [filePath, fileSymbols] of byFile) {
     lines.push(`📄 ${filePath}`);
     for (const sym of fileSymbols) {
@@ -423,21 +431,29 @@ function formatSymbolOutput(symbols: SymbolMatch[], json: boolean): string {
     }
     lines.push('');
   }
-  
+
   return lines.join('\n');
 }
 
 /** Get icon for symbol type */
 function getTypeIcon(type: SymbolMatch['symbolType']): string {
   switch (type) {
-    case 'function': return '𝑓';
-    case 'class': return '◆';
-    case 'method': return '◇';
-    case 'interface': return '◈';
-    case 'type': return '⊤';
-    case 'constant': return '●';
-    case 'variable': return '○';
-    default: return '•';
+    case 'function':
+      return '𝑓';
+    case 'class':
+      return '◆';
+    case 'method':
+      return '◇';
+    case 'interface':
+      return '◈';
+    case 'type':
+      return '⊤';
+    case 'constant':
+      return '●';
+    case 'variable':
+      return '○';
+    default:
+      return '•';
   }
 }
 
@@ -453,22 +469,22 @@ export const symbolCommand = new Command('symbol')
   .option('-s, --sources <sources>', 'Filter sources (comma-separated)')
   .action(async (name: string, options) => {
     ensureInitialized();
-    
+
     const opts = getGlobalOpts(symbolCommand);
     const limit = parseInt(options.limit, 10) || 20;
     const sources = options.sources
       ? options.sources.split(',').map((s: string) => s.trim())
       : undefined;
-    
+
     const db = openDatabase();
-    
+
     try {
       const symbols = searchSymbols(db, name, {
         exact: options.exact,
         limit,
         sources,
       });
-      
+
       if (symbols.length === 0) {
         writeMessage('');
         writeMessage(formatDim(`No symbols found matching "${name}"`));
@@ -476,10 +492,10 @@ export const symbolCommand = new Command('symbol')
         writeMessage('');
         return;
       }
-      
+
       const output = formatSymbolOutput(symbols, opts.json ?? false);
       writeData(output);
-      
+
       // Summary
       if (!opts.json) {
         writeMessage('');

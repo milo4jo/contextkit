@@ -115,11 +115,15 @@ export const indexCommand = new Command('index')
       if (!opts.quiet) {
         writeMessage('');
         const timeStr = (stats.timeMs / 1000).toFixed(1);
-        
+
         // Show incremental stats
         if (stats.filesUnchanged > 0 || stats.filesRemoved > 0) {
           writeSuccess(`Indexed ${stats.chunks} chunks from ${stats.files} files in ${timeStr}s`);
-          writeMessage(formatDim(`  ${stats.filesChanged} changed, ${stats.filesUnchanged} unchanged, ${stats.filesRemoved} removed`));
+          writeMessage(
+            formatDim(
+              `  ${stats.filesChanged} changed, ${stats.filesUnchanged} unchanged, ${stats.filesRemoved} removed`
+            )
+          );
         } else {
           writeSuccess(`Indexed ${stats.chunks} chunks from ${stats.files} files in ${timeStr}s`);
         }

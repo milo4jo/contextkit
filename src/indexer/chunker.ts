@@ -9,7 +9,13 @@
 import { createHash } from 'crypto';
 import { encodingForModel } from 'js-tiktoken';
 import type { DiscoveredFile } from './discovery.js';
-import { parseFile, parseFileAsync, canParse, usesTreeSitter, type CodeUnitType } from '../parsers/index.js';
+import {
+  parseFile,
+  parseFileAsync,
+  canParse,
+  usesTreeSitter,
+  type CodeUnitType,
+} from '../parsers/index.js';
 
 /** Chunk of content ready for embedding */
 export interface Chunk {
@@ -111,9 +117,7 @@ function chunkFileWithAst(file: DiscoveredFile, options: ChunkOptions): Chunk[] 
 
   // Filter to top-level boundaries (exclude methods if their class is present)
   // This prevents duplication when a class and its methods are both boundaries
-  const classBoundaries = new Set(
-    boundaries.filter((b) => b.type === 'class').map((b) => b.name)
-  );
+  const classBoundaries = new Set(boundaries.filter((b) => b.type === 'class').map((b) => b.name));
 
   const topLevelBoundaries = boundaries.filter((b) => {
     if (b.type === 'method') {
@@ -440,7 +444,10 @@ export function chunkFiles(
  * Chunk a file using AST-aware boundaries (async version for tree-sitter).
  * Falls back to token-based chunking if parsing fails.
  */
-async function chunkFileWithAstAsync(file: DiscoveredFile, options: ChunkOptions): Promise<Chunk[]> {
+async function chunkFileWithAstAsync(
+  file: DiscoveredFile,
+  options: ChunkOptions
+): Promise<Chunk[]> {
   const maxUnitTokens = options.maxUnitTokens ?? options.chunkSize * 2;
   const lines = file.content.split('\n');
   const totalLines = lines.length;
@@ -479,7 +486,12 @@ async function chunkFileWithAstAsync(file: DiscoveredFile, options: ChunkOptions
 
       if (gapTokens > 0 && gapContent.trim().length > 0 && gapTokens > 20) {
         chunks.push({
-          id: generateChunkId(file.sourceId, file.relativePath, lastCoveredLine + 1, boundary.startLine - 1),
+          id: generateChunkId(
+            file.sourceId,
+            file.relativePath,
+            lastCoveredLine + 1,
+            boundary.startLine - 1
+          ),
           sourceId: file.sourceId,
           filePath: file.relativePath,
           content: gapContent,
@@ -553,7 +565,10 @@ async function chunkFileWithAstAsync(file: DiscoveredFile, options: ChunkOptions
  * Chunk a single file into pieces (async version).
  * Uses AST-aware chunking for all supported languages including tree-sitter.
  */
-export async function chunkFileAsync(file: DiscoveredFile, options: ChunkOptions = DEFAULT_OPTIONS): Promise<Chunk[]> {
+export async function chunkFileAsync(
+  file: DiscoveredFile,
+  options: ChunkOptions = DEFAULT_OPTIONS
+): Promise<Chunk[]> {
   const opts = { ...DEFAULT_OPTIONS, ...options };
 
   // Use AST-aware chunking if enabled and the file type is supported

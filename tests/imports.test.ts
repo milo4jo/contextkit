@@ -150,12 +150,7 @@ const fs = require('fs');
       const imports = parseImports(code);
 
       expect(imports).toHaveLength(4);
-      expect(imports.map((i) => i.specifier)).toEqual([
-        './foo',
-        './bar',
-        './utils',
-        'fs',
-      ]);
+      expect(imports.map((i) => i.specifier)).toEqual(['./foo', './bar', './utils', 'fs']);
     });
   });
 

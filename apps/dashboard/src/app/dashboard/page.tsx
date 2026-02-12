@@ -1,17 +1,17 @@
-import { auth, currentUser } from "@clerk/nextjs/server";
-import { redirect } from "next/navigation";
-import Link from "next/link";
+import { auth, currentUser } from '@clerk/nextjs/server';
+import { redirect } from 'next/navigation';
+import Link from 'next/link';
 
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { getProjects, getApiKeys, getUsage } from "@/lib/api";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { getProjects, getApiKeys, getUsage } from '@/lib/api';
 
 export default async function DashboardPage() {
   const { userId, getToken } = await auth();
   const user = await currentUser();
 
   if (!userId) {
-    redirect("/sign-in");
+    redirect('/sign-in');
   }
 
   // Get Clerk session token for API auth
@@ -22,13 +22,16 @@ export default async function DashboardPage() {
   let queryCount = 0;
   let queryLimit = 1000;
   let apiKeyCount = 0;
-  let plan = "free";
+  let plan = 'free';
 
   if (token) {
     try {
       const [projectsRes, usageRes, keysRes] = await Promise.all([
         getProjects(token).catch(() => ({ projects: [] })),
-        getUsage(token).catch(() => ({ usage: { queries: { used: 0, limit: 1000 } }, plan: "free" })),
+        getUsage(token).catch(() => ({
+          usage: { queries: { used: 0, limit: 1000 } },
+          plan: 'free',
+        })),
         getApiKeys(token).catch(() => ({ apiKeys: [] })),
       ]);
 
@@ -38,14 +41,16 @@ export default async function DashboardPage() {
       plan = usageRes.plan;
       apiKeyCount = keysRes.apiKeys.length;
     } catch (error) {
-      console.error("Failed to fetch dashboard data:", error);
+      console.error('Failed to fetch dashboard data:', error);
     }
   }
 
   return (
     <div className="container mx-auto py-6 px-4 sm:py-10 sm:px-6">
       <div className="mb-6 sm:mb-8">
-        <h1 className="text-2xl sm:text-3xl font-bold">Welcome back, {user?.firstName || "Developer"}!</h1>
+        <h1 className="text-2xl sm:text-3xl font-bold">
+          Welcome back, {user?.firstName || 'Developer'}!
+        </h1>
         <p className="text-muted-foreground mt-2 text-sm sm:text-base">
           Manage your projects and monitor your usage.
         </p>
@@ -72,7 +77,9 @@ export default async function DashboardPage() {
           <CardContent>
             <div className="text-2xl font-bold">{projectCount}</div>
             <p className="text-xs text-muted-foreground">
-              {projectCount === 0 ? "Create your first project" : `${projectCount} project${projectCount === 1 ? "" : "s"}`}
+              {projectCount === 0
+                ? 'Create your first project'
+                : `${projectCount} project${projectCount === 1 ? '' : 's'}`}
             </p>
           </CardContent>
         </Card>
@@ -96,7 +103,8 @@ export default async function DashboardPage() {
           <CardContent>
             <div className="text-2xl font-bold">{queryCount.toLocaleString()}</div>
             <p className="text-xs text-muted-foreground">
-              {queryCount.toLocaleString()} / {queryLimit === -1 ? "∞" : queryLimit.toLocaleString()} on {plan} plan
+              {queryCount.toLocaleString()} /{' '}
+              {queryLimit === -1 ? '∞' : queryLimit.toLocaleString()} on {plan} plan
             </p>
           </CardContent>
         </Card>
@@ -122,7 +130,9 @@ export default async function DashboardPage() {
           <CardContent>
             <div className="text-2xl font-bold">{apiKeyCount}</div>
             <p className="text-xs text-muted-foreground">
-              {apiKeyCount === 0 ? "Generate your first key" : `${apiKeyCount} active key${apiKeyCount === 1 ? "" : "s"}`}
+              {apiKeyCount === 0
+                ? 'Generate your first key'
+                : `${apiKeyCount} active key${apiKeyCount === 1 ? '' : 's'}`}
             </p>
           </CardContent>
         </Card>
@@ -147,7 +157,7 @@ export default async function DashboardPage() {
           <CardContent>
             <div className="text-2xl font-bold capitalize">{plan}</div>
             <p className="text-xs text-muted-foreground">
-              {plan === "free" ? (
+              {plan === 'free' ? (
                 <Link href="/dashboard/billing" className="text-primary hover:underline">
                   Upgrade to Pro
                 </Link>
@@ -166,9 +176,7 @@ export default async function DashboardPage() {
         <Card>
           <CardHeader>
             <CardTitle>Create Project</CardTitle>
-            <CardDescription>
-              Index a codebase and start querying
-            </CardDescription>
+            <CardDescription>Index a codebase and start querying</CardDescription>
           </CardHeader>
           <CardContent>
             <Link href="/dashboard/projects/new">
@@ -180,9 +188,7 @@ export default async function DashboardPage() {
         <Card>
           <CardHeader>
             <CardTitle>Generate API Key</CardTitle>
-            <CardDescription>
-              Create a key to use the Context API
-            </CardDescription>
+            <CardDescription>Create a key to use the Context API</CardDescription>
           </CardHeader>
           <CardContent>
             <Link href="/dashboard/api-keys">
@@ -194,12 +200,14 @@ export default async function DashboardPage() {
         <Card>
           <CardHeader>
             <CardTitle>Read the Docs</CardTitle>
-            <CardDescription>
-              Learn how to integrate ContextKit
-            </CardDescription>
+            <CardDescription>Learn how to integrate ContextKit</CardDescription>
           </CardHeader>
           <CardContent>
-            <a href="https://github.com/milo4jo/contextkit#readme" target="_blank" rel="noopener noreferrer">
+            <a
+              href="https://github.com/milo4jo/contextkit#readme"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
               <Button variant="outline">Documentation</Button>
             </a>
           </CardContent>

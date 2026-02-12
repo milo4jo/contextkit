@@ -5,7 +5,13 @@
  */
 
 import { describe, it, expect } from 'vitest';
-import { formatOutput, formatWithExplanation, formatAsXml, formatAsPlain, formatInFormat } from '../src/selector/formatter.js';
+import {
+  formatOutput,
+  formatWithExplanation,
+  formatAsXml,
+  formatAsPlain,
+  formatInFormat,
+} from '../src/selector/formatter.js';
 import type { RankedChunk } from '../src/selector/scoring.js';
 import type { BudgetResult } from '../src/selector/budget.js';
 
@@ -192,17 +198,17 @@ describe('formatWithExplanation', () => {
     chunk.scoreBreakdown = {
       similarity: 0.75,
       pathMatch: 0.25,
-      contentMatch: 0.30,
-      symbolMatch: 0.10,
+      contentMatch: 0.3,
+      symbolMatch: 0.1,
       fileTypeBoost: 1.0,
     };
     const result = createBudgetResult([chunk]);
 
     const output = formatWithExplanation('query', result, 1, 100);
 
-    expect(output.text).toContain('75.0%');  // similarity
-    expect(output.text).toContain('25.0%');  // pathMatch
-    expect(output.text).toContain('30.0%');  // contentMatch
+    expect(output.text).toContain('75.0%'); // similarity
+    expect(output.text).toContain('25.0%'); // pathMatch
+    expect(output.text).toContain('30.0%'); // contentMatch
     expect(output.text).toContain('100.0%'); // fileTypeBoost
   });
 
@@ -309,7 +315,7 @@ describe('formatAsPlain', () => {
     expect(output.text).not.toContain('```');
     expect(output.text).not.toContain('##');
     expect(output.text).not.toContain('📊');
-    
+
     // Should have plain format
     expect(output.text).toContain('// src/test.ts (lines 1-5)');
     expect(output.text).toContain('const x = 1;');

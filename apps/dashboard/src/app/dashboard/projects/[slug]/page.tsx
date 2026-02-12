@@ -1,11 +1,11 @@
-import { auth } from "@clerk/nextjs/server";
-import { redirect, notFound } from "next/navigation";
-import Link from "next/link";
-import { ArrowLeft, Folder, RefreshCw, Settings, Trash2, Play } from "lucide-react";
+import { auth } from '@clerk/nextjs/server';
+import { redirect, notFound } from 'next/navigation';
+import Link from 'next/link';
+import { ArrowLeft, Folder, RefreshCw, Settings, Trash2, Play } from 'lucide-react';
 
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { getProject } from "@/lib/api";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { getProject } from '@/lib/api';
 
 interface ProjectPageProps {
   params: Promise<{ slug: string }>;
@@ -16,12 +16,12 @@ export default async function ProjectPage({ params }: ProjectPageProps) {
   const { slug } = await params;
 
   if (!userId) {
-    redirect("/sign-in");
+    redirect('/sign-in');
   }
 
   const token = await getToken();
   if (!token) {
-    redirect("/sign-in");
+    redirect('/sign-in');
   }
 
   let project;
@@ -29,7 +29,7 @@ export default async function ProjectPage({ params }: ProjectPageProps) {
     const response = await getProject(token, slug);
     project = response.project;
   } catch (error) {
-    console.error("Failed to fetch project:", error);
+    console.error('Failed to fetch project:', error);
     notFound();
   }
 
@@ -38,10 +38,10 @@ export default async function ProjectPage({ params }: ProjectPageProps) {
   }
 
   const statusColors: Record<string, string> = {
-    indexed: "bg-green-500",
-    indexing: "bg-yellow-500",
-    failed: "bg-red-500",
-    pending: "bg-gray-500",
+    indexed: 'bg-green-500',
+    indexing: 'bg-yellow-500',
+    failed: 'bg-red-500',
+    pending: 'bg-gray-500',
   };
 
   const indexStatus = project.indexStatus || {
@@ -49,14 +49,17 @@ export default async function ProjectPage({ params }: ProjectPageProps) {
     chunks: 0,
     tokens: 0,
     lastIndexed: null,
-    status: "pending",
+    status: 'pending',
   };
 
   return (
     <div className="container mx-auto py-6 px-4 sm:py-10 sm:px-6">
       {/* Header */}
       <div className="mb-6 sm:mb-8">
-        <Link href="/dashboard/projects" className="inline-flex items-center text-sm text-muted-foreground hover:text-foreground mb-4">
+        <Link
+          href="/dashboard/projects"
+          className="inline-flex items-center text-sm text-muted-foreground hover:text-foreground mb-4"
+        >
           <ArrowLeft className="mr-2 h-4 w-4" />
           Back to Projects
         </Link>
@@ -65,7 +68,7 @@ export default async function ProjectPage({ params }: ProjectPageProps) {
             <Folder className="h-8 w-8 text-primary" />
             <div>
               <h1 className="text-2xl sm:text-3xl font-bold">{project.name}</h1>
-              <p className="text-muted-foreground">{project.description || "No description"}</p>
+              <p className="text-muted-foreground">{project.description || 'No description'}</p>
             </div>
           </div>
           <div className="flex gap-2">
@@ -90,7 +93,9 @@ export default async function ProjectPage({ params }: ProjectPageProps) {
           </CardHeader>
           <CardContent>
             <div className="flex items-center gap-2">
-              <div className={`h-2 w-2 rounded-full ${statusColors[indexStatus.status] || "bg-gray-500"}`} />
+              <div
+                className={`h-2 w-2 rounded-full ${statusColors[indexStatus.status] || 'bg-gray-500'}`}
+              />
               <span className="font-semibold capitalize">{indexStatus.status}</span>
             </div>
           </CardContent>
@@ -113,13 +118,15 @@ export default async function ProjectPage({ params }: ProjectPageProps) {
         </Card>
         <Card>
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">Last Indexed</CardTitle>
+            <CardTitle className="text-sm font-medium text-muted-foreground">
+              Last Indexed
+            </CardTitle>
           </CardHeader>
           <CardContent>
             <div className="text-sm font-medium">
-              {indexStatus.lastIndexed 
+              {indexStatus.lastIndexed
                 ? new Date(indexStatus.lastIndexed).toLocaleDateString()
-                : "Not indexed"}
+                : 'Not indexed'}
             </div>
           </CardContent>
         </Card>
@@ -140,15 +147,11 @@ export default async function ProjectPage({ params }: ProjectPageProps) {
             </div>
             <div>
               <label className="text-sm font-medium text-muted-foreground">Created</label>
-              <p className="text-sm mt-1">
-                {new Date(project.createdAt).toLocaleDateString()}
-              </p>
+              <p className="text-sm mt-1">{new Date(project.createdAt).toLocaleDateString()}</p>
             </div>
             <div>
               <label className="text-sm font-medium text-muted-foreground">Updated</label>
-              <p className="text-sm mt-1">
-                {new Date(project.updatedAt).toLocaleDateString()}
-              </p>
+              <p className="text-sm mt-1">{new Date(project.updatedAt).toLocaleDateString()}</p>
             </div>
           </CardContent>
         </Card>
@@ -160,15 +163,11 @@ export default async function ProjectPage({ params }: ProjectPageProps) {
             <CardDescription>Index your codebase</CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
-            <p className="text-sm text-muted-foreground">
-              Use the CLI to index your code:
-            </p>
+            <p className="text-sm text-muted-foreground">Use the CLI to index your code:</p>
             <pre className="bg-muted p-3 rounded-lg text-sm overflow-x-auto">
               <code>contextkit index --project {project.slug}</code>
             </pre>
-            <p className="text-sm text-muted-foreground">
-              Then query for relevant context:
-            </p>
+            <p className="text-sm text-muted-foreground">Then query for relevant context:</p>
             <pre className="bg-muted p-3 rounded-lg text-sm overflow-x-auto">
               <code>contextkit select &quot;How does auth work?&quot;</code>
             </pre>

@@ -52,7 +52,7 @@ export const importCommand = new Command('import')
   .action(async (file: string, options: { force?: boolean; merge?: boolean }) => {
     const opts = getGlobalOpts(importCommand);
     const cwd = process.cwd();
-    
+
     // Check if file exists
     if (!existsSync(file)) {
       throw new InvalidUsageError(`File not found: ${file}`);
@@ -64,7 +64,9 @@ export const importCommand = new Command('import')
       const content = readFileSync(file, 'utf-8');
       exportData = JSON.parse(content) as ExportData;
     } catch (error) {
-      throw new InvalidUsageError(`Failed to parse export file: ${error instanceof Error ? error.message : 'Invalid JSON'}`);
+      throw new InvalidUsageError(
+        `Failed to parse export file: ${error instanceof Error ? error.message : 'Invalid JSON'}`
+      );
     }
 
     // Validate export format
@@ -103,9 +105,7 @@ settings:
     }
 
     // Initialize or open database
-    const db = isInitialized && options.merge 
-      ? openDatabase() 
-      : initDatabase(dbPath);
+    const db = isInitialized && options.merge ? openDatabase() : initDatabase(dbPath);
 
     try {
       // If not merging, clear existing data
@@ -144,13 +144,7 @@ settings:
         `);
 
         for (const file of exportData.files) {
-          fileStmt.run(
-            file.id,
-            file.sourceId,
-            file.filePath,
-            file.contentHash,
-            file.indexedAt
-          );
+          fileStmt.run(file.id, file.sourceId, file.filePath, file.contentHash, file.indexedAt);
         }
 
         // Import chunks
@@ -161,10 +155,8 @@ settings:
 
         let embeddedCount = 0;
         for (const chunk of exportData.chunks) {
-          const embedding = chunk.embedding 
-            ? Buffer.from(chunk.embedding, 'base64')
-            : null;
-          
+          const embedding = chunk.embedding ? Buffer.from(chunk.embedding, 'base64') : null;
+
           if (embedding) embeddedCount++;
 
           chunkStmt.run(
@@ -185,10 +177,12 @@ settings:
         // Update config with sources
         const config = await import('../config/index.js');
         const currentConfig = config.loadConfig();
-        
+
         // Add any new sources to config
         for (const source of exportData.sources) {
-          const existingSource = currentConfig.sources?.find((s: { id: string }) => s.id === source.id);
+          const existingSource = currentConfig.sources?.find(
+            (s: { id: string }) => s.id === source.id
+          );
           if (!existingSource) {
             if (!currentConfig.sources) currentConfig.sources = [];
             currentConfig.sources.push({
@@ -212,27 +206,27 @@ settings:
           writeMessage(`   Chunks:     ${exportData.chunks.length}`);
           writeMessage(`   Embeddings: ${embeddedCount}/${exportData.chunks.length}`);
           writeMessage('');
-          
+
           if (embeddedCount < exportData.chunks.length) {
             writeMessage(formatDim('   ⚠ Some chunks have no embeddings.'));
             writeMessage(formatDim('   Run `contextkit index` to generate them.'));
             writeMessage('');
           }
         } else {
-          writeMessage(JSON.stringify({
-            success: true,
-            sources: exportData.sources.length,
-            files: exportData.files.length,
-            chunks: exportData.chunks.length,
-            embedded: embeddedCount,
-          }));
+          writeMessage(
+            JSON.stringify({
+              success: true,
+              sources: exportData.sources.length,
+              files: exportData.files.length,
+              chunks: exportData.chunks.length,
+              embedded: embeddedCount,
+            })
+          );
         }
-
       } catch (error) {
         db.exec('ROLLBACK');
         throw error;
       }
-
     } finally {
       db.close();
     }

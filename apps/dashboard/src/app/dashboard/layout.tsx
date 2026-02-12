@@ -1,15 +1,15 @@
-import { auth } from "@clerk/nextjs/server";
-import { redirect } from "next/navigation";
-import { UserButton } from "@clerk/nextjs";
-import Link from "next/link";
-import { MobileNav } from "@/components/mobile-nav";
+import { auth } from '@clerk/nextjs/server';
+import { redirect } from 'next/navigation';
+import { UserButton } from '@clerk/nextjs';
+import Link from 'next/link';
+import { MobileNav } from '@/components/mobile-nav';
 
 const navItems = [
-  { href: "/dashboard", label: "Dashboard" },
-  { href: "/dashboard/projects", label: "Projects" },
-  { href: "/dashboard/api-keys", label: "API Keys" },
-  { href: "/dashboard/usage", label: "Usage" },
-  { href: "/dashboard/billing", label: "Billing" },
+  { href: '/dashboard', label: 'Dashboard' },
+  { href: '/dashboard/projects', label: 'Projects' },
+  { href: '/dashboard/api-keys', label: 'API Keys' },
+  { href: '/dashboard/usage', label: 'Usage' },
+  { href: '/dashboard/billing', label: 'Billing' },
 ];
 
 export default async function DashboardLayout({
@@ -20,7 +20,7 @@ export default async function DashboardLayout({
   const { userId } = await auth();
 
   if (!userId) {
-    redirect("/sign-in");
+    redirect('/sign-in');
   }
 
   return (
@@ -32,13 +32,13 @@ export default async function DashboardLayout({
           <Link href="/dashboard" className="flex items-center space-x-2">
             <span className="text-lg sm:text-xl font-bold">🎯 ContextKit</span>
           </Link>
-          
+
           {/* Desktop Navigation */}
           <div className="hidden md:flex ml-8 items-center space-x-4 lg:space-x-6">
             {navItems.map((item) => (
-              <Link 
+              <Link
                 key={item.href}
-                href={item.href} 
+                href={item.href}
                 className="text-sm font-medium text-muted-foreground transition-colors hover:text-primary"
               >
                 {item.label}
@@ -48,8 +48,8 @@ export default async function DashboardLayout({
 
           {/* Right Side */}
           <div className="ml-auto flex items-center space-x-2 sm:space-x-4">
-            <a 
-              href="https://docs.contextkit.dev" 
+            <a
+              href="https://docs.contextkit.dev"
               target="_blank"
               rel="noopener noreferrer"
               className="hidden sm:block text-sm font-medium text-muted-foreground transition-colors hover:text-primary"
@@ -57,7 +57,7 @@ export default async function DashboardLayout({
               Docs
             </a>
             <UserButton afterSignOutUrl="/" />
-            
+
             {/* Mobile Menu */}
             <MobileNav items={navItems} />
           </div>

@@ -1,21 +1,21 @@
-"use client";
+'use client';
 
-import { useState, useEffect } from "react";
-import { useAuth } from "@clerk/nextjs";
-import { Plus, Key, Copy, Trash2, Check, AlertTriangle } from "lucide-react";
+import { useState, useEffect } from 'react';
+import { useAuth } from '@clerk/nextjs';
+import { Plus, Key, Copy, Trash2, Check, AlertTriangle } from 'lucide-react';
 
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { getApiKeys, createApiKey, deleteApiKey, type ApiKey } from "@/lib/api";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { getApiKeys, createApiKey, deleteApiKey, type ApiKey } from '@/lib/api';
 
 export default function ApiKeysPage() {
   const { getToken } = useAuth();
   const [apiKeys, setApiKeys] = useState<ApiKey[]>([]);
   const [loading, setLoading] = useState(true);
   const [showCreateForm, setShowCreateForm] = useState(false);
-  const [newKeyName, setNewKeyName] = useState("");
+  const [newKeyName, setNewKeyName] = useState('');
   const [newlyCreatedKey, setNewlyCreatedKey] = useState<string | null>(null);
   const [copiedKeyId, setCopiedKeyId] = useState<string | null>(null);
   const [isCreating, setIsCreating] = useState(false);
@@ -31,8 +31,8 @@ export default function ApiKeysPage() {
           setApiKeys(response.apiKeys);
         }
       } catch (err) {
-        console.error("Failed to fetch API keys:", err);
-        setError("Failed to load API keys");
+        console.error('Failed to fetch API keys:', err);
+        setError('Failed to load API keys');
       } finally {
         setLoading(false);
       }
@@ -47,41 +47,44 @@ export default function ApiKeysPage() {
 
     try {
       const token = await getToken();
-      if (!token) throw new Error("Not authenticated");
+      if (!token) throw new Error('Not authenticated');
 
       const response = await createApiKey(token, { name: newKeyName });
       setNewlyCreatedKey(response.apiKey.key);
-      setApiKeys([...apiKeys, {
-        id: response.apiKey.id,
-        name: response.apiKey.name,
-        prefix: response.apiKey.prefix,
-        lastUsedAt: null,
-        createdAt: response.apiKey.createdAt,
-      }]);
-      setNewKeyName("");
+      setApiKeys([
+        ...apiKeys,
+        {
+          id: response.apiKey.id,
+          name: response.apiKey.name,
+          prefix: response.apiKey.prefix,
+          lastUsedAt: null,
+          createdAt: response.apiKey.createdAt,
+        },
+      ]);
+      setNewKeyName('');
       setShowCreateForm(false);
     } catch (err) {
-      console.error("Failed to create API key:", err);
-      setError(err instanceof Error ? err.message : "Failed to create API key");
+      console.error('Failed to create API key:', err);
+      setError(err instanceof Error ? err.message : 'Failed to create API key');
     } finally {
       setIsCreating(false);
     }
   }
 
   async function handleDeleteKey(id: string) {
-    if (!confirm("Are you sure you want to delete this API key? This cannot be undone.")) {
+    if (!confirm('Are you sure you want to delete this API key? This cannot be undone.')) {
       return;
     }
 
     try {
       const token = await getToken();
-      if (!token) throw new Error("Not authenticated");
+      if (!token) throw new Error('Not authenticated');
 
       await deleteApiKey(token, id);
       setApiKeys(apiKeys.filter((k) => k.id !== id));
     } catch (err) {
-      console.error("Failed to delete API key:", err);
-      setError(err instanceof Error ? err.message : "Failed to delete API key");
+      console.error('Failed to delete API key:', err);
+      setError(err instanceof Error ? err.message : 'Failed to delete API key');
     }
   }
 
@@ -108,9 +111,7 @@ export default function ApiKeysPage() {
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6 sm:mb-8">
         <div>
           <h1 className="text-3xl font-bold">API Keys</h1>
-          <p className="text-muted-foreground mt-2">
-            Manage your API keys for the ContextKit API
-          </p>
+          <p className="text-muted-foreground mt-2">Manage your API keys for the ContextKit API</p>
         </div>
         <Button onClick={() => setShowCreateForm(true)}>
           <Plus className="mr-2 h-4 w-4" />
@@ -130,9 +131,7 @@ export default function ApiKeysPage() {
         <Card className="mb-6">
           <CardHeader>
             <CardTitle>Create API Key</CardTitle>
-            <CardDescription>
-              Create a new API key to access the ContextKit API
-            </CardDescription>
+            <CardDescription>Create a new API key to access the ContextKit API</CardDescription>
           </CardHeader>
           <CardContent>
             <form onSubmit={handleCreateKey} className="space-y-4">
@@ -148,7 +147,7 @@ export default function ApiKeysPage() {
               </div>
               <div className="flex gap-2">
                 <Button type="submit" disabled={isCreating || !newKeyName.trim()}>
-                  {isCreating ? "Creating..." : "Create Key"}
+                  {isCreating ? 'Creating...' : 'Create Key'}
                 </Button>
                 <Button type="button" variant="outline" onClick={() => setShowCreateForm(false)}>
                   Cancel
@@ -163,9 +162,7 @@ export default function ApiKeysPage() {
       {newlyCreatedKey && (
         <Card className="mb-6 border-green-500 bg-green-50 dark:bg-green-950/20">
           <CardHeader>
-            <CardTitle className="text-green-700 dark:text-green-400">
-              🔐 API Key Created
-            </CardTitle>
+            <CardTitle className="text-green-700 dark:text-green-400">🔐 API Key Created</CardTitle>
             <CardDescription>
               Copy this key now — you won&apos;t be able to see it again!
             </CardDescription>
@@ -176,9 +173,9 @@ export default function ApiKeysPage() {
               <Button
                 size="sm"
                 variant="ghost"
-                onClick={() => handleCopyKey(newlyCreatedKey, "new")}
+                onClick={() => handleCopyKey(newlyCreatedKey, 'new')}
               >
-                {copiedKeyId === "new" ? (
+                {copiedKeyId === 'new' ? (
                   <Check className="h-4 w-4 text-green-500" />
                 ) : (
                   <Copy className="h-4 w-4" />
@@ -230,7 +227,7 @@ export default function ApiKeysPage() {
                   <div className="text-sm text-muted-foreground">
                     {key.lastUsedAt
                       ? `Last used ${new Date(key.lastUsedAt).toLocaleDateString()}`
-                      : "Never used"}
+                      : 'Never used'}
                   </div>
                   <Button
                     variant="ghost"
@@ -251,9 +248,7 @@ export default function ApiKeysPage() {
       <Card className="mt-8">
         <CardHeader>
           <CardTitle>Using your API key</CardTitle>
-          <CardDescription>
-            Include your API key in the Authorization header
-          </CardDescription>
+          <CardDescription>Include your API key in the Authorization header</CardDescription>
         </CardHeader>
         <CardContent>
           <pre className="p-4 bg-muted rounded-lg overflow-x-auto text-sm">

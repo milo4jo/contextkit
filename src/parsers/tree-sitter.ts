@@ -84,7 +84,7 @@ const LANGUAGE_CONFIGS: Record<string, LanguageConfig> = {
     getSignature: (node: Node, content: string) => {
       const text = content.substring(node.startIndex, node.endIndex);
       const lines = text.split('\n');
-      
+
       if (node.type === 'function_declaration' || node.type === 'method_declaration') {
         const funcLine = lines.find((l: string) => l.trim().startsWith('func'));
         if (funcLine) {
@@ -92,11 +92,11 @@ const LANGUAGE_CONFIGS: Record<string, LanguageConfig> = {
           return openBrace > 0 ? funcLine.substring(0, openBrace).trim() : funcLine.trim();
         }
       }
-      
+
       if (node.type === 'type_declaration') {
         return lines[0].trim();
       }
-      
+
       return lines[0].trim();
     },
     isExported: (node: Node) => {
@@ -119,7 +119,7 @@ const LANGUAGE_CONFIGS: Record<string, LanguageConfig> = {
     getSignature: (node: Node, content: string) => {
       const text = content.substring(node.startIndex, node.endIndex);
       const lines = text.split('\n');
-      
+
       if (node.type === 'function_item') {
         let sig = '';
         for (const line of lines) {
@@ -131,7 +131,7 @@ const LANGUAGE_CONFIGS: Record<string, LanguageConfig> = {
         }
         return sig.trim();
       }
-      
+
       return lines[0].trim();
     },
     isExported: (node: Node) => {
@@ -154,7 +154,12 @@ const LANGUAGE_CONFIGS: Record<string, LanguageConfig> = {
     package: 'tree-sitter-java',
     wasmFile: 'tree-sitter-java.wasm',
     functionTypes: ['method_declaration', 'constructor_declaration'],
-    classTypes: ['class_declaration', 'interface_declaration', 'enum_declaration', 'record_declaration'],
+    classTypes: [
+      'class_declaration',
+      'interface_declaration',
+      'enum_declaration',
+      'record_declaration',
+    ],
     methodTypes: ['method_declaration', 'constructor_declaration'],
     getNodeName: (node: Node) => {
       const nameNode = node.childForFieldName('name');
@@ -163,7 +168,7 @@ const LANGUAGE_CONFIGS: Record<string, LanguageConfig> = {
     getSignature: (node: Node, content: string) => {
       const text = content.substring(node.startIndex, node.endIndex);
       const lines = text.split('\n');
-      
+
       // Get everything before the first {
       let sig = '';
       for (const line of lines) {
@@ -189,7 +194,13 @@ const LANGUAGE_CONFIGS: Record<string, LanguageConfig> = {
     package: 'tree-sitter-c-sharp',
     wasmFile: 'tree-sitter-c_sharp.wasm',
     functionTypes: ['method_declaration', 'constructor_declaration', 'local_function_statement'],
-    classTypes: ['class_declaration', 'interface_declaration', 'struct_declaration', 'enum_declaration', 'record_declaration'],
+    classTypes: [
+      'class_declaration',
+      'interface_declaration',
+      'struct_declaration',
+      'enum_declaration',
+      'record_declaration',
+    ],
     methodTypes: ['method_declaration', 'constructor_declaration'],
     getNodeName: (node: Node) => {
       const nameNode = node.childForFieldName('name');
@@ -198,7 +209,7 @@ const LANGUAGE_CONFIGS: Record<string, LanguageConfig> = {
     getSignature: (node: Node, content: string) => {
       const text = content.substring(node.startIndex, node.endIndex);
       const lines = text.split('\n');
-      
+
       // Get everything before the first { or =>
       let sig = '';
       for (const line of lines) {
@@ -206,9 +217,10 @@ const LANGUAGE_CONFIGS: Record<string, LanguageConfig> = {
         if (line.includes('{') || line.includes('=>')) {
           const braceIdx = line.indexOf('{');
           const arrowIdx = line.indexOf('=>');
-          const idx = braceIdx >= 0 && arrowIdx >= 0 
-            ? Math.min(braceIdx, arrowIdx) 
-            : Math.max(braceIdx, arrowIdx);
+          const idx =
+            braceIdx >= 0 && arrowIdx >= 0
+              ? Math.min(braceIdx, arrowIdx)
+              : Math.max(braceIdx, arrowIdx);
           if (idx > 0) {
             sig = sig.substring(0, sig.lastIndexOf(line) + idx);
           }
@@ -231,7 +243,12 @@ const LANGUAGE_CONFIGS: Record<string, LanguageConfig> = {
     package: 'tree-sitter-php',
     wasmFile: 'tree-sitter-php.wasm',
     functionTypes: ['function_definition', 'method_declaration'],
-    classTypes: ['class_declaration', 'interface_declaration', 'trait_declaration', 'enum_declaration'],
+    classTypes: [
+      'class_declaration',
+      'interface_declaration',
+      'trait_declaration',
+      'enum_declaration',
+    ],
     methodTypes: ['method_declaration'],
     getNodeName: (node: Node) => {
       const nameNode = node.childForFieldName('name');
@@ -240,7 +257,7 @@ const LANGUAGE_CONFIGS: Record<string, LanguageConfig> = {
     getSignature: (node: Node, content: string) => {
       const text = content.substring(node.startIndex, node.endIndex);
       const lines = text.split('\n');
-      
+
       // Get everything before the first {
       let sig = '';
       for (const line of lines) {
@@ -341,10 +358,7 @@ export function canParseWithTreeSitter(filePath: string): boolean {
 /**
  * Extract code boundaries from a syntax tree
  */
-function extractBoundaries(
-  tree: Tree,
-  config: LanguageConfig
-): CodeBoundary[] {
+function extractBoundaries(tree: Tree, config: LanguageConfig): CodeBoundary[] {
   const boundaries: CodeBoundary[] = [];
 
   const visit = (node: Node, parentClass: string | null = null): void => {
@@ -378,7 +392,7 @@ function extractBoundaries(
         for (const child of node.children) {
           visit(child, name);
         }
-        
+
         if (boundary) {
           boundaries.push(boundary);
         }
@@ -402,10 +416,7 @@ function extractBoundaries(
 /**
  * Parse a file using tree-sitter
  */
-export async function parseWithTreeSitter(
-  content: string,
-  filePath: string
-): Promise<ParseResult> {
+export async function parseWithTreeSitter(content: string, filePath: string): Promise<ParseResult> {
   const languageId = getLanguageForFile(filePath);
   if (!languageId) {
     return {
@@ -513,20 +524,20 @@ export async function generateRepoMap(
     const lines: string[] = [];
     const addSignature = (node: Node, indent: number = 0): void => {
       const prefix = '│ '.repeat(indent);
-      
+
       if (config.functionTypes.includes(node.type) || config.methodTypes.includes(node.type)) {
         const sig = config.getSignature(node, fileContent);
         const exported = config.isExported(node);
         const exportPrefix = exported ? '' : '(private) ';
         lines.push(`${prefix}${exportPrefix}${sig}`);
       }
-      
+
       if (config.classTypes.includes(node.type)) {
         const sig = config.getSignature(node, fileContent);
         const exported = config.isExported(node);
         const exportPrefix = exported ? '' : '(private) ';
         lines.push(`${prefix}${exportPrefix}${sig}`);
-        
+
         for (const child of node.children) {
           addSignature(child, indent + 1);
         }

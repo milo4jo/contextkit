@@ -76,16 +76,12 @@
       "indexes": {
         "api_key_org_idx": {
           "name": "api_key_org_idx",
-          "columns": [
-            "org_id"
-          ],
+          "columns": ["org_id"],
           "isUnique": false
         },
         "api_key_prefix_idx": {
           "name": "api_key_prefix_idx",
-          "columns": [
-            "key_prefix"
-          ],
+          "columns": ["key_prefix"],
           "isUnique": false
         }
       },
@@ -94,12 +90,8 @@
           "name": "api_keys_org_id_organizations_id_fk",
           "tableFrom": "api_keys",
           "tableTo": "organizations",
-          "columnsFrom": [
-            "org_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["org_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         }
@@ -153,17 +145,12 @@
       "indexes": {
         "indexed_file_project_idx": {
           "name": "indexed_file_project_idx",
-          "columns": [
-            "project_id"
-          ],
+          "columns": ["project_id"],
           "isUnique": false
         },
         "indexed_file_project_path_idx": {
           "name": "indexed_file_project_path_idx",
-          "columns": [
-            "project_id",
-            "file_path"
-          ],
+          "columns": ["project_id", "file_path"],
           "isUnique": true
         }
       },
@@ -172,12 +159,8 @@
           "name": "indexed_files_project_id_projects_id_fk",
           "tableFrom": "indexed_files",
           "tableTo": "projects",
-          "columnsFrom": [
-            "project_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["project_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         }
@@ -222,12 +205,8 @@
           "name": "org_members_org_id_organizations_id_fk",
           "tableFrom": "org_members",
           "tableTo": "organizations",
-          "columnsFrom": [
-            "org_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["org_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         },
@@ -235,12 +214,8 @@
           "name": "org_members_user_id_users_id_fk",
           "tableFrom": "org_members",
           "tableTo": "users",
-          "columnsFrom": [
-            "user_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["user_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         }
@@ -248,10 +223,7 @@
       "compositePrimaryKeys": {
         "org_members_org_id_user_id_pk": {
           "name": "org_members_org_id_user_id_pk",
-          "columns": [
-            "org_id",
-            "user_id"
-          ]
+          "columns": ["org_id", "user_id"]
         }
       },
       "uniqueConstraints": {}
@@ -310,9 +282,7 @@
       "indexes": {
         "org_slug_idx": {
           "name": "org_slug_idx",
-          "columns": [
-            "slug"
-          ],
+          "columns": ["slug"],
           "isUnique": true
         }
       },
@@ -322,9 +292,7 @@
         "organizations_slug_unique": {
           "name": "organizations_slug_unique",
           "nullsNotDistinct": false,
-          "columns": [
-            "slug"
-          ]
+          "columns": ["slug"]
         }
       }
     },
@@ -388,17 +356,12 @@
       "indexes": {
         "project_org_idx": {
           "name": "project_org_idx",
-          "columns": [
-            "org_id"
-          ],
+          "columns": ["org_id"],
           "isUnique": false
         },
         "project_org_slug_idx": {
           "name": "project_org_slug_idx",
-          "columns": [
-            "org_id",
-            "slug"
-          ],
+          "columns": ["org_id", "slug"],
           "isUnique": true
         }
       },
@@ -407,12 +370,8 @@
           "name": "projects_org_id_organizations_id_fk",
           "tableFrom": "projects",
           "tableTo": "organizations",
-          "columnsFrom": [
-            "org_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["org_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         }
@@ -478,10 +437,7 @@
       "indexes": {
         "usage_org_created_idx": {
           "name": "usage_org_created_idx",
-          "columns": [
-            "org_id",
-            "created_at"
-          ],
+          "columns": ["org_id", "created_at"],
           "isUnique": false
         }
       },
@@ -490,12 +446,8 @@
           "name": "usage_events_org_id_organizations_id_fk",
           "tableFrom": "usage_events",
           "tableTo": "organizations",
-          "columnsFrom": [
-            "org_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["org_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         },
@@ -503,12 +455,8 @@
           "name": "usage_events_api_key_id_api_keys_id_fk",
           "tableFrom": "usage_events",
           "tableTo": "api_keys",
-          "columnsFrom": [
-            "api_key_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["api_key_id"],
+          "columnsTo": ["id"],
           "onDelete": "set null",
           "onUpdate": "no action"
         }
@@ -560,12 +508,8 @@
           "name": "usage_monthly_org_id_organizations_id_fk",
           "tableFrom": "usage_monthly",
           "tableTo": "organizations",
-          "columnsFrom": [
-            "org_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["org_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         }
@@ -573,10 +517,7 @@
       "compositePrimaryKeys": {
         "usage_monthly_org_id_month_pk": {
           "name": "usage_monthly_org_id_month_pk",
-          "columns": [
-            "org_id",
-            "month"
-          ]
+          "columns": ["org_id", "month"]
         }
       },
       "uniqueConstraints": {}
@@ -627,9 +568,7 @@
       "indexes": {
         "user_clerk_id_idx": {
           "name": "user_clerk_id_idx",
-          "columns": [
-            "clerk_id"
-          ],
+          "columns": ["clerk_id"],
           "isUnique": true
         }
       },
@@ -639,16 +578,12 @@
         "users_clerk_id_unique": {
           "name": "users_clerk_id_unique",
           "nullsNotDistinct": false,
-          "columns": [
-            "clerk_id"
-          ]
+          "columns": ["clerk_id"]
         },
         "users_email_unique": {
           "name": "users_email_unique",
           "nullsNotDistinct": false,
-          "columns": [
-            "email"
-          ]
+          "columns": ["email"]
         }
       }
     }

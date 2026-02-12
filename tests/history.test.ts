@@ -1,6 +1,12 @@
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import Database from 'better-sqlite3';
-import { recordQuery, getQueryHistory, getHistoryEntry, clearHistory, type HistoryEntry } from '../src/db/index.js';
+import {
+  recordQuery,
+  getQueryHistory,
+  getHistoryEntry,
+  clearHistory,
+  type HistoryEntry,
+} from '../src/db/index.js';
 
 describe('Query History', () => {
   let db: Database.Database;
@@ -9,7 +15,7 @@ describe('Query History', () => {
     // Create in-memory database
     db = new Database(':memory:');
     db.pragma('foreign_keys = ON');
-    
+
     // Create the history table
     db.exec(`
       CREATE TABLE IF NOT EXISTS query_history (

@@ -54,7 +54,11 @@ export const initCommand = new Command('init')
       if (!preset) {
         writeError(`Unknown preset: ${options.preset}`);
         writeMessage('');
-        writeMessage(`Available presets: ${getPresetList().map((p) => p.name).join(', ')}`);
+        writeMessage(
+          `Available presets: ${getPresetList()
+            .map((p) => p.name)
+            .join(', ')}`
+        );
         writeMessage(`Run ${formatCommand('contextkit init --list-presets')} for details.`);
         rmSync(contextKitDir, { recursive: true });
         process.exit(1);

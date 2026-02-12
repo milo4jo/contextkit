@@ -29,13 +29,7 @@ export const PRESETS: Record<string, PresetConfig> = {
         id: 'app',
         path: './src',
         patterns: {
-          include: [
-            '**/*.ts',
-            '**/*.tsx',
-            '**/*.js',
-            '**/*.jsx',
-            '**/*.css',
-          ],
+          include: ['**/*.ts', '**/*.tsx', '**/*.js', '**/*.jsx', '**/*.css'],
           exclude: [
             '**/node_modules/**',
             '**/*.test.ts',
@@ -157,12 +151,7 @@ export const PRESETS: Record<string, PresetConfig> = {
         path: './src',
         patterns: {
           include: ['**/*.ts', '**/*.tsx', '**/*.js', '**/*.jsx', '**/*.css'],
-          exclude: [
-            '**/node_modules/**',
-            '**/*.test.*',
-            '**/*.spec.*',
-            '**/__tests__/**',
-          ],
+          exclude: ['**/node_modules/**', '**/*.test.*', '**/*.spec.*', '**/__tests__/**'],
         },
       },
       {

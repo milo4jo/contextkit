@@ -13,53 +13,53 @@ import {
   primaryKey,
   index,
   uniqueIndex,
-} from "drizzle-orm/pg-core";
+} from 'drizzle-orm/pg-core';
 
 // Organizations (tenants)
 export const organizations = pgTable(
-  "organizations",
+  'organizations',
   {
-    id: uuid("id").primaryKey().defaultRandom(),
-    name: text("name").notNull(),
-    slug: text("slug").notNull().unique(),
-    plan: text("plan").notNull().default("free"), // free, pro, team, enterprise
-    stripeCustomerId: text("stripe_customer_id"),
-    createdAt: timestamp("created_at", { withTimezone: true }).defaultNow(),
-    updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow(),
+    id: uuid('id').primaryKey().defaultRandom(),
+    name: text('name').notNull(),
+    slug: text('slug').notNull().unique(),
+    plan: text('plan').notNull().default('free'), // free, pro, team, enterprise
+    stripeCustomerId: text('stripe_customer_id'),
+    createdAt: timestamp('created_at', { withTimezone: true }).defaultNow(),
+    updatedAt: timestamp('updated_at', { withTimezone: true }).defaultNow(),
   },
   (table) => ({
-    slugIdx: uniqueIndex("org_slug_idx").on(table.slug),
+    slugIdx: uniqueIndex('org_slug_idx').on(table.slug),
   })
 );
 
 // Users
 export const users = pgTable(
-  "users",
+  'users',
   {
-    id: uuid("id").primaryKey().defaultRandom(),
-    clerkId: text("clerk_id").unique(), // Clerk user ID for dashboard auth
-    email: text("email").notNull().unique(),
-    name: text("name"),
-    avatarUrl: text("avatar_url"),
-    createdAt: timestamp("created_at", { withTimezone: true }).defaultNow(),
+    id: uuid('id').primaryKey().defaultRandom(),
+    clerkId: text('clerk_id').unique(), // Clerk user ID for dashboard auth
+    email: text('email').notNull().unique(),
+    name: text('name'),
+    avatarUrl: text('avatar_url'),
+    createdAt: timestamp('created_at', { withTimezone: true }).defaultNow(),
   },
   (table) => ({
-    clerkIdIdx: uniqueIndex("user_clerk_id_idx").on(table.clerkId),
+    clerkIdIdx: uniqueIndex('user_clerk_id_idx').on(table.clerkId),
   })
 );
 
 // Organization memberships
 export const orgMembers = pgTable(
-  "org_members",
+  'org_members',
   {
-    orgId: uuid("org_id")
+    orgId: uuid('org_id')
       .notNull()
-      .references(() => organizations.id, { onDelete: "cascade" }),
-    userId: uuid("user_id")
+      .references(() => organizations.id, { onDelete: 'cascade' }),
+    userId: uuid('user_id')
       .notNull()
-      .references(() => users.id, { onDelete: "cascade" }),
-    role: text("role").notNull().default("member"), // owner, admin, member
-    createdAt: timestamp("created_at", { withTimezone: true }).defaultNow(),
+      .references(() => users.id, { onDelete: 'cascade' }),
+    role: text('role').notNull().default('member'), // owner, admin, member
+    createdAt: timestamp('created_at', { withTimezone: true }).defaultNow(),
   },
   (table) => ({
     pk: primaryKey({ columns: [table.orgId, table.userId] }),
@@ -68,64 +68,64 @@ export const orgMembers = pgTable(
 
 // Projects
 export const projects = pgTable(
-  "projects",
+  'projects',
   {
-    id: uuid("id").primaryKey().defaultRandom(),
-    orgId: uuid("org_id")
+    id: uuid('id').primaryKey().defaultRandom(),
+    orgId: uuid('org_id')
       .notNull()
-      .references(() => organizations.id, { onDelete: "cascade" }),
-    name: text("name").notNull(),
-    slug: text("slug").notNull(),
-    description: text("description"),
-    settings: jsonb("settings").default({}),
-    createdAt: timestamp("created_at", { withTimezone: true }).defaultNow(),
-    updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow(),
+      .references(() => organizations.id, { onDelete: 'cascade' }),
+    name: text('name').notNull(),
+    slug: text('slug').notNull(),
+    description: text('description'),
+    settings: jsonb('settings').default({}),
+    createdAt: timestamp('created_at', { withTimezone: true }).defaultNow(),
+    updatedAt: timestamp('updated_at', { withTimezone: true }).defaultNow(),
   },
   (table) => ({
-    orgIdx: index("project_org_idx").on(table.orgId),
-    orgSlugIdx: uniqueIndex("project_org_slug_idx").on(table.orgId, table.slug),
+    orgIdx: index('project_org_idx').on(table.orgId),
+    orgSlugIdx: uniqueIndex('project_org_slug_idx').on(table.orgId, table.slug),
   })
 );
 
 // API Keys
 export const apiKeys = pgTable(
-  "api_keys",
+  'api_keys',
   {
-    id: uuid("id").primaryKey().defaultRandom(),
-    orgId: uuid("org_id")
+    id: uuid('id').primaryKey().defaultRandom(),
+    orgId: uuid('org_id')
       .notNull()
-      .references(() => organizations.id, { onDelete: "cascade" }),
-    name: text("name").notNull(),
-    keyHash: text("key_hash").notNull(), // SHA-256 of the key
-    keyPrefix: text("key_prefix").notNull(), // First 8 chars for identification
-    scopes: jsonb("scopes").default([]), // ["project:read", "project:write"]
-    projectIds: jsonb("project_ids").default([]), // Empty = all projects
-    lastUsedAt: timestamp("last_used_at", { withTimezone: true }),
-    expiresAt: timestamp("expires_at", { withTimezone: true }),
-    createdAt: timestamp("created_at", { withTimezone: true }).defaultNow(),
+      .references(() => organizations.id, { onDelete: 'cascade' }),
+    name: text('name').notNull(),
+    keyHash: text('key_hash').notNull(), // SHA-256 of the key
+    keyPrefix: text('key_prefix').notNull(), // First 8 chars for identification
+    scopes: jsonb('scopes').default([]), // ["project:read", "project:write"]
+    projectIds: jsonb('project_ids').default([]), // Empty = all projects
+    lastUsedAt: timestamp('last_used_at', { withTimezone: true }),
+    expiresAt: timestamp('expires_at', { withTimezone: true }),
+    createdAt: timestamp('created_at', { withTimezone: true }).defaultNow(),
   },
   (table) => ({
-    orgIdx: index("api_key_org_idx").on(table.orgId),
-    prefixIdx: index("api_key_prefix_idx").on(table.keyPrefix),
+    orgIdx: index('api_key_org_idx').on(table.orgId),
+    prefixIdx: index('api_key_prefix_idx').on(table.keyPrefix),
   })
 );
 
 // Indexed files
 export const indexedFiles = pgTable(
-  "indexed_files",
+  'indexed_files',
   {
-    id: uuid("id").primaryKey().defaultRandom(),
-    projectId: uuid("project_id")
+    id: uuid('id').primaryKey().defaultRandom(),
+    projectId: uuid('project_id')
       .notNull()
-      .references(() => projects.id, { onDelete: "cascade" }),
-    filePath: text("file_path").notNull(),
-    contentHash: text("content_hash").notNull(),
-    chunkCount: integer("chunk_count").notNull(),
-    indexedAt: timestamp("indexed_at", { withTimezone: true }).defaultNow(),
+      .references(() => projects.id, { onDelete: 'cascade' }),
+    filePath: text('file_path').notNull(),
+    contentHash: text('content_hash').notNull(),
+    chunkCount: integer('chunk_count').notNull(),
+    indexedAt: timestamp('indexed_at', { withTimezone: true }).defaultNow(),
   },
   (table) => ({
-    projectIdx: index("indexed_file_project_idx").on(table.projectId),
-    projectPathIdx: uniqueIndex("indexed_file_project_path_idx").on(
+    projectIdx: index('indexed_file_project_idx').on(table.projectId),
+    projectPathIdx: uniqueIndex('indexed_file_project_path_idx').on(
       table.projectId,
       table.filePath
     ),
@@ -134,40 +134,37 @@ export const indexedFiles = pgTable(
 
 // Usage events (for detailed tracking)
 export const usageEvents = pgTable(
-  "usage_events",
+  'usage_events',
   {
-    id: uuid("id").primaryKey().defaultRandom(),
-    orgId: uuid("org_id")
+    id: uuid('id').primaryKey().defaultRandom(),
+    orgId: uuid('org_id')
       .notNull()
-      .references(() => organizations.id, { onDelete: "cascade" }),
-    apiKeyId: uuid("api_key_id").references(() => apiKeys.id, {
-      onDelete: "set null",
+      .references(() => organizations.id, { onDelete: 'cascade' }),
+    apiKeyId: uuid('api_key_id').references(() => apiKeys.id, {
+      onDelete: 'set null',
     }),
-    eventType: text("event_type").notNull(), // 'query', 'index', 'sync'
-    projectId: uuid("project_id"),
-    tokensUsed: integer("tokens_used"),
-    durationMs: integer("duration_ms"),
-    createdAt: timestamp("created_at", { withTimezone: true }).defaultNow(),
+    eventType: text('event_type').notNull(), // 'query', 'index', 'sync'
+    projectId: uuid('project_id'),
+    tokensUsed: integer('tokens_used'),
+    durationMs: integer('duration_ms'),
+    createdAt: timestamp('created_at', { withTimezone: true }).defaultNow(),
   },
   (table) => ({
-    orgCreatedIdx: index("usage_org_created_idx").on(
-      table.orgId,
-      table.createdAt
-    ),
+    orgCreatedIdx: index('usage_org_created_idx').on(table.orgId, table.createdAt),
   })
 );
 
 // Monthly usage aggregates (for billing)
 export const usageMonthly = pgTable(
-  "usage_monthly",
+  'usage_monthly',
   {
-    orgId: uuid("org_id")
+    orgId: uuid('org_id')
       .notNull()
-      .references(() => organizations.id, { onDelete: "cascade" }),
-    month: timestamp("month", { mode: "date" }).notNull(), // First day of month
-    queries: integer("queries").default(0),
-    tokens: integer("tokens").default(0),
-    storageBytes: bigint("storage_bytes", { mode: "number" }).default(0),
+      .references(() => organizations.id, { onDelete: 'cascade' }),
+    month: timestamp('month', { mode: 'date' }).notNull(), // First day of month
+    queries: integer('queries').default(0),
+    tokens: integer('tokens').default(0),
+    storageBytes: bigint('storage_bytes', { mode: 'number' }).default(0),
   },
   (table) => ({
     pk: primaryKey({ columns: [table.orgId, table.month] }),

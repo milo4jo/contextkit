@@ -55,15 +55,15 @@ export function validateConfig(config: Config, baseDir: string): ValidationResul
   } else {
     // Validate each source
     const sourceIds = new Set<string>();
-    
+
     for (let i = 0; i < config.sources.length; i++) {
       const source = config.sources[i];
       const sourcePath = `sources[${i}]`;
-      
+
       const sourceResult = validateSource(source, sourcePath, baseDir, sourceIds);
       errors.push(...sourceResult.errors);
       warnings.push(...sourceResult.warnings);
-      
+
       if (source.id) {
         sourceIds.add(source.id);
       }
@@ -177,7 +177,7 @@ function validateSource(
       });
     } else {
       // Check for common mistakes
-      const hasNodeModules = source.patterns.exclude.some(p => p.includes('node_modules'));
+      const hasNodeModules = source.patterns.exclude.some((p) => p.includes('node_modules'));
       if (!hasNodeModules) {
         warnings.push({
           path: `${path}.patterns.exclude`,

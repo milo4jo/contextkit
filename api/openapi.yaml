@@ -3,20 +3,20 @@ info:
   title: ContextKit API
   description: |
     The ContextKit API provides intelligent context selection for AI coding tools.
-    
+
     ## Authentication
     All API requests require a valid API key passed in the `Authorization` header:
     ```
     Authorization: Bearer ck_live_xxxxxxxxxxxxxxxxxxxx
     ```
-    
+
     ## Rate Limits
     | Plan | Requests/min | Queries/month |
     |------|--------------|---------------|
     | Free | 20 | 1,000 |
     | Pro | 100 | 50,000 |
     | Team | 500 | Unlimited |
-    
+
     ## Errors
     All errors follow RFC 7807 Problem Details format.
   version: 1.0.0
@@ -70,17 +70,17 @@ paths:
               basic:
                 summary: Basic query
                 value:
-                  query: "How does authentication work?"
-                  project_id: "proj_abc123"
+                  query: 'How does authentication work?'
+                  project_id: 'proj_abc123'
               advanced:
                 summary: Advanced with options
                 value:
-                  query: "payment processing flow"
-                  project_id: "proj_abc123"
+                  query: 'payment processing flow'
+                  project_id: 'proj_abc123'
                   budget: 4000
                   include_imports: true
-                  mode: "full"
-                  format: "markdown"
+                  mode: 'full'
+                  format: 'markdown'
       responses:
         '200':
           description: Context retrieved successfully
@@ -387,7 +387,7 @@ components:
         query:
           type: string
           description: Natural language query
-          example: "How does authentication work?"
+          example: 'How does authentication work?'
         project_id:
           type: string
           description: Project ID or slug
@@ -698,10 +698,10 @@ components:
           schema:
             $ref: '#/components/schemas/Error'
           example:
-            type: "https://contextkit.dev/errors/bad-request"
-            title: "Bad Request"
+            type: 'https://contextkit.dev/errors/bad-request'
+            title: 'Bad Request'
             status: 400
-            detail: "Missing required field: query"
+            detail: 'Missing required field: query'
 
     Unauthorized:
       description: Invalid or missing API key
@@ -710,10 +710,10 @@ components:
           schema:
             $ref: '#/components/schemas/Error'
           example:
-            type: "https://contextkit.dev/errors/unauthorized"
-            title: "Unauthorized"
+            type: 'https://contextkit.dev/errors/unauthorized'
+            title: 'Unauthorized'
             status: 401
-            detail: "Invalid API key"
+            detail: 'Invalid API key'
 
     NotFound:
       description: Resource not found
@@ -722,10 +722,10 @@ components:
           schema:
             $ref: '#/components/schemas/Error'
           example:
-            type: "https://contextkit.dev/errors/not-found"
-            title: "Not Found"
+            type: 'https://contextkit.dev/errors/not-found'
+            title: 'Not Found'
             status: 404
-            detail: "Project not found"
+            detail: 'Project not found'
 
     RateLimited:
       description: Rate limit exceeded
@@ -747,7 +747,7 @@ components:
           schema:
             $ref: '#/components/schemas/Error'
           example:
-            type: "https://contextkit.dev/errors/rate-limited"
-            title: "Too Many Requests"
+            type: 'https://contextkit.dev/errors/rate-limited'
+            title: 'Too Many Requests'
             status: 429
-            detail: "Rate limit exceeded. Try again in 30 seconds."
+            detail: 'Rate limit exceeded. Try again in 30 seconds.'

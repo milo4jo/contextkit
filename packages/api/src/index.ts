@@ -1,6 +1,6 @@
 /**
  * ContextKit Cloud API
- * 
+ *
  * Hono app running on Cloudflare Workers
  */
 
@@ -18,10 +18,10 @@ export interface Env {
   TURSO_URL: string;
   TURSO_AUTH_TOKEN: string;
   LEMONSQUEEZY_WEBHOOK_SECRET: string;
-  
+
   // Bindings
   STORAGE: R2Bucket;
-  
+
   // Variables
   ENVIRONMENT: string;
 }
@@ -30,14 +30,13 @@ const app = new Hono<{ Bindings: Env }>();
 
 // Middleware
 app.use('*', logger());
-app.use('*', cors({
-  origin: [
-    'http://localhost:3000',
-    'https://app.contextkit.dev',
-    'https://contextkit.dev',
-  ],
-  credentials: true,
-}));
+app.use(
+  '*',
+  cors({
+    origin: ['http://localhost:3000', 'https://app.contextkit.dev', 'https://contextkit.dev'],
+    credentials: true,
+  })
+);
 
 // Health check
 app.get('/', (c) => {
@@ -64,11 +63,12 @@ app.notFound((c) => {
 // Error handler
 app.onError((err, c) => {
   console.error('API Error:', err);
-  return c.json({ 
-    error: c.env.ENVIRONMENT === 'production' 
-      ? 'Internal server error' 
-      : err.message 
-  }, 500);
+  return c.json(
+    {
+      error: c.env.ENVIRONMENT === 'production' ? 'Internal server error' : err.message,
+    },
+    500
+  );
 });
 
 export default app;

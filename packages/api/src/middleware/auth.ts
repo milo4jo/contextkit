@@ -1,6 +1,6 @@
 /**
  * Auth Middleware
- * 
+ *
  * Verifies JWT tokens from Clerk
  */
 
@@ -13,7 +13,7 @@ export async function authMiddleware(
   next: Next
 ) {
   const authHeader = c.req.header('Authorization');
-  
+
   if (!authHeader?.startsWith('Bearer ')) {
     return c.json({ error: 'Unauthorized: No token provided' }, 401);
   }

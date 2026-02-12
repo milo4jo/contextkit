@@ -1,8 +1,8 @@
-import Link from "next/link";
-import { SignedIn, SignedOut, SignInButton } from "@clerk/nextjs";
-import { MarketingNav } from "@/components/marketing-nav";
-import { CopyButton } from "@/components/copy-button";
-import { Check, X } from "lucide-react";
+import Link from 'next/link';
+import { SignedIn, SignedOut, SignInButton } from '@clerk/nextjs';
+import { MarketingNav } from '@/components/marketing-nav';
+import { CopyButton } from '@/components/copy-button';
+import { Check, X } from 'lucide-react';
 
 export default function LandingPage() {
   return (
@@ -17,19 +17,19 @@ export default function LandingPage() {
             <span className="w-2 h-2 rounded-full bg-green-500 animate-pulse"></span>
             v0.6.3 — Cloud Sync + Doctor Command
           </div>
-          
+
           <h1 className="text-4xl sm:text-5xl md:text-6xl font-bold tracking-tight mb-6">
             The right context.
             <br />
             <span className="text-neutral-500">Every time.</span>
           </h1>
-          
+
           <p className="text-lg sm:text-xl text-neutral-400 mb-8 max-w-2xl mx-auto">
-            Stop dumping your entire codebase into AI prompts.
-            ContextKit selects the most relevant code for any query — 
-            <span className="text-white"> saving 90%+ tokens</span> and getting better answers.
+            Stop dumping your entire codebase into AI prompts. ContextKit selects the most relevant
+            code for any query —<span className="text-white"> saving 90%+ tokens</span> and getting
+            better answers.
           </p>
-          
+
           {/* Install command */}
           <div className="flex flex-col sm:flex-row gap-4 justify-center items-center mb-8">
             <code className="bg-neutral-900 border border-neutral-800 px-5 py-3 rounded-lg font-mono text-sm flex items-center gap-3">
@@ -38,18 +38,18 @@ export default function LandingPage() {
               <CopyButton text="npm i -g @milo4jo/contextkit" />
             </code>
           </div>
-          
+
           {/* Social proof */}
           <div className="flex flex-wrap justify-center gap-4 sm:gap-6 text-sm text-neutral-500">
-            <a 
+            <a
               href="https://www.npmjs.com/package/@milo4jo/contextkit"
               target="_blank"
               rel="noopener noreferrer"
               className="flex items-center gap-2 hover:text-white transition-colors"
             >
-              <img 
-                src="https://img.shields.io/npm/dw/@milo4jo/contextkit?style=flat&color=22c55e&labelColor=171717" 
-                alt="npm downloads" 
+              <img
+                src="https://img.shields.io/npm/dw/@milo4jo/contextkit?style=flat&color=22c55e&labelColor=171717"
+                alt="npm downloads"
                 className="h-5"
               />
             </a>
@@ -76,7 +76,9 @@ export default function LandingPage() {
               <span className="text-xs text-neutral-500 ml-2">terminal</span>
             </div>
             <div className="p-6 font-mono text-sm overflow-x-auto">
-              <div className="text-neutral-500">$ contextkit select &quot;How does auth work?&quot;</div>
+              <div className="text-neutral-500">
+                $ contextkit select &quot;How does auth work?&quot;
+              </div>
               <div className="mt-4 text-neutral-300">
                 <span className="text-blue-400">Finding relevant context...</span>
               </div>
@@ -107,7 +109,7 @@ export default function LandingPage() {
           <p className="text-2xl sm:text-3xl font-medium text-neutral-200 mb-12 max-w-3xl">
             AI assistants are only as good as the context you give them.
           </p>
-          
+
           <div className="grid md:grid-cols-3 gap-6 mb-12">
             <div className="p-6 bg-neutral-950 border border-neutral-800 rounded-xl">
               <div className="text-3xl mb-4">📦</div>
@@ -203,14 +205,14 @@ export default function LandingPage() {
           </h2>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4 sm:gap-6">
             {[
-              { icon: "🔒", title: "Local-first", desc: "Your code never leaves your machine" },
-              { icon: "🤖", title: "MCP Server", desc: "Claude Desktop auto-fetches context" },
-              { icon: "🔍", title: "Symbol Search", desc: "Find functions by name instantly" },
-              { icon: "⚡", title: "Incremental", desc: "Only re-indexes changed files" },
-              { icon: "🗺️", title: "Map Mode", desc: "Signatures only for overviews" },
-              { icon: "🌐", title: "Multi-language", desc: "TS, JS, Python, Go, Rust..." },
-              { icon: "📊", title: "Token Budget", desc: "Specify max tokens" },
-              { icon: "☁️", title: "Cloud Sync", desc: "Share indexes across machines" },
+              { icon: '🔒', title: 'Local-first', desc: 'Your code never leaves your machine' },
+              { icon: '🤖', title: 'MCP Server', desc: 'Claude Desktop auto-fetches context' },
+              { icon: '🔍', title: 'Symbol Search', desc: 'Find functions by name instantly' },
+              { icon: '⚡', title: 'Incremental', desc: 'Only re-indexes changed files' },
+              { icon: '🗺️', title: 'Map Mode', desc: 'Signatures only for overviews' },
+              { icon: '🌐', title: 'Multi-language', desc: 'TS, JS, Python, Go, Rust...' },
+              { icon: '📊', title: 'Token Budget', desc: 'Specify max tokens' },
+              { icon: '☁️', title: 'Cloud Sync', desc: 'Share indexes across machines' },
             ].map((feature) => (
               <div key={feature.title} className="p-4">
                 <div className="text-xl mb-2">{feature.icon}</div>
@@ -225,9 +227,7 @@ export default function LandingPage() {
       {/* CTA */}
       <section className="py-24 px-6 border-t border-neutral-900 bg-gradient-to-b from-neutral-950 to-black">
         <div className="max-w-3xl mx-auto text-center">
-          <h2 className="text-3xl sm:text-4xl font-bold mb-4">
-            Better context = Better answers
-          </h2>
+          <h2 className="text-3xl sm:text-4xl font-bold mb-4">Better context = Better answers</h2>
           <p className="text-neutral-400 mb-8">
             Install ContextKit and start getting the right code context in seconds.
           </p>
@@ -276,16 +276,45 @@ export default function LandingPage() {
               <div>
                 <h4 className="font-medium mb-3 text-neutral-400">Product</h4>
                 <ul className="space-y-2 text-neutral-500">
-                  <li><Link href="/docs" className="hover:text-white transition-colors">Docs</Link></li>
-                  <li><Link href="/pricing" className="hover:text-white transition-colors">Pricing</Link></li>
-                  <li><a href="https://github.com/milo4jo/contextkit/blob/main/CHANGELOG.md" className="hover:text-white transition-colors">Changelog</a></li>
+                  <li>
+                    <Link href="/docs" className="hover:text-white transition-colors">
+                      Docs
+                    </Link>
+                  </li>
+                  <li>
+                    <Link href="/pricing" className="hover:text-white transition-colors">
+                      Pricing
+                    </Link>
+                  </li>
+                  <li>
+                    <a
+                      href="https://github.com/milo4jo/contextkit/blob/main/CHANGELOG.md"
+                      className="hover:text-white transition-colors"
+                    >
+                      Changelog
+                    </a>
+                  </li>
                 </ul>
               </div>
               <div>
                 <h4 className="font-medium mb-3 text-neutral-400">Links</h4>
                 <ul className="space-y-2 text-neutral-500">
-                  <li><a href="https://github.com/milo4jo/contextkit" className="hover:text-white transition-colors">GitHub</a></li>
-                  <li><a href="https://www.npmjs.com/package/@milo4jo/contextkit" className="hover:text-white transition-colors">npm</a></li>
+                  <li>
+                    <a
+                      href="https://github.com/milo4jo/contextkit"
+                      className="hover:text-white transition-colors"
+                    >
+                      GitHub
+                    </a>
+                  </li>
+                  <li>
+                    <a
+                      href="https://www.npmjs.com/package/@milo4jo/contextkit"
+                      className="hover:text-white transition-colors"
+                    >
+                      npm
+                    </a>
+                  </li>
                 </ul>
               </div>
             </div>
@@ -293,8 +322,11 @@ export default function LandingPage() {
           <div className="mt-12 pt-8 border-t border-neutral-900 flex flex-col sm:flex-row justify-between items-center gap-4 text-sm text-neutral-600">
             <p>MIT License</p>
             <p>
-              Built by{" "}
-              <a href="https://github.com/milo4jo" className="text-neutral-400 hover:text-white transition-colors">
+              Built by{' '}
+              <a
+                href="https://github.com/milo4jo"
+                className="text-neutral-400 hover:text-white transition-colors"
+              >
                 Milo 🦊
               </a>
             </p>

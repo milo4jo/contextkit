@@ -50,7 +50,8 @@ export const syncCommand = new Command('sync')
       const projectsResponse = await apiRequest<ProjectListResponse>('/api/v1/projects');
 
       let project = projectsResponse.projects.find(
-        (p) => p.name === projectName || p.slug === projectName.toLowerCase().replace(/[^a-z0-9]+/g, '-')
+        (p) =>
+          p.name === projectName || p.slug === projectName.toLowerCase().replace(/[^a-z0-9]+/g, '-')
       );
 
       if (!project) {
@@ -64,13 +65,12 @@ export const syncCommand = new Command('sync')
 
         // Create project
         writeMessage('Creating project...');
-        const createResponse = await apiRequest<{ project: { id: string; name: string; slug: string } }>(
-          '/api/v1/projects',
-          {
-            method: 'POST',
-            body: { name: projectName },
-          }
-        );
+        const createResponse = await apiRequest<{
+          project: { id: string; name: string; slug: string };
+        }>('/api/v1/projects', {
+          method: 'POST',
+          body: { name: projectName },
+        });
         project = {
           ...createResponse.project,
           createdAt: new Date().toISOString(),
@@ -101,13 +101,9 @@ export const syncCommand = new Command('sync')
       // Upload index
       writeMessage(`Uploading ${formatBytes(indexSize)}...`);
 
-      const syncResponse = await uploadFile(
-        `/api/v1/projects/${project.id}/sync`,
-        indexPath,
-        {
-          hash: localHash,
-        }
-      ) as SyncResponse;
+      const syncResponse = (await uploadFile(`/api/v1/projects/${project.id}/sync`, indexPath, {
+        hash: localHash,
+      })) as SyncResponse;
 
       writeSuccess('Sync complete!');
       writeMessage('');

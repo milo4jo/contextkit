@@ -12,12 +12,13 @@ import { InvalidUsageError } from '../errors/index.js';
  * Copy text to system clipboard
  */
 async function copyToClipboard(text: string): Promise<void> {
-  const cmd = process.platform === 'darwin' 
-    ? 'pbcopy'
-    : process.platform === 'win32'
-    ? 'clip'
-    : 'xclip -selection clipboard';
-  
+  const cmd =
+    process.platform === 'darwin'
+      ? 'pbcopy'
+      : process.platform === 'win32'
+        ? 'clip'
+        : 'xclip -selection clipboard';
+
   return new Promise((resolve, reject) => {
     const proc = exec(cmd, (err) => {
       if (err) reject(err);

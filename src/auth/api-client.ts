@@ -35,10 +35,7 @@ interface RequestOptions {
 /**
  * Make authenticated API request
  */
-export async function apiRequest<T>(
-  path: string,
-  options: RequestOptions = {}
-): Promise<T> {
+export async function apiRequest<T>(path: string, options: RequestOptions = {}): Promise<T> {
   const apiKey = getApiKey();
   if (!apiKey) {
     throw new UnauthorizedError();
@@ -48,7 +45,7 @@ export async function apiRequest<T>(
   const url = `${apiUrl}${path}`;
 
   const headers: Record<string, string> = {
-    'Authorization': `Bearer ${apiKey}`,
+    Authorization: `Bearer ${apiKey}`,
     'Content-Type': 'application/json',
     ...options.headers,
   };
@@ -59,14 +56,10 @@ export async function apiRequest<T>(
     body: options.body ? JSON.stringify(options.body) : undefined,
   });
 
-  const data = await response.json() as { message?: string; error?: string };
+  const data = (await response.json()) as { message?: string; error?: string };
 
   if (!response.ok) {
-    throw new ApiError(
-      data.message || data.error || 'API request failed',
-      response.status,
-      data
-    );
+    throw new ApiError(data.message || data.error || 'API request failed', response.status, data);
   }
 
   return data as T;
@@ -118,21 +111,17 @@ export async function uploadFile(
   const response = await fetch(url, {
     method: 'POST',
     headers: {
-      'Authorization': `Bearer ${apiKey}`,
+      Authorization: `Bearer ${apiKey}`,
       'Content-Type': `multipart/form-data; boundary=${boundary}`,
       'Content-Length': fullBody.length.toString(),
     },
     body: fullBody,
   });
 
-  const data = await response.json() as { message?: string; error?: string };
+  const data = (await response.json()) as { message?: string; error?: string };
 
   if (!response.ok) {
-    throw new ApiError(
-      data.message || data.error || 'Upload failed',
-      response.status,
-      data
-    );
+    throw new ApiError(data.message || data.error || 'Upload failed', response.status, data);
   }
 
   return data;

@@ -4,10 +4,10 @@
  * Uses sliding window algorithm with Upstash Redis
  */
 
-import { createMiddleware } from "hono/factory";
+import { createMiddleware } from 'hono/factory';
 
-import { PLAN_LIMITS, RateLimitError } from "../types";
-import type { Env, Variables } from "../types";
+import { PLAN_LIMITS, RateLimitError } from '../types';
+import type { Env, Variables } from '../types';
 
 interface RateLimitResult {
   allowed: boolean;
@@ -19,11 +19,7 @@ interface RateLimitResult {
 /**
  * Check rate limit using sliding window
  */
-async function checkRateLimit(
-  env: Env,
-  orgId: string,
-  limit: number
-): Promise<RateLimitResult> {
+async function checkRateLimit(env: Env, orgId: string, limit: number): Promise<RateLimitResult> {
   const now = Date.now();
   const windowMs = 60 * 1000; // 1 minute window
   const windowStart = now - windowMs;
@@ -32,26 +28,26 @@ async function checkRateLimit(
   try {
     // Use Upstash Redis HTTP API
     const response = await fetch(`${env.UPSTASH_REDIS_URL}/pipeline`, {
-      method: "POST",
+      method: 'POST',
       headers: {
         Authorization: `Bearer ${env.UPSTASH_REDIS_TOKEN}`,
-        "Content-Type": "application/json",
+        'Content-Type': 'application/json',
       },
       body: JSON.stringify([
         // Remove old entries outside the window
-        ["ZREMRANGEBYSCORE", key, "0", windowStart.toString()],
+        ['ZREMRANGEBYSCORE', key, '0', windowStart.toString()],
         // Add current request
-        ["ZADD", key, now.toString(), `${now}:${Math.random()}`],
+        ['ZADD', key, now.toString(), `${now}:${Math.random()}`],
         // Count requests in window
-        ["ZCARD", key],
+        ['ZCARD', key],
         // Set expiry on the key
-        ["EXPIRE", key, "120"],
+        ['EXPIRE', key, '120'],
       ]),
     });
 
     if (!response.ok) {
       // If Redis is down, allow the request (fail open)
-      console.error("Redis error:", await response.text());
+      console.error('Redis error:', await response.text());
       return {
         allowed: true,
         limit,
@@ -73,7 +69,7 @@ async function checkRateLimit(
     };
   } catch (error) {
     // Fail open on errors
-    console.error("Rate limit check failed:", error);
+    console.error('Rate limit check failed:', error);
     return {
       allowed: true,
       limit,
@@ -90,8 +86,8 @@ export const rateLimitMiddleware = createMiddleware<{
   Bindings: Env;
   Variables: Variables;
 }>(async (c, next) => {
-  const orgId = c.get("orgId");
-  const plan = c.get("plan");
+  const orgId = c.get('orgId');
+  const plan = c.get('plan');
 
   // Get limit for plan
   const planLimits = PLAN_LIMITS[plan];
@@ -101,13 +97,13 @@ export const rateLimitMiddleware = createMiddleware<{
   const result = await checkRateLimit(c.env, orgId, limit);
 
   // Set rate limit headers
-  c.header("X-RateLimit-Limit", result.limit.toString());
-  c.header("X-RateLimit-Remaining", result.remaining.toString());
-  c.header("X-RateLimit-Reset", result.resetAt.toString());
+  c.header('X-RateLimit-Limit', result.limit.toString());
+  c.header('X-RateLimit-Remaining', result.remaining.toString());
+  c.header('X-RateLimit-Reset', result.resetAt.toString());
 
   if (!result.allowed) {
     const retryAfter = Math.ceil(result.resetAt - Date.now() / 1000);
-    c.header("Retry-After", Math.max(1, retryAfter).toString());
+    c.header('Retry-After', Math.max(1, retryAfter).toString());
     throw new RateLimitError(Math.max(1, retryAfter));
   }
 
@@ -134,21 +130,18 @@ export async function checkMonthlyLimit(
   const usageKey = `usage:${orgId}:${monthKey}`;
 
   try {
-    const response = await fetch(
-      `${env.UPSTASH_REDIS_URL}/get/${usageKey}`,
-      {
-        headers: {
-          Authorization: `Bearer ${env.UPSTASH_REDIS_TOKEN}`,
-        },
-      }
-    );
+    const response = await fetch(`${env.UPSTASH_REDIS_URL}/get/${usageKey}`, {
+      headers: {
+        Authorization: `Bearer ${env.UPSTASH_REDIS_TOKEN}`,
+      },
+    });
 
     if (!response.ok) {
       return { allowed: true, used: 0, limit: monthlyLimit };
     }
 
     const data = (await response.json()) as { result: string | null };
-    const used = parseInt(data.result ?? "0", 10);
+    const used = parseInt(data.result ?? '0', 10);
 
     return {
       allowed: used < monthlyLimit,
@@ -163,11 +156,7 @@ export async function checkMonthlyLimit(
 /**
  * Increment monthly usage counter
  */
-export async function incrementUsage(
-  env: Env,
-  orgId: string,
-  amount = 1
-): Promise<void> {
+export async function incrementUsage(env: Env, orgId: string, amount = 1): Promise<void> {
   const monthKey = new Date().toISOString().slice(0, 7);
   const usageKey = `usage:${orgId}:${monthKey}`;
 
@@ -185,6 +174,6 @@ export async function incrementUsage(
       },
     });
   } catch (error) {
-    console.error("Failed to increment usage:", error);
+    console.error('Failed to increment usage:', error);
   }
 }

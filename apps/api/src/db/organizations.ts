@@ -2,9 +2,9 @@
  * Organization database operations
  */
 
-import { eq } from "drizzle-orm";
-import { getDb, organizations, users, orgMembers } from "./index";
-import type { Env, Organization, Plan } from "../types";
+import { eq } from 'drizzle-orm';
+import { getDb, organizations, users, orgMembers } from './index';
+import type { Env, Organization, Plan } from '../types';
 
 // User type
 interface User {
@@ -27,11 +27,7 @@ export async function getOrCreateUserByClerkId(
   const db = getDb(env);
 
   // Try to find existing user
-  const existing = await db
-    .select()
-    .from(users)
-    .where(eq(users.clerkId, clerkId))
-    .limit(1);
+  const existing = await db.select().from(users).where(eq(users.clerkId, clerkId)).limit(1);
 
   if (existing.length > 0) {
     return {
@@ -91,17 +87,10 @@ export async function getOrganizationByUserId(
 /**
  * Get organization by ID
  */
-export async function getOrganization(
-  env: Env,
-  id: string
-): Promise<Organization | null> {
+export async function getOrganization(env: Env, id: string): Promise<Organization | null> {
   const db = getDb(env);
 
-  const results = await db
-    .select()
-    .from(organizations)
-    .where(eq(organizations.id, id))
-    .limit(1);
+  const results = await db.select().from(organizations).where(eq(organizations.id, id)).limit(1);
 
   if (results.length === 0) return null;
 
@@ -119,10 +108,7 @@ export async function getOrganization(
 /**
  * Get organization by slug
  */
-export async function getOrganizationBySlug(
-  env: Env,
-  slug: string
-): Promise<Organization | null> {
+export async function getOrganizationBySlug(env: Env, slug: string): Promise<Organization | null> {
   const db = getDb(env);
 
   const results = await db
@@ -164,7 +150,7 @@ export async function createOrganization(
     .values({
       name: data.name,
       slug: data.slug,
-      plan: data.plan ?? "free",
+      plan: data.plan ?? 'free',
     })
     .returning();
 
@@ -174,7 +160,7 @@ export async function createOrganization(
   await db.insert(orgMembers).values({
     orgId: org.id,
     userId: data.ownerId,
-    role: "owner",
+    role: 'owner',
   });
 
   return {
