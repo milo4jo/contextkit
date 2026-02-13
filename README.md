@@ -7,7 +7,7 @@
 [![npm downloads](https://img.shields.io/npm/dw/@milo4jo/contextkit)](https://www.npmjs.com/package/@milo4jo/contextkit)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
-**🆕 v0.6.9:** Query history, config presets, interactive mode, and index export/import!
+**🆕 v0.6.10:** Query history, config presets, interactive mode, and index export/import!
 
 ---
 
